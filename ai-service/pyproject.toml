@@ -1,0 +1,77 @@
+[project]
+name = "ai-service"
+version = "0.1.0"
+description = "AI Knowledge Base Service — RAG-powered intelligent Q&A"
+requires-python = ">=3.11"
+
+dependencies = [
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.30.0,<1.0.0",
+    "structlog>=24.0.0,<27.0.0",
+    "pydantic>=2.7.0,<3.0.0",
+    "pydantic-settings>=2.3.0,<3.0.0",
+    "pyyaml>=6.0,<7.0",
+    "sqlalchemy[asyncio]>=2.0.0,<3.0.0",
+    "aiosqlite>=0.20.0",
+    "asyncpg>=0.29.0",
+    "redis>=5.0.0,<9.0.0",
+    "bcrypt>=4.0.0,<6.0.0",
+    "email-validator>=2.0.0",
+    "python-multipart>=0.0.9",
+    "pymupdf>=1.24.0,<2.0.0",
+    "rapidocr-onnxruntime>=1.3.0,<2",
+    "httpx>=0.27.0,<1.0.0",
+    "prometheus-client>=0.20.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cmd*", "internal*", "pkg*", "api*"]
+
+# ── Ruff 配置 ──
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle 错误
+    "W",    # pycodestyle 警告
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "TCH",  # flake8-type-checking
+]
+ignore = [
+    "E501",  # 行过长（交给格式化）
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["cmd", "internal", "pkg", "api"]
+
+# ── MyPy 配置 ──
+[tool.mypy]
+python_version = "3.11"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["redis.*", "bcrypt.*", "fitz.*", "asyncpg.*"]
+ignore_missing_imports = true
+

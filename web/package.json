@@ -1,0 +1,33 @@
+{
+  "name": "ai-kb-retrieval-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI 知识库智能检索平台 - 企业级 Vue3 前端",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.2",
+    "dompurify": "^3.4.12",
+    "element-plus": "^2.7.6",
+    "markdown-it": "^14.3.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.31",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.3",
+    "vue-tsc": "^2.0.26"
+  }
+}

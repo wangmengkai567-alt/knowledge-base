@@ -1,0 +1,20 @@
+# Prometheus 配置 — 抓取 AI Service 指标
+# 由 docker-compose.yaml 挂载到 /etc/prometheus/prometheus.yml
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # AI Service 应用指标
+  - job_name: "ai-service"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["ai-service:8084"]
+        labels:
+          service: "ai-service"
+
+  # Prometheus 自身指标
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

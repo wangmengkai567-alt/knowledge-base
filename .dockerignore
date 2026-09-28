@@ -1,0 +1,63 @@
+# ──────────────────────────────────────────────
+# .dockerignore — 排除不进入 Docker build context 的文件
+# Sprint 16: Docker 化部署
+# ──────────────────────────────────────────────
+
+# 版本控制
+.git
+.gitignore
+
+# IDE / 编辑器
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python 缓存
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+coverage.out
+coverage.html
+
+# 环境 / 密钥（绝对不能进镜像）
+.env
+*.pem
+*.key
+
+# Go 服务（本镜像仅包含 Python AI Service）
+bin/
+cmd/
+internal/
+go.mod
+go.sum
+.golangci.yml
+Makefile
+
+# 设计文档
+design/
+
+# Docker 自身
+deployments/docker/Dockerfile
+deployments/docker/docker-compose.yaml
+
+# 测试脚本（不需要进镜像）
+ai-service/_test_*.py
+ai-service/_check_files.py
+ai-service/_verify_*.py
+
+# 本地数据库文件
+ai-service/data/*.db
+ai-service/data/uploads/*
+
+# 第三方 / 部署辅助
+third_party
+scripts
+test
+api
+configs
+deploy
+migrations

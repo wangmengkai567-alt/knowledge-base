@@ -1,0 +1,96 @@
+# 非密钥默认值。优先级：环境变量 > .env > 本文件 > 代码默认值。
+# 密钥、智谱模型名、Postgres 连接串写在 .env，不要写进本文件。
+
+server:
+  host: "0.0.0.0"
+  http_port: 8084
+  workers: 1
+  debug: false
+  app_title: "AI Knowledge Base Service"
+  app_version: "0.1.0"
+  service_name: "ai-service"
+  cors_origins: []
+  cors_credentials: true
+  cors_methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+  cors_headers: ["Content-Type", "Authorization", "X-Request-ID"]
+
+database:
+  url: "sqlite+aiosqlite:///./data/ai_kb.db"
+  echo: false
+  pool_size: 20
+
+redis:
+  url: "redis://localhost:6379/0"
+  session_prefix: "session:"
+
+session:
+  access_token_expire: 7200
+  refresh_token_expire: 604800
+  token_header: "Authorization"
+  token_prefix: "Bearer "
+
+security:
+  bcrypt_cost: 12
+  max_request_body_size: 10000000
+
+llm:
+  provider: "zhipu"
+  base_url: "https://open.bigmodel.cn/api/paas/v4"
+  chat_model: "glm-4-flash"
+  temperature: 0.1
+  max_tokens: 4096
+  timeout: 30
+  keep_alive: "5m"
+
+rag:
+  chunk_size: 256
+  chunk_overlap: 32
+  rrf_k: 60
+  query_expand_enabled: true
+  max_query_variants: 3
+  context_window: 1
+  rerank_enabled: true
+  rerank_top_k: 5
+  min_relevance: 0.5
+  retriever_provider: "hybrid"
+
+reranker:
+  provider: "zhipu"
+  base_url: "https://open.bigmodel.cn/api/paas/v4"
+  model: "rerank"
+  timeout: 30
+
+keyword_store:
+  bm25_k1: 1.5
+  bm25_b: 0.75
+
+storage:
+  upload_dir: "./data/uploads"
+
+embedding:
+  provider: "zhipu"
+  base_url: "https://open.bigmodel.cn/api/paas/v4"
+  model: "embedding-3"
+  dimension: 1024
+  batch_size: 32
+  timeout: 30
+  keep_alive: "5m"
+  max_concurrency: 5
+
+vector_store:
+  provider: "pgvector"
+
+rate_limit:
+  enabled: true
+  standard_limit: 60
+  # 一次跨库搜索会扇出 N 个 /retrieve + N 个 /rag/query
+  heavy_limit: 120
+  window_seconds: 60
+
+prompt:
+  template_dir: "./internal/prompt/templates"
+  default_rag_template: "rag"
+
+log:
+  level: "INFO"
+  format: "json"

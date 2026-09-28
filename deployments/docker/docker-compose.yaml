@@ -1,0 +1,183 @@
+# ──────────────────────────────────────────────
+# AI Service Docker Compose — 一键启动 Postgres / Redis / 后端
+#
+# 使用：
+#   make docker-up          # 启动全部
+#   make docker-down        # 停止全部
+#   make docker-logs        # 查看日志
+#   make docker-rebuild     # 重新构建并启动
+#
+# Ollama 本地模型（Sprint 20，可选）：
+#   docker compose --profile ollama up -d ollama
+#   docker exec -it ollama ollama pull qwen2.5:7b
+#   docker exec -it ollama ollama pull nomic-embed-text
+#   然后为 ai-service 设置：
+#   AI_LLM__PROVIDER=local
+#   AI_LLM__BASE_URL=http://ollama:11434
+#   AI_EMBEDDING__PROVIDER=local
+#   AI_EMBEDDING__BASE_URL=http://ollama:11434
+# ──────────────────────────────────────────────
+
+services:
+  # ── AI Service 应用 ──
+  ai-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+    container_name: ai-service
+    ports:
+      - "${AI_SERVER__HTTP_PORT:-8084}:8084"
+    environment:
+      - AI_DATABASE__URL=postgresql+asyncpg://ai_kb:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/ai_kb
+      - AI_REDIS__URL=redis://redis:6379/0
+      - AI_LLM__API_KEY=${AI_LLM__API_KEY:-}
+      - AI_LLM__BASE_URL=${AI_LLM__BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
+      - AI_LLM__PROVIDER=${AI_LLM__PROVIDER:-zhipu}
+      - AI_LLM__CHAT_MODEL=${AI_LLM__CHAT_MODEL:-glm-4-flash}
+      - AI_LLM__KEEP_ALIVE=${AI_LLM__KEEP_ALIVE:-5m}
+      - AI_EMBEDDING__PROVIDER=${AI_EMBEDDING__PROVIDER:-zhipu}
+      - AI_EMBEDDING__BASE_URL=${AI_EMBEDDING__BASE_URL:-${AI_LLM__BASE_URL:-https://open.bigmodel.cn/api/paas/v4}}
+      # 优先使用独立的 Embedding Key；未提供时再回退到与 LLM 共用同一 Key。
+      - AI_EMBEDDING__API_KEY=${AI_EMBEDDING__API_KEY:-${AI_LLM__API_KEY:-}}
+      - AI_EMBEDDING__KEEP_ALIVE=${AI_EMBEDDING__KEEP_ALIVE:-5m}
+      - AI_EMBEDDING__MODEL=${AI_EMBEDDING__MODEL:-embedding-3}
+      - AI_EMBEDDING__DIMENSION=${AI_EMBEDDING__DIMENSION:-1024}
+      - AI_EMBEDDING__MAX_CONCURRENCY=${AI_EMBEDDING__MAX_CONCURRENCY:-5}
+      - AI_RERANKER__PROVIDER=${AI_RERANKER__PROVIDER:-zhipu}
+      - AI_RERANKER__API_KEY=${AI_RERANKER__API_KEY:-}
+      - AI_RERANKER__BASE_URL=${AI_RERANKER__BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
+      - AI_RERANKER__MODEL=${AI_RERANKER__MODEL:-rerank}
+      - AI_SERVER__WORKERS=${AI_SERVER__WORKERS:-1}
+      - AI_VECTOR_STORE__PROVIDER=pgvector
+      - AI_SERVER__CORS_ORIGINS=${AI_SERVER__CORS_ORIGINS:-["http://localhost:5173"]}
+    volumes:
+      # 挂当前仓库源码：本机 docker-ai-service 镜像停在 7 月底，且镜像源无法拉取 python:3.11-slim 重建。
+      # 上传文件仍走命名卷，避免 Windows 目录覆盖掉已有文档。
+      - ../../ai-service:/app
+      - ai-uploads:/app/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health/live"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # ── PostgreSQL + pgvector ──
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ai-postgres
+    environment:
+      POSTGRES_DB: ai_kb
+      POSTGRES_USER: ai_kb
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ai-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_kb -d ai_kb"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # ── Database Migration（一次性执行，建表后退出）──
+  migrate:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+    container_name: ai-migrate
+    entrypoint: ["python", "-m", "cmd.migrate"]
+    environment:
+      - AI_DATABASE__URL=postgresql+asyncpg://ai_kb:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/ai_kb
+      - AI_EMBEDDING__DIMENSION=${AI_EMBEDDING__DIMENSION:-1024}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai-network
+    restart: "no"
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    container_name: ai-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ai-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 5
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # ── Ollama（Sprint 20，可选）──
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: ["ollama"]
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # ── Prometheus（可选）──
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: ai-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ai-prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+volumes:
+  ai-uploads:
+    driver: local
+  ai-postgres-data:
+    driver: local
+  ai-redis-data:
+    driver: local
+  ai-prometheus-data:
+    driver: local
+  ollama-data:
+    driver: local
+
+networks:
+  ai-network:
+    driver: bridge

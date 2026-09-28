@@ -1,0 +1,77 @@
+# ──────────────────────────────────────────────
+# .gitignore — AI 知识库（Python + Vue）
+# ──────────────────────────────────────────────
+
+# === IDE / 编辑器 / 本地状态 ===
+.vscode/
+.idea/
+*.swp
+*.swo
+# 本地 IDE 会话/自动化数据（含个人对话与 automations，通常不上传）。
+# 若需把 .codebuddy 纳入仓库，删除下面这一行即可。
+.codebuddy/
+
+# === 操作系统文件 ===
+.DS_Store
+Thumbs.db
+
+# === 构建产物 ===
+/bin/
+*.exe
+*.out
+*.tsbuildinfo
+
+# === Node / 前端 ===
+node_modules/
+web/node_modules/
+web/dist/
+web/.vite/
+web/.output/
+web/coverage/
+*.map
+*.tsbuildinfo
+
+# === Python 缓存与构建产物 ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# === 虚拟环境 ===
+.venv/
+venv/
+env/
+
+# === 环境变量与密钥（绝不入库）===
+# 根目录已存在 .env（含密钥），必须忽略；同时忽略所有层级的 .env 与 .env.*
+.env
+.env.*
+# 但保留示例文件，方便他人复制后填写自己的配置
+!.env.example
+
+# === 本地运行时数据 ===
+ai-service/data/*.db
+ai-service/data/uploads/*
+!ai-service/data/uploads/.gitkeep
+
+# === 临时 sprint 验证脚本（开发期产物）===
+ai-service/_test_sprint*.py
+ai-service/_check_files.py
+ai-service/_verify_sprint*.py
+
+# === 日志 / 本地评测输出 ===
+*.log
+eval*.out
+
+# 忽略任意位置的名为 面试 和 design 的文件夹
+面试/
+design/
