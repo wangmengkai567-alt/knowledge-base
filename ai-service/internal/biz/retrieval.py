@@ -4,7 +4,6 @@ internal/biz/retrieval.py — 向量检索业务逻辑
 RetrievalBiz 负责：
 - retrieve：query → embed → search → enrich → 返回检索结果
 
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
 """
 
 from __future__ import annotations
@@ -14,37 +13,17 @@ import asyncio
 import structlog
 
 from internal.biz.entity import RetrievalResult
-from internal.biz.query_plan import QueryPlan, distinctive_terms, plan_query
+from internal.biz.query_plan import QueryPlan, plan_query
 from internal.biz.repo import ChunkRepo, DocumentRepo, EmbeddingProvider, Reranker, Retriever
 from internal.biz.rrf import reciprocal_rank_fusion
 
 logger = structlog.get_logger()
 
 
-def _mentions_any(result: RetrievalResult, terms: tuple[str, ...]) -> bool:
-    """命中文件名或正文里出现过的对译词，用于重排门槛误杀后的召回。"""
-    blob = f"{result.document_filename}\n{result.chunk_content}".casefold()
-    for term in terms:
-        token = (term or "").strip().casefold()
-        if token and token in blob:
-            return True
-    return False
-
-
-def _filename_mentions_any(result: RetrievalResult, terms: tuple[str, ...]) -> bool:
-    name = (result.document_filename or "").casefold()
-    for term in terms:
-        token = (term or "").strip().casefold()
-        if token and token in name:
-            return True
-    return False
-
-
-
 class RetrievalBiz:
     """向量检索业务逻辑 — 不感知协议、不感知存储。
 
-    注意：检索结果在返回前会经过可选的 Reranker 重排序（Sprint 18 修复）。
+    注意：检索结果在返回前会经过可选的 Reranker 重排序。
     此前 Reranker 只接在 RAG 对话链路，搜索（retrieve）接口完全没用上，
     导致纯向量语义检索对短关键词（如 "docker"）召回不相关文档排在前。
     把 Reranker 接入检索链路后，关键词精确命中会被重排序提到最前。
@@ -68,7 +47,7 @@ class RetrievalBiz:
         self._retriever = retriever
         self._chunk_repo = chunk_repo
         self._document_repo = document_repo
-        # Reranker 重排序（Sprint 18 修复）：仅当开启且实例存在时启用。
+        # Reranker 重排序：仅当开启且实例存在时启用。
         # 与 RAGBiz 一致——Reranker 是增强组件，不应成为检索单点故障。
         self._reranker = reranker
         self._rerank_enabled = rerank_enabled and reranker is not None
@@ -145,7 +124,7 @@ class RetrievalBiz:
                 continue
 
             # 过滤：只返回指定知识库内的结果
-            # Sprint 18-fix (P0)：defense-in-depth——存储层已按 metadata 过滤，
+            # defense-in-depth——存储层已按 metadata 过滤，
             # 这里保留作为二道保险：历史写入时未带 kb_id 的 chunk（旧数据）
             # 可能绕过存储层过滤，在此统一拦截。
             if doc.knowledge_base_id != knowledge_base_id:
@@ -175,39 +154,18 @@ class RetrievalBiz:
             candidates = sorted(doc_best.values(), key=lambda x: x.score, reverse=True)
 
         # 6. 可选重排序：整条 RAG/搜索链路只在此处排一次。
-        # 重排查询带上中英对译词，避免「沙箱」对英文 sandbox 正文被打成低分。
         if self._rerank_enabled and candidates:
-            candidates = await self._maybe_rerank(
-                plan.rerank_query or plan.original,
-                candidates,
-            )
+            candidates = await self._maybe_rerank(plan.original, candidates, top_k)
 
-        # 6.5 相关性门槛：重排模型给出的 0~1 分数低于 min_relevance 则丢弃。
-        # apply_threshold=False 时跳过。RAG 默认开启，避免把噪声送给生成模型。
+        # 6.5 相关性门槛过滤：重排后分数 < min_relevance 的结果丢弃。
+        # 重排分数为 0~1 的关键词覆盖率（含标题/文件名命中）——与查询毫无关键词
+        # 交集的无关文档（如搜 "agent" 时出现的 u.txt、Docker 命令汇总）分数极低，
+        # 应被过滤，避免跨知识库扇出时把各库"最不差"的噪声也展示给用户。
+        # apply_threshold=False 时跳过门槛（仅调用方显式关闭时）。
+        # RAG 默认开启门槛：没有足够相关的资料就不把噪声送给模型编答案。
         if apply_threshold and self._min_relevance > 0:
             before = len(candidates)
-            kept = [r for r in candidates if r.score >= self._min_relevance]
-            anchor_terms = distinctive_terms(plan)
-            if not kept and candidates and anchor_terms:
-                by_name = [r for r in candidates if _filename_mentions_any(r, anchor_terms)]
-                if by_name:
-                    kept = by_name
-                else:
-                    floor = min(self._min_relevance, 0.35)
-                    kept = [
-                        r
-                        for r in candidates
-                        if r.score >= floor and _mentions_any(r, anchor_terms)
-                    ]
-                if kept:
-                    logger.info(
-                        "relevance_threshold_rescued_terms",
-                        min_relevance=self._min_relevance,
-                        before=before,
-                        rescued=len(kept),
-                        anchor_terms=list(anchor_terms),
-                    )
-            candidates = kept
+            candidates = [r for r in candidates if r.score >= self._min_relevance]
             logger.info(
                 "relevance_threshold_filtered",
                 min_relevance=self._min_relevance,
@@ -226,59 +184,8 @@ class RetrievalBiz:
             result_count=len(results),
             query_variants=len(plan.variants),
             lexical=plan.lexical,
-            synonym_terms=list(plan.synonym_terms),
         )
 
-        return results
-
-    async def hydrate_chunk_ids(
-        self,
-        chunk_ids: list[int],
-        knowledge_base_id: int,
-        allowed_kb_ids: list[int] | None = None,
-    ) -> list[RetrievalResult]:
-        """按调用方给出的顺序，把已检索的 chunk id 还原成 RetrievalResult。
-
-        只收 allowed 知识库内的分块，丢弃缺失或越权 id。不再做向量检索。
-        """
-        allowed = set(allowed_kb_ids) if allowed_kb_ids else {knowledge_base_id}
-        ordered: list[int] = []
-        seen: set[int] = set()
-        for chunk_id in chunk_ids:
-            if chunk_id <= 0 or chunk_id in seen:
-                continue
-            seen.add(chunk_id)
-            ordered.append(chunk_id)
-        if not ordered:
-            return []
-
-        chunks = await self._chunk_repo.get_by_ids(ordered)
-        chunk_map = {c.id: c for c in chunks if c.id is not None}
-        documents = await self._document_repo.get_by_ids(
-            list({c.document_id for c in chunks})
-        )
-        doc_map = {d.id: d for d in documents}
-
-        results: list[RetrievalResult] = []
-        for chunk_id in ordered:
-            chunk = chunk_map.get(chunk_id)
-            if chunk is None:
-                continue
-            doc = doc_map.get(chunk.document_id)
-            if doc is None or doc.knowledge_base_id not in allowed:
-                continue
-            results.append(
-                RetrievalResult(
-                    chunk_id=chunk_id,
-                    score=0.0,
-                    chunk_content=chunk.content,
-                    chunk_position=chunk.position,
-                    document_id=doc.id or 0,
-                    document_filename=doc.filename,
-                    knowledge_base_id=doc.knowledge_base_id,
-                    document_updated_at=doc.updated_at or doc.created_at,
-                )
-            )
         return results
 
     async def _multi_retrieve(
@@ -334,13 +241,20 @@ class RetrievalBiz:
         self,
         query: str,
         candidates: list[RetrievalResult],
+        top_k: int,
     ) -> list[RetrievalResult]:
-        """调用重排序模型给全部候选打分。失败时回退到检索原序。"""
+        """可选重排序：rerank_enabled=True 时调用 Reranker，否则直接返回原结果。
+
+        容错策略：Reranker 调用失败时 log warning 并 fallback 到原始检索结果，
+        不阻断检索主链路。Reranker 是增强组件，不应成为单点故障。
+        """
         try:
             reranked = await self._reranker.rerank(
                 query=query,
                 results=candidates,
-                top_k=None,
+                # 检索场景需要返回尽量多的结果（区别于 RAG 仅取 top_n 喂 LLM），
+                # 因此以请求的最终 top_k 作为重排序上限。
+                top_k=top_k,
             )
 
             logger.info(

@@ -1,7 +1,7 @@
 """
 cmd/main.py — 应用启动入口
 
-启动入口：读配置并启动 HTTP 服务。
+只负责拿到组装好的 Server 并启动。
 所有依赖组装逻辑在 wire.py 中完成。
 
 为什么 uvicorn.run 传字符串 "cmd.wire:app" 而非 app 对象？

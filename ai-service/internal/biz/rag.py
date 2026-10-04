@@ -2,13 +2,12 @@
 internal/biz/rag.py — RAG 检索增强生成业务逻辑
 
 RAGBiz 负责：
-- 已有检索分块时直接用于生成；否则才自己检索
+- 检索相关 chunks（委托 RetrievalBiz）
 - 按 context_window 向两侧扩邻块再拼 context
 - 使用 RAG 模板构建 messages
 - 调用 LLM 生成回答；失败时返回「模型回答失败」，不贴检索摘录
 - 无相关资料时不调用 LLM，直接回答「我不知道」
 
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
 """
 
 from __future__ import annotations
@@ -38,7 +37,7 @@ _LLM_FAILED_ANSWER = "模型回答失败"
 
 @dataclass
 class RAGResult:
-    """RAG 查询结果值对象 — Sprint 12。"""
+    """RAG 查询结果值对象 """
 
     answer: str               # LLM 生成的回答
     model: str                # 使用的模型名称
@@ -47,7 +46,7 @@ class RAGResult:
 
 @dataclass
 class RAGStreamEvent:
-    """RAG 流式事件值对象 — Sprint 13。
+    """RAG 流式事件值对象 
 
     通过 event_type 区分：
     - "sources": 检索来源元数据（sources 有值，chunk 为 None）
@@ -60,7 +59,7 @@ class RAGStreamEvent:
 
 
 class RAGBiz:
-    """检索增强生成：有现成分块则直接拼 context 调 LLM，否则先检索。"""
+    """RAG 检索增强生成 — 检索（含可选一次 rerank）→ 拼 context → 调 LLM。"""
 
     def __init__(
         self,
@@ -108,34 +107,14 @@ class RAGBiz:
         query: str,
         knowledge_base_id: int,
         top_k: int,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> list[RetrievalResult]:
-        if chunk_ids is not None:
-            return await self._retrieval_biz.hydrate_chunk_ids(
-                chunk_ids[:top_k],
-                knowledge_base_id,
-                allowed_kb_ids=allowed_kb_ids,
-            )
-        kb_ids: list[int] = []
-        for kb_id in allowed_kb_ids or [knowledge_base_id]:
-            if kb_id > 0 and kb_id not in kb_ids:
-                kb_ids.append(kb_id)
-        if not kb_ids:
-            kb_ids = [knowledge_base_id]
-        merged: list[RetrievalResult] = []
-        for kb_id in kb_ids:
-            merged.extend(
-                await self._retrieval_biz.retrieve(
-                    query=query,
-                    knowledge_base_id=kb_id,
-                    top_k=top_k,
-                    apply_threshold=True,
-                    dedupe_by_document=False,
-                )
-            )
-        merged.sort(key=lambda item: item.score, reverse=True)
-        return merged[:top_k]
+        return await self._retrieval_biz.retrieve(
+            query=query,
+            knowledge_base_id=knowledge_base_id,
+            top_k=top_k,
+            apply_threshold=True,
+            dedupe_by_document=False,
+        )
 
     def _build_messages(self, query: str, context: str) -> list[dict[str, str]]:
         template = self._prompt_manager.get_template(self._default_rag_template)
@@ -154,13 +133,9 @@ class RAGBiz:
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> RAGResult:
-        """RAG 查询：已有分块则直接生成，否则先检索再生成。"""
-        sources = await self._retrieve_sources(
-            query, knowledge_base_id, top_k, chunk_ids=chunk_ids, allowed_kb_ids=allowed_kb_ids
-        )
+        """RAG 查询：检索 → 拼 context → 调 LLM → 返回回答 + 来源。"""
+        sources = await self._retrieve_sources(query, knowledge_base_id, top_k)
 
         logger.info(
             "rag_retrieval_completed",
@@ -222,13 +197,9 @@ class RAGBiz:
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> AsyncIterator[RAGStreamEvent]:
-        """RAG 流式查询：已有分块则直接生成，否则先检索再生成。"""
-        sources = await self._retrieve_sources(
-            query, knowledge_base_id, top_k, chunk_ids=chunk_ids, allowed_kb_ids=allowed_kb_ids
-        )
+        """RAG 流式查询：检索 → 拼 context → 调 LLM 流式生成。"""
+        sources = await self._retrieve_sources(query, knowledge_base_id, top_k)
 
         logger.info(
             "rag_stream_retrieval_completed",

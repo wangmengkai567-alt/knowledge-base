@@ -221,7 +221,7 @@ class DocumentBiz:
                 content_length=len(parsed_content),
             )
 
-            # 解析成功后触发分块（Sprint 6）
+            # 解析成功后触发分块
             if self._on_parse_success is not None:
                 try:
                     await self._on_parse_success(document_id, parsed_content)
@@ -299,7 +299,7 @@ class DocumentBiz:
                 error=str(e),
             )
 
-        # 级联删除分块（Sprint 6）
+        # 级联删除分块
         if self._on_document_delete is not None:
             try:
                 await self._on_document_delete(document_id)

@@ -5,7 +5,6 @@ EmbeddingBiz 负责：
 - embed_document：对文档的所有分块进行嵌入（调 EmbeddingProvider → 存 VectorStore）
 - delete_embeddings：删除文档的向量（文档删除时级联调用）
 
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
 """
 
 from __future__ import annotations
@@ -43,7 +42,6 @@ class EmbeddingBiz:
         self._embedding_provider = embedding_provider
         self._vector_store = vector_store
         self._batch_size = batch_size
-        # Sprint 18：混合检索时注入，与 vector_store 同步维护关键词索引。
         # None 时所有 keyword 相关操作跳过（零运行时开销）。
         self._keyword_store = keyword_store
         # Sprint 18-fix (P0)：用于向 metadata 注入 knowledge_base_id，
@@ -100,7 +98,6 @@ class EmbeddingBiz:
                 all_vectors.extend(batch_result.vectors)
 
             # 存入向量库
-            # Sprint 18-fix (P0)：写入 knowledge_base_id 到 metadata，
             # 让 Retriever 能按 kb 过滤，实现多知识库隔离。
             kb_id = await self._resolve_kb_id(document_id)
             metadatas = [
@@ -118,7 +115,7 @@ class EmbeddingBiz:
                 metadatas=metadatas,
             )
 
-            # Sprint 18：同步写入关键词索引（混合检索使用）
+            # 同步写入关键词索引（混合检索使用）
             # 关键词索引写入失败不影响向量库，降级为纯向量检索。
             if self._keyword_store is not None:
                 try:

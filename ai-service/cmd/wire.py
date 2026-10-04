@@ -1,7 +1,7 @@
 """
 cmd/wire.py — 依赖注入编排
 
-所有依赖组装集中在一处。
+所有依赖组装集中在一处，整条链路一目了然。
 组装顺序从底层到顶层：Config → Logging → DB → Redis → Repo → Biz → Service → Server。
 
 设计要点：
@@ -14,12 +14,15 @@ cmd/wire.py — 依赖注入编排
 
 from __future__ import annotations
 
+import os
+
 import redis.asyncio as aioredis
 import structlog
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from internal.biz.auth import AuthBiz
+from internal.biz.chat import ChatBiz
 from internal.biz.chunk import ChunkBiz
 from internal.biz.document import DocumentBiz
 from internal.biz.embedding import EmbeddingBiz
@@ -47,6 +50,8 @@ from internal.prompt.manager import PromptManager
 from internal.server.http import HTTPServer
 from internal.server.middleware.rate_limit import create_rate_limiter, RateLimitSettings
 from internal.service.auth import AuthService
+from internal.service.chat import ChatService
+from internal.service.embedding import EmbeddingService
 from internal.service.rag import RAGService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
@@ -58,7 +63,14 @@ logger = structlog.get_logger()
 
 
 def _create_redis_client(redis_url: str) -> aioredis.Redis:
-    """创建带连接池的 Redis 客户端。"""
+    
+    if os.environ.get("AI_ENV") == "dev":
+        try:
+            import fakeredis.aioredis
+            return fakeredis.aioredis.FakeRedis(decode_responses=True)
+        except ImportError:
+            pass
+
     pool = aioredis.ConnectionPool.from_url(
         redis_url,
         decode_responses=True,
@@ -103,17 +115,20 @@ def create_app() -> FastAPI:
     # ── Document 链路 ──
     document_repo = create_document_repo(session_factory)
     file_storage_repo = create_file_storage_repo(
+        provider=settings.storage.provider,
         upload_dir=settings.storage.upload_dir,
     )
 
     # ── Chunk 链路（Sprint 6）──
     chunk_repo = create_chunk_repo(session_factory)
     text_chunker = create_text_chunker(
+        strategy=settings.rag.chunk_strategy,
         chunk_size=settings.rag.chunk_size,
         chunk_overlap=settings.rag.chunk_overlap,
+        parent_chunk_size=settings.rag.parent_chunk_size,
     )
 
-    # ── LLM & Prompt（RAG 问答）──
+    # ── LLM & Prompt（供分块摘要与对话复用，需在 ChunkBiz 前创建）──
     prompt_manager = PromptManager(template_dir=settings.prompt.template_dir)
     prompt_manager.load_all()
 
@@ -160,16 +175,18 @@ def create_app() -> FastAPI:
         dimension=settings.embedding.dimension,
     )
 
-    # ── Keyword Store（Sprint 18）──
+
     # 仅当启用 hybrid 检索时创建，避免纯向量场景的内存开销。
     keyword_store = None
     if settings.rag.retriever_provider == "hybrid":
         keyword_store = create_keyword_store(
+            provider=settings.keyword_store.provider,
             k1=settings.keyword_store.bm25_k1,
             b=settings.keyword_store.bm25_b,
         )
         logger.info(
             "keyword_store_initialized",
+            provider=settings.keyword_store.provider,
             k1=settings.keyword_store.bm25_k1,
             b=settings.keyword_store.bm25_b,
         )
@@ -191,6 +208,8 @@ def create_app() -> FastAPI:
         chunker=text_chunker,
         on_chunk_success=embedding_biz.embed_document,
         on_chunk_delete=embedding_biz.delete_embeddings,
+        llm_provider=llm_provider,
+        prompt_manager=prompt_manager,
     )
     # ChunkService 需要 DocumentBiz 做所有权校验，先创建 document_biz 再组装
     document_biz = DocumentBiz(
@@ -213,31 +232,22 @@ def create_app() -> FastAPI:
         document_repo=document_repo,
         document_biz=document_biz,
         default_embedding_model=settings.embedding.model,
+        default_chunk_strategy=settings.rag.chunk_strategy,
         default_chunk_size=settings.rag.chunk_size,
         default_chunk_overlap=settings.rag.chunk_overlap,
     )
     knowledge_base_service = KnowledgeBaseService(kb_biz=kb_biz)
 
-    # ── Retrieval 链路（Sprint 8 / Sprint 18）──
-    # ── Reranker（Sprint 14 / Sprint 18 修复）──
+    # ── Retrieval 链路──
+    # ── Reranker ──
     # 提前在 Retrieval 链路之前创建，使搜索（retrieve）与 RAG 共用同一 Reranker。
     # 仅当开启 rerank 时创建实例；未开启则 reranker=None，检索/重排均优雅降级。
     reranker = None
     if settings.rag.rerank_enabled:
-        reranker = create_reranker(
-            provider=settings.reranker.provider,
-            base_url=settings.reranker.base_url,
-            api_key=settings.reranker.api_key,
-            model=settings.reranker.model,
-            timeout=settings.reranker.timeout,
-        )
-        logger.info(
-            "reranker_initialized",
-            provider=settings.reranker.provider,
-            model=settings.reranker.model,
-        )
+        reranker = create_reranker()
+        logger.info("reranker_initialized", provider="memory")
 
-    # Sprint 18：根据 retriever_provider 选择 vector 或 hybrid 策略。
+    # 根据 retriever_provider 选择 vector 或 hybrid 策略。
     retriever = create_retriever(
         strategy=settings.rag.retriever_provider,
         vector_store=vector_store,
@@ -252,13 +262,13 @@ def create_app() -> FastAPI:
         candidate_multiplier=settings.rag.rrf_candidate_multiplier if settings.rag.retriever_provider == "hybrid" else None,
         query_expand=settings.rag.query_expand_enabled,
         context_window=settings.rag.context_window,
+        chunk_strategy=settings.rag.chunk_strategy,
     )
     retrieval_biz = RetrievalBiz(
         embedding_provider=embedding_provider,
         retriever=retriever,
         chunk_repo=chunk_repo,
         document_repo=document_repo,
-        # Sprint 18 修复：把 Reranker 接入搜索（retrieve）链路，
         # 否则纯向量语义检索对短关键词（如 "docker"）会召回不相关文档排在前。
         reranker=reranker,
         rerank_enabled=settings.rag.rerank_enabled,
@@ -270,7 +280,16 @@ def create_app() -> FastAPI:
     )
     retrieval_service = RetrievalService(retrieval_biz=retrieval_biz)
 
-    # ── RAG 链路（Sprint 12）──
+    # ── Chat 链路（Sprint 10）──
+    # 复用上方已创建的 llm_provider 与 prompt_manager
+    chat_biz = ChatBiz(
+        llm_provider=llm_provider,
+        prompt_manager=prompt_manager,
+        default_template=settings.prompt.default_chat_template,
+    )
+    chat_service = ChatService(chat_biz=chat_biz)
+
+    # ── RAG 链路 ──
     rag_biz = RAGBiz(
         retrieval_biz=retrieval_biz,
         llm_provider=llm_provider,
@@ -281,10 +300,15 @@ def create_app() -> FastAPI:
     )
     rag_service = RAGService(rag_biz=rag_biz)
 
-    # ── Rate Limiter（Sprint 15）──
+    # ── Embedding 独立 API──
+    # 依赖 embedding_biz.embed_texts()，与 chat / rag 等 Service 保持三段式分层一致（Review 修复）。
+    embedding_service = EmbeddingService(embedding_biz=embedding_biz)
+
+    # ── Rate Limiter──
+    use_redis_limiter = os.environ.get("AI_ENV") != "dev"
     rate_limiter = create_rate_limiter(
-        use_redis=True,
-        redis_client=redis_client,
+        use_redis=use_redis_limiter,
+        redis_client=redis_client if use_redis_limiter else None,
     )
     rate_limit_settings = RateLimitSettings(
         rate_limiter=rate_limiter,
@@ -296,7 +320,7 @@ def create_app() -> FastAPI:
     logger.info(
         "rate_limiter_initialized",
         enabled=rate_limit_settings.enabled,
-        backend="redis",
+        backend="redis" if use_redis_limiter else "memory",
         standard_limit=rate_limit_settings.standard_limit,
         heavy_limit=rate_limit_settings.heavy_limit,
     )
@@ -307,15 +331,17 @@ def create_app() -> FastAPI:
         auth_service=auth_service,
         session_manager=session_manager,
         session_config=settings.session,
+        security_config=settings.security,
         document_service=document_service,
         knowledge_base_service=knowledge_base_service,
         chunk_service=chunk_service,
         retrieval_service=retrieval_service,
+        chat_service=chat_service,
         rag_service=rag_service,
+        embedding_service=embedding_service,
         session_factory=session_factory,
         engine=engine,
         rate_limit_settings=rate_limit_settings,
-        # Sprint 18 修复：传入 EmbeddingBiz，用于启动时重建索引。
         # memory 向量库为易失结构，重启后清空，需从 DB 重建；
         # pgvector 持久化则无需重建向量，只重建内存关键词索引。
         embedding_biz=embedding_biz,

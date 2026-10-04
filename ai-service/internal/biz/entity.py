@@ -97,6 +97,8 @@ class Chunk:
     document_id: int
     position: int           # 第几块（从 0 开始）
     content: str            # 分块文本内容
+    summary: str | None = None  # AI 生成的知识块摘要（解析时生成，可能为空）
+    related_questions: list[str] | None = None  # 可被该块回答的示例问句
     token_count: int = 0    # token 估算值（与分块器使用同一估算器）
     embedding_status: EmbeddingStatus = EmbeddingStatus.PENDING
     created_at: datetime | None = None
@@ -139,7 +141,7 @@ class ChatResult:
 
 @dataclass
 class ChatChunk:
-    """LLM 流式对话分片值对象 — Sprint 11。
+    """LLM 流式对话分片值对象 
 
     每个 chunk 包含一小段增量内容（delta），
     客户端逐步接收并拼接为完整回复。
@@ -152,7 +154,7 @@ class ChatChunk:
 
 @dataclass
 class EmbeddingUsage:
-    """嵌入 API token 用量 — Sprint 17 重构。
+    """嵌入 API token 用量 
 
     来源优先级：Provider API 真实 usage > 基于字符数的估算值。
     Embedding 场景下 prompt_tokens 与 total_tokens 通常相等。
@@ -164,7 +166,7 @@ class EmbeddingUsage:
 
 @dataclass
 class EmbeddingResult:
-    """嵌入结果值对象 — Sprint 17 重构。
+    """嵌入结果值对象 
 
     封装向量列表 + 模型元信息 + token 用量，
     避免 Provider 接口丢失 usage 导致 Service 层只能估算。
