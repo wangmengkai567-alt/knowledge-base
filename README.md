@@ -170,6 +170,7 @@ http://localhost:5173 ，先注册再登录。Vite 把 `/api` 代理到 `http://
 docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d --build
 ```
 
+
 | 服务 | 地址 |
 |------|------|
 | ai-service | http://localhost:8084 |

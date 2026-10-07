@@ -22,7 +22,6 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from internal.biz.auth import AuthBiz
-from internal.biz.chat import ChatBiz
 from internal.biz.chunk import ChunkBiz
 from internal.biz.document import DocumentBiz
 from internal.biz.embedding import EmbeddingBiz
@@ -50,8 +49,6 @@ from internal.prompt.manager import PromptManager
 from internal.server.http import HTTPServer
 from internal.server.middleware.rate_limit import create_rate_limiter, RateLimitSettings
 from internal.service.auth import AuthService
-from internal.service.chat import ChatService
-from internal.service.embedding import EmbeddingService
 from internal.service.rag import RAGService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
@@ -115,17 +112,14 @@ def create_app() -> FastAPI:
     # ── Document 链路 ──
     document_repo = create_document_repo(session_factory)
     file_storage_repo = create_file_storage_repo(
-        provider=settings.storage.provider,
         upload_dir=settings.storage.upload_dir,
     )
 
     # ── Chunk 链路（Sprint 6）──
     chunk_repo = create_chunk_repo(session_factory)
     text_chunker = create_text_chunker(
-        strategy=settings.rag.chunk_strategy,
         chunk_size=settings.rag.chunk_size,
         chunk_overlap=settings.rag.chunk_overlap,
-        parent_chunk_size=settings.rag.parent_chunk_size,
     )
 
     # ── LLM & Prompt（供分块摘要与对话复用，需在 ChunkBiz 前创建）──
@@ -180,13 +174,11 @@ def create_app() -> FastAPI:
     keyword_store = None
     if settings.rag.retriever_provider == "hybrid":
         keyword_store = create_keyword_store(
-            provider=settings.keyword_store.provider,
             k1=settings.keyword_store.bm25_k1,
             b=settings.keyword_store.bm25_b,
         )
         logger.info(
             "keyword_store_initialized",
-            provider=settings.keyword_store.provider,
             k1=settings.keyword_store.bm25_k1,
             b=settings.keyword_store.bm25_b,
         )
@@ -208,8 +200,6 @@ def create_app() -> FastAPI:
         chunker=text_chunker,
         on_chunk_success=embedding_biz.embed_document,
         on_chunk_delete=embedding_biz.delete_embeddings,
-        llm_provider=llm_provider,
-        prompt_manager=prompt_manager,
     )
     # ChunkService 需要 DocumentBiz 做所有权校验，先创建 document_biz 再组装
     document_biz = DocumentBiz(
@@ -232,7 +222,6 @@ def create_app() -> FastAPI:
         document_repo=document_repo,
         document_biz=document_biz,
         default_embedding_model=settings.embedding.model,
-        default_chunk_strategy=settings.rag.chunk_strategy,
         default_chunk_size=settings.rag.chunk_size,
         default_chunk_overlap=settings.rag.chunk_overlap,
     )
@@ -244,8 +233,14 @@ def create_app() -> FastAPI:
     # 仅当开启 rerank 时创建实例；未开启则 reranker=None，检索/重排均优雅降级。
     reranker = None
     if settings.rag.rerank_enabled:
-        reranker = create_reranker()
-        logger.info("reranker_initialized", provider="memory")
+        reranker = create_reranker(
+            provider=settings.reranker.provider,
+            base_url=settings.reranker.base_url,
+            api_key=settings.reranker.api_key,
+            model=settings.reranker.model,
+            timeout=settings.reranker.timeout,
+        )
+        logger.info("reranker_initialized", provider=settings.reranker.provider)
 
     # 根据 retriever_provider 选择 vector 或 hybrid 策略。
     retriever = create_retriever(
@@ -262,7 +257,6 @@ def create_app() -> FastAPI:
         candidate_multiplier=settings.rag.rrf_candidate_multiplier if settings.rag.retriever_provider == "hybrid" else None,
         query_expand=settings.rag.query_expand_enabled,
         context_window=settings.rag.context_window,
-        chunk_strategy=settings.rag.chunk_strategy,
     )
     retrieval_biz = RetrievalBiz(
         embedding_provider=embedding_provider,
@@ -280,15 +274,6 @@ def create_app() -> FastAPI:
     )
     retrieval_service = RetrievalService(retrieval_biz=retrieval_biz)
 
-    # ── Chat 链路（Sprint 10）──
-    # 复用上方已创建的 llm_provider 与 prompt_manager
-    chat_biz = ChatBiz(
-        llm_provider=llm_provider,
-        prompt_manager=prompt_manager,
-        default_template=settings.prompt.default_chat_template,
-    )
-    chat_service = ChatService(chat_biz=chat_biz)
-
     # ── RAG 链路 ──
     rag_biz = RAGBiz(
         retrieval_biz=retrieval_biz,
@@ -299,10 +284,6 @@ def create_app() -> FastAPI:
         context_window=settings.rag.context_window,
     )
     rag_service = RAGService(rag_biz=rag_biz)
-
-    # ── Embedding 独立 API──
-    # 依赖 embedding_biz.embed_texts()，与 chat / rag 等 Service 保持三段式分层一致（Review 修复）。
-    embedding_service = EmbeddingService(embedding_biz=embedding_biz)
 
     # ── Rate Limiter──
     use_redis_limiter = os.environ.get("AI_ENV") != "dev"
@@ -331,14 +312,11 @@ def create_app() -> FastAPI:
         auth_service=auth_service,
         session_manager=session_manager,
         session_config=settings.session,
-        security_config=settings.security,
         document_service=document_service,
         knowledge_base_service=knowledge_base_service,
         chunk_service=chunk_service,
         retrieval_service=retrieval_service,
-        chat_service=chat_service,
         rag_service=rag_service,
-        embedding_service=embedding_service,
         session_factory=session_factory,
         engine=engine,
         rate_limit_settings=rate_limit_settings,
