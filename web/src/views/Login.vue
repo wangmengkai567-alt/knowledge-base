@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Message, Lock, User, ChatDotRound } from '@element-plus/icons-vue'
+import { Message, Lock, User, View, Hide } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import BrandMark from '@/components/Common/BrandMark.vue'
@@ -21,6 +21,7 @@ const form = reactive({
   remember: !!localStorage.getItem(REMEMBER_KEY),
 })
 const loading = ref(false)
+const showPwd = ref(false)
 const tab = ref<'account' | 'otp'>('account')
 
 onMounted(() => {
@@ -72,29 +73,52 @@ function soon() {
 
     <div class="login-grid">
       <section class="login-copy">
+        <div class="login-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M5 12h3l2-7 4 14 2-7h3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          智能 · 高效 · 专业
+        </div>
         <h1 class="login-copy__title">
           AI 驱动的<span>知识管理平台</span>
         </h1>
         <p class="login-copy__desc">
-          整合多源知识，构建专属知识库，让信息检索更智能、让知识管理更简单。
+          整合多源知识，构建专属知识库，让信息检索更智能，让知识管理更简单。
         </p>
         <ul class="login-feats">
           <li>
-            <span class="login-feats__icon">📄</span>
+            <span class="login-feats__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M7 3.5h7.2L19 8.2V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V5a1.5 1.5 0 0 1 1-1.5Z" />
+                <path d="M14 3.5V8h4.5M8.5 12h7M8.5 16h5" stroke-linecap="round" />
+              </svg>
+            </span>
             <div>
               <b>多源接入</b>
               <p>支持多种文档格式</p>
             </div>
           </li>
           <li>
-            <span class="login-feats__icon">🔍</span>
+            <span class="login-feats__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="M16 16.5 20 20.5" stroke-linecap="round" />
+              </svg>
+            </span>
             <div>
               <b>智能检索</b>
               <p>语义理解，精准匹配</p>
             </div>
           </li>
           <li>
-            <span class="login-feats__icon">✦</span>
+            <span class="login-feats__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path
+                  d="M12 3.5 13.4 8h4.7L15 11.1 16.5 16 12 13.2 7.5 16 9 11.1 5.9 8h4.7L12 3.5Z"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
             <div>
               <b>AI 助手</b>
               <p>知识问答，深度思考</p>
@@ -119,26 +143,32 @@ function soon() {
         <template v-if="tab === 'account'">
           <label class="login-field">
             <el-icon><User /></el-icon>
-            <input v-model="form.email" type="text" placeholder="请输入邮箱或用户名" autocomplete="username" />
+            <input v-model="form.email" type="text" placeholder="请输入邮箱 / 手机号" autocomplete="username" />
           </label>
           <label class="login-field">
             <el-icon><Lock /></el-icon>
             <input
               v-model="form.password"
-              type="password"
+              :type="showPwd ? 'text' : 'password'"
               placeholder="请输入密码"
               autocomplete="current-password"
               @keyup.enter="onSubmit"
             />
+            <button
+              class="login-eye"
+              type="button"
+              :aria-label="showPwd ? '隐藏密码' : '显示密码'"
+              @click="showPwd = !showPwd"
+            >
+              <el-icon><Hide v-if="showPwd" /><View v-else /></el-icon>
+            </button>
           </label>
           <div class="mb-4 flex items-center justify-between text-[12px] text-ink-500">
             <label class="inline-flex cursor-pointer items-center gap-1.5">
               <input v-model="form.remember" type="checkbox" class="accent-brand-600" />
               记住账号
             </label>
-            <button type="button" class="text-brand-600 hover:underline" @click="soon">
-              忘记密码?
-            </button>
+            <button type="button" class="text-brand-600 hover:underline" @click="soon">忘记密码?</button>
           </div>
         </template>
         <template v-else>
@@ -166,8 +196,12 @@ function soon() {
               />
             </svg>
           </button>
-          <button class="login-social" type="button" title="微信" @click="soon">
-            <el-icon><ChatDotRound /></el-icon>
+          <button class="login-social login-social--wechat" type="button" title="微信" @click="soon">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
+              <path
+                d="M9.5 4.2c-4.1 0-7.4 2.8-7.4 6.3 0 2 1.1 3.8 2.9 5l-.7 2.2 2.5-1.3c.8.2 1.7.4 2.6.4.3 0 .5 0 .8 0A5.3 5.3 0 0 1 9 12.3c0-3.4 3.2-6.1 7.2-6.3C15.3 4.4 12.6 4.2 9.5 4.2Zm-2 4.1a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm4.1 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm10.8 4c0-3.1-3-5.6-6.6-5.6s-6.6 2.5-6.6 5.6 3 5.6 6.6 5.6c.7 0 1.4-.1 2.1-.3l2.1 1.1-.6-1.9c1.5-1 2.4-2.5 2.4-4.5Zm-8.6-1a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Zm4 0a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Z"
+              />
+            </svg>
           </button>
           <button class="login-social" type="button" title="邮箱" @click="soon">
             <el-icon><Message /></el-icon>
@@ -175,9 +209,7 @@ function soon() {
         </div>
         <p class="mt-5 text-center text-[12px] text-ink-400">
           还没有账号？
-          <button type="button" class="font-medium text-brand-600 hover:underline" @click="soon">
-            立即注册
-          </button>
+          <button type="button" class="login-register" @click="soon">立即注册</button>
         </p>
       </form>
     </div>

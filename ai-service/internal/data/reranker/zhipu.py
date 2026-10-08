@@ -13,6 +13,7 @@ Authorization: Bearer {api_key}
 
 from __future__ import annotations
 
+import math
 import uuid
 
 import httpx
@@ -20,7 +21,18 @@ import structlog
 
 from internal.biz.entity import RetrievalResult
 from internal.biz.repo import Reranker
+from internal.data.reranker.memory import MemoryReranker
 from pkg.errors.base import RAGError
+
+# 智谱在 return_raw_scores=false 时会把本批分数归一化，无关文档也会全是 ~1.0，
+# 检索门槛 min_relevance 因此失效。分数挤在 1 附近时回退到词面打分。
+_COLLAPSE_MIN_TOP = 0.9
+_COLLAPSE_MAX_SPREAD = 0.02
+# return_raw_scores=true 时分数大约是 10+ 的 logit：实测无关约 10–13，对题约 16–22。
+# 压到 0–1 后才能和配置里的 min_relevance=0.5 比较。
+_RAW_SCORE_UNIT = 1.5
+_RAW_SCORE_MIDPOINT = 16.0
+_RAW_SCORE_STEEPNESS = 0.4
 
 logger = structlog.get_logger()
 
@@ -89,7 +101,7 @@ class ZhipuReranker(Reranker):
             "query": _clip(query),
             "documents": documents,
             "return_documents": False,
-            "return_raw_scores": False,
+            "return_raw_scores": True,
             "request_id": request_id,
         }
         if top_n > 0:
@@ -160,6 +172,8 @@ class ZhipuReranker(Reranker):
             score = float(item.get("relevance_score") or 0.0)
             reranked.append(results[idx].with_score(score))
 
+        reranked = await _calibrate_zhipu_scores(query, results, reranked, top_n)
+
         usage = data.get("usage") or {}
         logger.info(
             "zhipu_rerank_completed",
@@ -172,6 +186,44 @@ class ZhipuReranker(Reranker):
             request_id=data.get("request_id") or request_id,
         )
         return reranked
+
+
+def _scores_collapsed(scores: list[float]) -> bool:
+    if len(scores) < 2:
+        return False
+    return max(scores) >= _COLLAPSE_MIN_TOP and (max(scores) - min(scores)) < _COLLAPSE_MAX_SPREAD
+
+
+def _squash_raw_score(raw: float) -> float:
+    return round(1.0 / (1.0 + math.exp(-_RAW_SCORE_STEEPNESS * (raw - _RAW_SCORE_MIDPOINT))), 6)
+
+
+async def _calibrate_zhipu_scores(
+    query: str,
+    original: list[RetrievalResult],
+    reranked: list[RetrievalResult],
+    top_n: int,
+) -> list[RetrievalResult]:
+    scores = [item.score for item in reranked]
+    if not scores:
+        return reranked
+    if max(scores) <= _RAW_SCORE_UNIT:
+        if _scores_collapsed(scores):
+            logger.warning(
+                "zhipu_rerank_scores_collapsed_fallback_lexical",
+                model="rerank",
+                top_score=max(scores),
+                spread=max(scores) - min(scores),
+            )
+            return await MemoryReranker().rerank(query, original, top_k=top_n or None)
+        return reranked
+    calibrated = [item.with_score(_squash_raw_score(item.score)) for item in reranked]
+    logger.info(
+        "zhipu_rerank_raw_scores_squashed",
+        raw_top=max(scores),
+        unit_top=calibrated[0].score if calibrated else 0.0,
+    )
+    return calibrated
 
 
 def _error_message(response: httpx.Response) -> str:

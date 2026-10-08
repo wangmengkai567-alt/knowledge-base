@@ -188,6 +188,69 @@ class RetrievalBiz:
 
         return results
 
+    async def refine_for_generation(
+        self,
+        query: str,
+        sources: list[RetrievalResult],
+        top_k: int,
+    ) -> list[RetrievalResult]:
+        """对已选定的 chunk 再打相关性分，低于门槛的不送给生成。"""
+        if not sources:
+            return []
+        candidates = list(sources)
+        if self._rerank_enabled and candidates:
+            candidates = await self._maybe_rerank(query, candidates, top_k)
+        if self._min_relevance > 0:
+            before = len(candidates)
+            candidates = [item for item in candidates if item.score >= self._min_relevance]
+            logger.info(
+                "generation_relevance_threshold_filtered",
+                min_relevance=self._min_relevance,
+                before=before,
+                after=len(candidates),
+            )
+        return candidates[:top_k]
+
+    async def load_by_ids(
+        self,
+        chunk_ids: list[int],
+        allowed_kb_ids: list[int] | None = None,
+    ) -> list[RetrievalResult]:
+        """按已检索的 chunk_id 顺序组装 RAG 来源，不再检索。"""
+        if not chunk_ids:
+            return []
+        chunks = await self._chunk_repo.get_by_ids(chunk_ids)
+        chunk_map = {c.id: c for c in chunks}
+        documents = await self._document_repo.get_by_ids(
+            list({c.document_id for c in chunks})
+        )
+        doc_map = {d.id: d for d in documents}
+        allowed = set(allowed_kb_ids) if allowed_kb_ids else None
+        results: list[RetrievalResult] = []
+        n = max(len(chunk_ids), 1)
+        for i, cid in enumerate(chunk_ids):
+            chunk = chunk_map.get(cid)
+            if chunk is None or chunk.id is None:
+                continue
+            doc = doc_map.get(chunk.document_id)
+            if doc is None or doc.id is None:
+                continue
+            if allowed is not None and doc.knowledge_base_id not in allowed:
+                continue
+            results.append(
+                RetrievalResult(
+                    chunk_id=chunk.id,
+                    score=round(1.0 - (i / n) * 0.5, 6),
+                    chunk_content=chunk.content,
+                    chunk_position=chunk.position,
+                    document_id=doc.id,
+                    document_filename=doc.filename,
+                    knowledge_base_id=doc.knowledge_base_id,
+                    document_updated_at=doc.updated_at or doc.created_at,
+                )
+            )
+        return results
+
     async def _multi_retrieve(
         self,
         plan: QueryPlan,

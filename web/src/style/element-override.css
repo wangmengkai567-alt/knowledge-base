@@ -37,7 +37,15 @@
   transform: translateY(0) scale(0.98);
 }
 
+.el-button {
+  --el-button-border-color: #e2e8f0;
+  --el-button-hover-border-color: #c7d2fe;
+  --el-button-active-border-color: #a5b4fc;
+}
 .el-button--primary {
+  --el-button-border-color: transparent;
+  --el-button-hover-border-color: transparent;
+  --el-button-active-border-color: transparent;
   background: linear-gradient(180deg, #6366f1, #4f46e5);
   border: 0;
   box-shadow: 0 6px 16px rgba(79, 70, 229, 0.26);
