@@ -14,10 +14,16 @@ import structlog
 
 from internal.biz.entity import RetrievalResult
 from internal.biz.query_plan import QueryPlan, plan_query
+from internal.biz.relevance import apply_relevance_gate
 from internal.biz.repo import ChunkRepo, DocumentRepo, EmbeddingProvider, Reranker, Retriever
 from internal.biz.rrf import reciprocal_rank_fusion
 
 logger = structlog.get_logger()
+
+# 重排/闸门前至少留够候选。过小的融合截断会让「stdin/stderr」这类
+# 在多篇笔记里都出现的术语，把真正带编号的段落挤出重排窗口。
+_RERANK_CANDIDATE_CAP = 64
+_RERANK_CANDIDATE_FLOOR = 32
 
 
 class RetrievalBiz:
@@ -153,24 +159,28 @@ class RetrievalBiz:
                     doc_best[r.document_id] = r
             candidates = sorted(doc_best.values(), key=lambda x: x.score, reverse=True)
 
-        # 6. 可选重排序：整条 RAG/搜索链路只在此处排一次。
+        # 6. 可选重排序：先给全部候选打分，再由门槛/术语闸门截断。
+        # 若这里按请求 top_k 截断，灰区分数的对题块会在进闸门前就被丢掉。
         if self._rerank_enabled and candidates:
-            candidates = await self._maybe_rerank(plan.original, candidates, top_k)
+            candidates = await self._maybe_rerank(
+                plan.rerank_query or plan.original,
+                candidates,
+                top_k=None,
+            )
 
-        # 6.5 相关性门槛过滤：重排后分数 < min_relevance 的结果丢弃。
-        # 重排分数为 0~1 的关键词覆盖率（含标题/文件名命中）——与查询毫无关键词
-        # 交集的无关文档（如搜 "agent" 时出现的 u.txt、Docker 命令汇总）分数极低，
-        # 应被过滤，避免跨知识库扇出时把各库"最不差"的噪声也展示给用户。
-        # apply_threshold=False 时跳过门槛（仅调用方显式关闭时）。
-        # RAG 默认开启门槛：没有足够相关的资料就不把噪声送给模型编答案。
+        # 6.5 相关性闸门：重排分过线，或问句英文术语全在笔记里。
+        # 过线但术语一个都碰不到的邻居丢掉，避免无关最近邻进生成。
         if apply_threshold and self._min_relevance > 0:
-            before = len(candidates)
-            candidates = [r for r in candidates if r.score >= self._min_relevance]
             logger.info(
-                "relevance_threshold_filtered",
-                min_relevance=self._min_relevance,
-                before=before,
-                after=len(candidates),
+                "retrieval_candidates_before_gate",
+                knowledge_base_id=knowledge_base_id,
+                count=len(candidates),
+                files=[item.document_filename for item in candidates[:20]],
+            )
+            candidates = apply_relevance_gate(
+                plan.original,
+                candidates,
+                self._min_relevance,
             )
 
         results = candidates[:top_k]
@@ -194,21 +204,16 @@ class RetrievalBiz:
         sources: list[RetrievalResult],
         top_k: int,
     ) -> list[RetrievalResult]:
-        """对已选定的 chunk 再打相关性分，低于门槛的不送给生成。"""
+        """对已选定的 chunk 再过一遍闸门，但不再二次调用重排。
+
+        检索已经打过分。load_by_ids 会带假分数；若这里再调智谱，抖动可能
+        把刚放行的对题块打到门槛下，生成侧就只剩「我不知道」。
+        """
         if not sources:
             return []
         candidates = list(sources)
-        if self._rerank_enabled and candidates:
-            candidates = await self._maybe_rerank(query, candidates, top_k)
         if self._min_relevance > 0:
-            before = len(candidates)
-            candidates = [item for item in candidates if item.score >= self._min_relevance]
-            logger.info(
-                "generation_relevance_threshold_filtered",
-                min_relevance=self._min_relevance,
-                before=before,
-                after=len(candidates),
-            )
+            candidates = apply_relevance_gate(query, candidates, self._min_relevance)
         return candidates[:top_k]
 
     async def load_by_ids(
@@ -263,7 +268,7 @@ class RetrievalBiz:
             logger.warning("empty_query_embedding", query_length=len(plan.original))
             return []
 
-        branch_k = top_k * 2
+        branch_k = min(_RERANK_CANDIDATE_CAP, max(top_k * 4, _RERANK_CANDIDATE_FLOOR))
         tasks = [
             self._retriever.retrieve(
                 query_vector=vector,
@@ -304,7 +309,7 @@ class RetrievalBiz:
         self,
         query: str,
         candidates: list[RetrievalResult],
-        top_k: int,
+        top_k: int | None = None,
     ) -> list[RetrievalResult]:
         """可选重排序：rerank_enabled=True 时调用 Reranker，否则直接返回原结果。
 

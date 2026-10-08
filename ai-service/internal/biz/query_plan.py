@@ -313,6 +313,25 @@ def _join_unique(base: str, extras: tuple[str, ...] | list[str]) -> str:
     return " ".join(parts)
 
 
+def query_english_terms(text: str) -> tuple[str, ...]:
+    """问句里实际出现的英文实词，不含自动补上的中英对译。"""
+    lowered = " ".join((text or "").strip().split()).casefold()
+    extras: list[str] = []
+    seen: set[str] = set()
+    for word in _EN_WORD.findall(lowered):
+        if word in _EN_STOP or len(word) < 2:
+            continue
+        if word not in seen:
+            seen.add(word)
+            extras.append(word)
+    return tuple(extras)
+
+
+def text_has_term(text: str, term: str) -> bool:
+    """文件名或正文是否包含该术语（英文按词边界，中文按子串）。"""
+    return _contains_term((text or "").casefold(), (term or "").casefold())
+
+
 def distinctive_terms(plan: QueryPlan) -> tuple[str, ...]:
     """问句里的英文实词 + 对译词，用来在重排门槛误杀后对齐文件名和正文。"""
     extras: list[str] = []

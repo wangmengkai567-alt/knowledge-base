@@ -42,6 +42,7 @@ services:
       - AI_EMBEDDING__KEEP_ALIVE=${AI_EMBEDDING__KEEP_ALIVE:-5m}
       - AI_EMBEDDING__MODEL=${AI_EMBEDDING__MODEL:-embedding-3}
       - AI_EMBEDDING__DIMENSION=${AI_EMBEDDING__DIMENSION:-1024}
+      - AI_EMBEDDING__BATCH_SIZE=${AI_EMBEDDING__BATCH_SIZE:-32}
       - AI_EMBEDDING__MAX_CONCURRENCY=${AI_EMBEDDING__MAX_CONCURRENCY:-5}
       - AI_RERANKER__PROVIDER=${AI_RERANKER__PROVIDER:-zhipu}
       - AI_RERANKER__API_KEY=${AI_RERANKER__API_KEY:-}
@@ -60,8 +61,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/health/live"]
       interval: 30s
@@ -93,23 +92,6 @@ services:
     restart: unless-stopped
     networks:
       - ai-network
-
-  # ── Database Migration（一次性执行，建表后退出）──
-  migrate:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile
-    container_name: ai-migrate
-    entrypoint: ["python", "-m", "cmd.migrate"]
-    environment:
-      - AI_DATABASE__URL=postgresql+asyncpg://ai_kb:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/ai_kb
-      - AI_EMBEDDING__DIMENSION=${AI_EMBEDDING__DIMENSION:-1024}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - ai-network
-    restart: "no"
 
   # ── Redis ──
   redis:
