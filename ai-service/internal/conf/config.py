@@ -328,9 +328,9 @@ class RAGConfig(BaseSettings):
 class RerankerConfig(BaseSettings):
     """文本重排序配置。密钥走环境变量，模型名可随时替换。"""
 
-    provider: Literal["zhipu", "memory"] = Field(
+    provider: Literal["zhipu", "qwen", "memory"] = Field(
         default="zhipu",
-        description="重排序提供商：zhipu（智谱文本重排序）/ memory（关键词重叠）",
+        description="重排序提供商：zhipu（智谱文本重排序）/ qwen（千问 DashScope 文本重排序）/ memory（关键词重叠）",
     )
     base_url: str = Field(
         default="https://open.bigmodel.cn/api/paas/v4",

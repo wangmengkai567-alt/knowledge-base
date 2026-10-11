@@ -180,6 +180,14 @@ docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d
 | PostgreSQL | localhost:5432，用户/库 `ai_kb` |
 | Redis | localhost:6379 |
 
+停服务用 `stop` 或 `down`（不要 `kill` / 强杀容器），给 Postgres 时间做干净关机：
+
+```bash
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env stop
+```
+
+Windows Docker Desktop 上，非干净关机后 Postgres 要对命名卷 `ai-postgres-data` 做 fsync，可能要 2–3 分钟才接受连接。这段时间 `pg_isready` 会失败，Compose 会报 `ai-postgres is unhealthy`。健康检查已把 `start_period` 放到 180s；第一次探测成功仍会立刻标为 healthy。
+
 本机 Ollama：
 
 ```bash
@@ -195,6 +203,7 @@ docker exec -it ollama ollama pull nomic-embed-text
 | 现象 | 处理 |
 |------|------|
 | Compose 报 `POSTGRES_PASSWORD must be set` | 根目录 `.env` 填写该变量 |
+| Compose 报 `ai-postgres is unhealthy` | 多为崩溃恢复（日志有 `recovery mode` / `syncing data directory`），不是密码或数据卷坏了。等出现 `ready to accept connections` 后再 `up -d`。停库用 `stop`，不要强杀容器 |
 | 关键词能搜到、语义很差 | embedding 仍是 `memory`，或文档用旧模型嵌入，需重解析 |
 | 回答是「我不知道」 | 知识库没有足够相关的文档，不会编答案；可换问法或补文档 |
 | 回答是「模型回答失败」 | 对话模型调用失败（Key、额度、网络）；不会改贴检索摘录 |

@@ -12,14 +12,61 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from faithfulness import neighbor_evidence, term_covered, unsupported_sentences
+
 ROOT = Path(__file__).resolve().parent
 GOLDEN = ROOT / "golden_set.json"
 OUT = ROOT / "last_run.json"
+LOCK = ROOT / ".run_eval.lock"
 BASE = os.environ.get("EVAL_BASE_URL", "http://127.0.0.1:8084")
 EMAIL = os.environ.get("EVAL_EMAIL", "admin@company.com")
 PASSWORD = os.environ.get("EVAL_PASSWORD", "Admin@1234")
+SLEEP_S = float(os.environ.get("EVAL_SLEEP_S", "3.0"))
 REFUSAL_RE = re.compile(r"^我不知道[。.!！]?$")
-CITE_RE = re.compile(r"\[来源\s*\d+\]")
+
+
+_PID_WIDTH = 15
+
+
+def acquire_run_lock(path: Path = LOCK) -> int:
+    """Hold an OS lock on byte 0 for the life of the process; exit if another run holds it.
+
+    The OS drops the lock when the holder dies, so an orphaned run blocks new ones
+    only while it is still alive, and a crash never leaves a stale lock behind.
+    """
+    fd = os.open(path, os.O_RDWR | os.O_CREAT)
+    try:
+        os.lseek(fd, 0, os.SEEK_SET)
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        os.lseek(fd, 1, os.SEEK_SET)
+        holder = os.read(fd, _PID_WIDTH).decode("ascii", errors="replace").strip() or "?"
+        os.close(fd)
+        raise SystemExit(
+            f"another run_eval.py (pid {holder}) is still running; "
+            f"stop it before starting a new run (lock: {path})"
+        )
+    os.lseek(fd, 1, os.SEEK_SET)
+    os.write(fd, f"{os.getpid():<{_PID_WIDTH}}".encode("ascii"))
+    return fd
+
+
+def _is_rate_limited(code: int, payload: bytes) -> bool:
+    if code == 429:
+        return True
+    text = payload.decode("utf-8", errors="replace")
+    return code == 500 and ("429" in text or "RATE" in text.upper()) and (
+        "EMBEDDING" in text.upper() or "429" in text
+    )
 
 
 def http_json(method: str, path: str, token: str | None = None, body: dict | None = None, timeout: int = 180):
@@ -28,20 +75,22 @@ def http_json(method: str, path: str, token: str | None = None, body: dict | Non
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
-    for attempt in range(6):
+    for attempt in range(8):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 raw = resp.read().decode("utf-8")
                 return json.loads(raw) if raw else {}
         except urllib.error.HTTPError as e:
             payload = e.read()
-            if e.code == 429 and attempt < 5:
-                time.sleep(2 ** attempt)
+            if _is_rate_limited(e.code, payload) and attempt < 7:
+                wait = min(90, 8 * (2 ** attempt))
+                print(f"  rate-limit, retry in {wait}s", flush=True)
+                time.sleep(wait)
                 req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
                 continue
             raise RuntimeError(f"{method} {path} -> {e.code} {payload[:400]!r}") from e
         except TimeoutError:
-            if attempt < 5:
+            if attempt < 7:
                 time.sleep(2)
                 req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
                 continue
@@ -80,30 +129,28 @@ def is_refusal(answer: str) -> bool:
     return bool(REFUSAL_RE.match((answer or "").strip()))
 
 
-def char_ngrams(text: str, n: int = 4) -> set[str]:
-    compact = re.sub(r"\s+", "", text)
-    if len(compact) < n:
-        return {compact} if compact else set()
-    return {compact[i : i + n] for i in range(len(compact) - n + 1)}
-
-
-def unsupported_sentences(answer: str, evidence: str) -> list[str]:
-    cleaned = CITE_RE.sub("", answer or "")
-    parts = [p.strip() for p in re.split(r"[。！？!?；;]\s*", cleaned) if p.strip()]
-    ev_grams = char_ngrams(evidence, 4)
-    bad: list[str] = []
-    if not evidence.strip():
-        return [p for p in parts if len(p) >= 6] or ["<empty-evidence>"]
-    for part in parts:
-        if len(part) < 8:
+def context_window() -> int:
+    """Match ai-service rag.context_window unless EVAL_CONTEXT_WINDOW is set."""
+    raw = os.environ.get("EVAL_CONTEXT_WINDOW")
+    if raw is not None and raw.strip() != "":
+        return max(0, int(raw))
+    cfg = ROOT.parent / "ai-service" / "configs" / "config.yaml"
+    try:
+        lines = cfg.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return 1
+    in_rag = False
+    for line in lines:
+        if line.startswith("rag:"):
+            in_rag = True
             continue
-        grams = char_ngrams(part, 4)
-        if not grams:
-            continue
-        overlap = len(grams & ev_grams) / len(grams)
-        if overlap < 0.08:
-            bad.append(part)
-    return bad
+        if in_rag and line and not line.startswith(" "):
+            break
+        if in_rag:
+            match = re.match(r"\s+context_window:\s*(\d+)", line)
+            if match:
+                return int(match.group(1))
+    return 1
 
 
 def resolve_kb(item: dict, kbs: list[dict], file_to_kbs: dict[str, list[int]]) -> tuple[int | None, str]:
@@ -125,6 +172,7 @@ def resolve_kb(item: dict, kbs: list[dict], file_to_kbs: dict[str, list[int]]) -
 
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
+    acquire_run_lock()
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
     items = golden["items"]
     token = login()
@@ -138,6 +186,27 @@ def main() -> None:
         uploaded[kb["id"]] = names
         for name in names:
             file_to_kbs[filename_key(name)].append(kb["id"])
+
+    rescore = "--rescore" in sys.argv
+    previous: dict[str, dict] = {}
+    if rescore:
+        if not OUT.exists():
+            raise SystemExit(f"--rescore needs an existing {OUT.name}")
+        previous = {row["id"]: row for row in json.loads(OUT.read_text(encoding="utf-8"))["rows"]}
+    window = context_window()
+    chunk_cache: dict[int, list[dict]] = {}
+
+    def doc_chunks(doc_id: int) -> list[dict]:
+        if doc_id in chunk_cache:
+            return chunk_cache[doc_id]
+        payload = http_json(
+            "GET",
+            f"/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks",
+            token=token,
+            timeout=30,
+        )
+        chunk_cache[doc_id] = payload.get("chunks") or []
+        return chunk_cache[doc_id]
 
     rows = []
     for i, item in enumerate(items, 1):
@@ -171,26 +240,37 @@ def main() -> None:
             record["mrr"] = (1.0 / rank) if rank else (0.0 if relevant else None)
             record["retrieve_files"] = [r.get("document_filename") for r in results]
             chunk_ids = [r["chunk_id"] for r in results[:10]]
-            evidence = "\n".join(r.get("content") or "" for r in results)
-            rag = http_json(
-                "POST",
-                f"/api/v1/knowledge/bases/{kb_id}/rag/query",
-                token=token,
-                body={
-                    "query": item["query"],
-                    "top_k": 10,
-                    "chunk_ids": chunk_ids or None,
-                    "knowledge_base_ids": [kb_id],
-                },
-                timeout=180,
-            )
-            answer = rag.get("answer") or ""
-            record["answer"] = answer
-            record["source_files"] = [s.get("document_filename") for s in rag.get("sources") or []]
+            chunks_by_doc: dict[int, list[dict]] = {}
+            for row in results:
+                doc_id = row.get("document_id")
+                if doc_id is not None:
+                    chunks_by_doc[doc_id] = doc_chunks(doc_id)
+            evidence = neighbor_evidence(results, chunks_by_doc, window)
+            prior = previous.get(item["id"]) if rescore else None
+            if prior is not None and prior.get("answer") is not None and "error" not in prior:
+                answer = prior.get("answer") or ""
+                record["answer"] = answer
+                record["source_files"] = prior.get("source_files") or []
+            else:
+                rag = http_json(
+                    "POST",
+                    f"/api/v1/knowledge/bases/{kb_id}/rag/query",
+                    token=token,
+                    body={
+                        "query": item["query"],
+                        "top_k": 10,
+                        "chunk_ids": chunk_ids or None,
+                        "knowledge_base_ids": [kb_id],
+                    },
+                    timeout=180,
+                )
+                answer = rag.get("answer") or ""
+                record["answer"] = answer
+                record["source_files"] = [s.get("document_filename") for s in rag.get("sources") or []]
             refused = is_refusal(answer)
             record["refused"] = refused
             must = item.get("must_contain") or []
-            record["must_contain_ok"] = all(term.lower() in answer.lower() for term in must) if must else None
+            record["must_contain_ok"] = all(term_covered(answer, term) for term in must) if must else None
             traps = [t for t in (item.get("hallucination_traps") or []) if t and t in answer]
             record["trap_hit"] = traps
             missed = bool(item["answerable"] and refused)
@@ -212,7 +292,7 @@ def main() -> None:
             record["error"] = str(e)
         rows.append(record)
         print(f"[{i}/{len(items)}] {item['id']} kb={kb_id} refused={record.get('refused')} hit10={record.get('hit_at_10')} hallu={record.get('hallucinated')} err={record.get('error')}", flush=True)
-        time.sleep(1.2)
+        time.sleep(SLEEP_S)
 
     recall_items = [r for r in rows if r.get("hit_at_10") is not None]
     answered = [r for r in rows if r.get("answered")]
@@ -221,6 +301,9 @@ def main() -> None:
     gen_items = [r for r in rows if r.get("answerable") and r.get("must_contain_ok") is not None and "error" not in r]
     summary = {
         "ran_at": datetime.now(timezone.utc).isoformat(),
+        "rescore": rescore,
+        "context_window": window,
+        "hallucination_judge": "paraphrase",
         "n_items": len(rows),
         "n_errors": sum(1 for r in rows if r.get("error")),
         "hit_at_5": _avg([1.0 if r["hit_at_5"] else 0.0 for r in recall_items]),

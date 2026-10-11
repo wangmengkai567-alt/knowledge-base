@@ -1,593 +1,2028 @@
 {
-  "version": "0.2",
-  "created": "2026-10-06",
+  "version": "0.4",
+  "created": "2026-10-10",
   "corpus_root": "D:\\My_workspace\\knowleage-database\\wangmengkai",
   "knowledge_base_id": null,
   "empty_files_do_not_use_as_answerable": [
-    "04.Docker.md",
-    "06.数据结构.md",
-    "08.异步编程.md",
     "LeetCode.md",
     "harness.md",
-    "RAG.md"
+    "RAG.md",
+    "Agent.md",
+    "AI 应用开发.md",
+    "后端开发.md",
+    "计算机基础.md",
+    "question.md"
   ],
-  "notes": "answerable=true 表示资料里有答案，应依据文档作答；false 表示资料外，期望「我不知道」。这不是题干是非问的答案。knowledge_base_id 按你系统里的库填写。",
+  "notes": "answerable=true 表示资料里有答案；false 期望整句「我不知道」。评测脚本按 relevant_filenames / kb_hint 自动解析知识库，不读顶层 knowledge_base_id。must_contain 不得是题干里已有的词。",
   "items": [
     {
       "id": "A01",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Agent 开发里 sandbox 是什么？用来解决什么问题？",
       "answerable": true,
-      "relevant_filenames": ["03.sandbox.md"],
+      "relevant_filenames": [
+        "03.sandbox.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Sandbox 是受限制的隔离执行环境，让 Agent 执行代码、Shell、读写文件，而不直接破坏宿主机。它不是某一种具体工具。",
-      "must_contain": ["隔离"],
-      "hallucination_traps": ["把 sandbox 说成 Docker 的别名且资料未写死"]
+      "must_contain": [
+        "隔离"
+      ],
+      "hallucination_traps": [
+        "把 sandbox 说成 Docker 的别名且资料未写死"
+      ]
     },
     {
       "id": "A02",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "sandbox 里文件系统默认只允许 Agent 访问哪个目录？",
       "answerable": true,
-      "relevant_filenames": ["03.sandbox.md"],
+      "relevant_filenames": [
+        "03.sandbox.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "只允许访问 /workspace。",
-      "must_contain": ["/workspace"],
-      "hallucination_traps": ["/home", "C:\\"]
+      "must_contain": [
+        "/workspace"
+      ],
+      "hallucination_traps": [
+        "/home",
+        "C:\\"
+      ]
     },
     {
       "id": "A03",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Shell、Process、Sandbox 分别是什么角色？",
       "answerable": true,
-      "relevant_filenames": ["03.sandbox.md"],
+      "relevant_filenames": [
+        "03.sandbox.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Shell 是命令解释器；Process 是程序运行实例；Sandbox 是限制这些程序运行范围的隔离环境。",
-      "must_contain": ["解释器"],
+      "must_contain": [
+        "解释器"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A04",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
-      "query": "Agent 判断一条命令有没有执行成功，应该先看 stderr 还是 exit code？有 stderr 就等于失败吗？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Agent 判断一条命令有没有执行成功，应该先看什么？有 stderr 就等于失败吗？",
       "answerable": true,
-      "relevant_filenames": ["01.shell-bash.md"],
+      "relevant_filenames": [
+        "01.shell-bash.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "首先看 exit code：0 成功，非 0 失败。有 stderr 不等于执行失败，成功时也可能往 stderr 输出。",
-      "must_contain": ["exit code"],
-      "hallucination_traps": ["有 stderr 就是失败"]
+      "must_contain": [
+        "exit code"
+      ],
+      "hallucination_traps": [
+        "有 stderr 就是失败"
+      ]
     },
     {
       "id": "A05",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Linux 里 stdin、stdout、stderr 的文件描述符编号分别是多少？",
       "answerable": true,
-      "relevant_filenames": ["01.shell-bash.md"],
+      "relevant_filenames": [
+        "01.shell-bash.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "0 是 stdin，1 是 stdout，2 是 stderr。",
-      "must_contain": ["0", "1", "2"],
-      "hallucination_traps": ["1 stdin"]
+      "must_contain": [
+        "0",
+        "1",
+        "2"
+      ],
+      "hallucination_traps": [
+        "1 stdin"
+      ]
     },
     {
       "id": "A06",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "SIGKILL 能不能被程序捕获后做清理？和 SIGINT、SIGTERM 有何不同？",
       "answerable": true,
-      "relevant_filenames": ["01.shell-bash.md"],
+      "relevant_filenames": [
+        "01.shell-bash.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "SIGKILL 不能被捕获、忽略或处理。SIGINT（Ctrl+C）和 SIGTERM 可以被捕获并做清理。",
-      "must_contain": ["不能"],
-      "hallucination_traps": ["SIGKILL 可以捕获"]
+      "must_contain": [
+        "忽略"
+      ],
+      "hallucination_traps": [
+        "SIGKILL 可以捕获"
+      ]
     },
     {
       "id": "A07",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "PowerShell 里查看当前目录、列出文件分别是哪条命令？Bash 里对应什么？",
       "answerable": true,
-      "relevant_filenames": ["02.powershell.md"],
+      "relevant_filenames": [
+        "02.powershell.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "PowerShell：Get-Location、Get-ChildItem。Bash：pwd、ls。",
-      "must_contain": ["Get-Location"],
-      "hallucination_traps": ["PowerShell 也用 pwd 作为正式命令名"]
+      "must_contain": [
+        "Get-Location"
+      ],
+      "hallucination_traps": [
+        "PowerShell 也用 pwd 作为正式命令名"
+      ]
     },
     {
       "id": "A08",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "PowerShell 的管道和 Bash 管道最大的差别是什么？",
       "answerable": true,
-      "relevant_filenames": ["02.powershell.md"],
+      "relevant_filenames": [
+        "02.powershell.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "PowerShell 管道通常传递的是 .NET 对象，不是单纯文本。",
-      "must_contain": ["对象"],
+      "must_contain": [
+        "对象"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A09",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
-      "query": "Agent Security 要防止的是什么？最小权限原则怎么理解？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Agent 有了工具、文件、Shell 之后，安全上要防的是什么？权限应该怎么给？",
       "answerable": true,
-      "relevant_filenames": ["04.agent_security.md"],
+      "relevant_filenames": [
+        "04.agent_security.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "防止 Agent 拥有工具、文件、Shell、网络等能力后做出不该做的事。Least Privilege：只获得完成任务的最小权限；低风险可自动，高风险必须人工确认。",
-      "must_contain": ["最小权限"],
+      "must_contain": [
+        "最小权限"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A10",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "什么是间接提示词注入？恶意指令可能藏在哪些地方？",
       "answerable": true,
-      "relevant_filenames": ["04.agent_security.md"],
+      "relevant_filenames": [
+        "04.agent_security.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "攻击者把恶意指令放进网页、PDF、GitHub Issue、README、邮件、数据库、搜索结果、文档、代码注释，Agent 读取后当成指令。外部数据不能都当可信指令。",
-      "must_contain": ["注入"],
+      "must_contain": [
+        "外部"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A11",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "哪些操作通常必须 Human-in-the-loop 确认？",
       "answerable": true,
-      "relevant_filenames": ["04.agent_security.md"],
+      "relevant_filenames": [
+        "04.agent_security.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "高风险通常要人确认：删除文件、git push、发送邮件、修改生产数据库、部署生产、购买资源、修改云服务器。",
-      "must_contain": ["git push"],
+      "must_contain": [
+        "git push"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A12",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
-      "query": "笔记里怎么区分 shell、sandbox 和 security？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "shell、sandbox、security 三者怎么区分？",
       "answerable": true,
-      "relevant_filenames": ["04.agent_security.md"],
+      "relevant_filenames": [
+        "04.agent_security.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "shell 是怎么执行命令；sandbox 是在哪里执行命令；security 是允许执行什么以及怎么防止滥用。",
-      "must_contain": ["哪里"],
+      "must_contain": [
+        "哪里",
+        "允许"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A13",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Context Engineering 和 Prompt Engineering 有什么区别？",
       "answerable": true,
-      "relevant_filenames": ["05.Context_Engineering.md"],
+      "relevant_filenames": [
+        "05.Context_Engineering.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Prompt Engineering 关注怎么告诉模型；Context Engineering 关注给模型什么信息（历史、Memory、Tool Result、RAG 等），管理 LLM 看到什么，而不是堆尽可能多的信息。",
-      "must_contain": ["信息"],
+      "must_contain": [
+        "看到"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "A14",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Agent Memory 和这一轮 Context 有什么不同？Memory 和 RAG 的目标差在哪？",
       "answerable": true,
-      "relevant_filenames": ["06.memory.md", "05.Context_Engineering.md"],
+      "relevant_filenames": [
+        "06.memory.md",
+        "05.Context_Engineering.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Memory 是跨时间该记住什么；Context 是这一轮 LLM 该看到什么。RAG 从外部知识库取知识，Memory 保存过去交互、用户信息和任务经验。",
-      "must_contain": ["RAG"],
-      "hallucination_traps": ["Memory 就是 RAG"]
+      "must_contain": [
+        "跨"
+      ],
+      "hallucination_traps": [
+        "Memory 就是 RAG"
+      ]
     },
     {
       "id": "A15",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Agent Harness 是什么？它和 sandbox、和 LangChain 这类框架怎么区分？",
       "answerable": true,
-      "relevant_filenames": ["07.agent-harness.md"],
+      "relevant_filenames": [
+        "07.agent-harness.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Harness 是 Agent 的运行时与控制层。Sandbox 是 Harness 的组成部分。LangChain/LangGraph/AutoGen 更偏编排框架，Harness 更强调实际运行与控制环境。",
-      "must_contain": ["控制"],
-      "hallucination_traps": ["Harness 就是 LangChain"]
+      "must_contain": [
+        "运行时"
+      ],
+      "hallucination_traps": [
+        "Harness 就是 LangChain"
+      ]
     },
     {
       "id": "A16",
       "category": "agent",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Agent Observability 的三大支柱是什么？它和 Evaluation 有何不同？",
       "answerable": true,
-      "relevant_filenames": ["08.Observability.md"],
+      "relevant_filenames": [
+        "08.Observability.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "Logs、Metrics、Traces。Observability 关注 Agent 是怎么执行的；Evaluation 关注做得好不好。",
-      "must_contain": ["Trace"],
+      "must_contain": [
+        "Trace"
+      ],
       "hallucination_traps": []
+    },
+    {
+      "id": "A17",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Agent 开发里「编排」指什么？它要组织哪些事情？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "编排是对多个 Agent 的执行顺序、任务分配、状态传递、通信方式和终止条件进行组织和控制。",
+      "must_contain": [
+        "终止"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A18",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Router 和 Supervisor 的核心差别是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "Router 的核心是选择谁，通常选完 Agent 就结束；Supervisor 会持续决定下一步做什么，形成选择 Agent → 执行 → 更新状态 → 再判断的循环。",
+      "must_contain": [
+        "下一步"
+      ],
+      "hallucination_traps": [
+        "Router 会一直调度到底"
+      ]
+    },
+    {
+      "id": "A19",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Handoff 和 Supervisor，谁来决定把任务交给另一个 Agent？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md",
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "Handoff 是当前 Agent 主动把控制权交给另一个 Agent；Supervisor 模式下 Agent 本身不负责最终调度结构，由中心监督者调度。",
+      "must_contain": [
+        "控制权"
+      ],
+      "hallucination_traps": [
+        "Handoff 必须经过 Supervisor"
+      ]
+    },
+    {
+      "id": "A20",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Debate / 多 Agent 辩论适合什么、不适合什么？会增加哪些成本？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "适合复杂推理、代码 Review、方案比较、风险分析；不适合简单任务和对延迟敏感的任务。多个 Agent 会增加 Token Cost、Latency 和系统复杂度。",
+      "must_contain": [
+        "Token"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A21",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Graph 编排相对传统 A→B→C→End 的 Workflow，多了哪两类能力？代码 Agent 测试失败后常见怎么走？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "执行路径可以按条件分支，也可以循环迭代。例如 Coder → Tester，测试失败回到 Coder，通过再去 Reviewer。",
+      "must_contain": [
+        "循环"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A22",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "固定流程、独立子任务、按问题类型选 Agent，分别该用哪种编排？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "固定流程用 Sequential；独立任务用 Parallel；根据问题类型选择 Agent 用 Router。",
+      "must_contain": [
+        "Sequential",
+        "Parallel",
+        "Router"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A23",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Workflow 和 Agent 的执行路径分别由谁决定？",
+      "answerable": true,
+      "relevant_filenames": [
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "Workflow 的执行路径主要由开发者定义，确定性高；Agent 的执行路径由模型根据当前状态动态决定。",
+      "must_contain": [
+        "开发者"
+      ],
+      "hallucination_traps": [
+        "Agent 路径也必须写死"
+      ]
+    },
+    {
+      "id": "A24",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Multi-Agent 编排从本质上有哪三种控制来源？各对应什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "Developer-controlled 对应 Workflow/Graph/Pipeline；Agent-controlled 对应 Handoff、Agent Loop、动态路由；Hybrid-controlled 是开发者规定整体边界，中间由 Agent 自己决定。",
+      "must_contain": [
+        "Handoff"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A25",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "动态 Multi-Agent 怎么防止 Researcher 和 Reviewer 无限互相调用？常用终止条件有哪些？",
+      "answerable": true,
+      "relevant_filenames": [
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "需要 max_iterations、max_steps、timeout、budget、termination_condition。常见终止：review 通过、步数到上限、Supervisor 发出 FINISH、task.status 完成。",
+      "must_contain": [
+        "timeout"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "A26",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Multi-Agent 的核心是「有几个 Agent」吗？编排还要管哪些事？",
+      "answerable": true,
+      "relevant_filenames": [
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "核心不是有几个 Agent，而是多个 Agent 如何被组织、调度和协作。编排 = 选择谁 + 做什么 + 什么时候做 + 怎么通信 + 保存什么状态 + 什么时候结束。",
+      "must_contain": [
+        "调度"
+      ],
+      "hallucination_traps": [
+        "堆几个 Agent 就是 Multi-Agent"
+      ]
+    },
+    {
+      "id": "A27",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Agent 五大核心组件是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "AI_Agent开发100道高频面试题.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "感知、记忆、规划、工具执行、反思评估。感知负责输入，记忆分层存储，规划拆解目标，工具对接外部能力，反思复盘并修正后续决策。",
+      "must_contain": [
+        "感知",
+        "反思"
+      ],
+      "hallucination_traps": [
+        "五大组件是输入输出训练推理部署"
+      ]
+    },
+    {
+      "id": "A28",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "ReAct 的闭环步骤是什么？它和 CoT 的核心差别？",
+      "answerable": true,
+      "relevant_filenames": [
+        "AI_Agent开发100道高频面试题.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "ReAct 是 Thought → Action → Observation 再迭代。CoT 只在模型内部推理、不能调工具；ReAct 能想也能做。",
+      "must_contain": [
+        "Observation",
+        "工具"
+      ],
+      "hallucination_traps": [
+        "CoT 可以调用外部工具"
+      ]
     },
     {
       "id": "B01",
       "category": "git",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Git 真正的作用是备份工具吗？从工作区到 GitHub 要经过哪几个区域、用哪几条命令？",
       "answerable": true,
-      "relevant_filenames": ["02.Git.md"],
+      "relevant_filenames": [
+        "02.Git.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "Git 是版本控制，不是备份工具。工作区 git add 到暂存区，git commit 到本地仓库，git push 到远程。",
-      "must_contain": ["git add", "git commit", "git push"],
-      "hallucination_traps": ["Git 等于备份"]
+      "must_contain": [
+        "git add",
+        "git commit",
+        "git push"
+      ],
+      "hallucination_traps": [
+        "Git 等于备份"
+      ]
     },
     {
       "id": "B02",
       "category": "git",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "git clone 第一次会帮你做哪些事？",
       "answerable": true,
-      "relevant_filenames": ["02.Git.md"],
+      "relevant_filenames": [
+        "02.Git.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "第一次下载远程仓库：创建目录、下载代码、下载历史版本、建立远程仓库连接。",
-      "must_contain": ["clone"],
+      "must_contain": [
+        "历史",
+        "远程"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B03",
       "category": "linux",
-      "eval_focus": ["recall", "generation"],
-      "query": "Linux 没有 C 盘 D 盘，所有文件挂在哪？/etc 和 /var 分别放什么？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Linux 没有 C 盘 D 盘，所有文件挂在哪？配置和日志通常分别放哪个目录？",
       "answerable": true,
-      "relevant_filenames": ["03.Linux.md"],
+      "relevant_filenames": [
+        "03.Linux.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "都在同一棵以 / 为根的目录树。/etc 是系统配置，/var 是日志、数据库等可变数据。",
-      "must_contain": ["/etc"],
+      "must_contain": [
+        "/etc",
+        "/var"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B04",
       "category": "python",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Python 里 list 和 tuple 有什么区别？",
       "answerable": true,
-      "relevant_filenames": ["01.python.md"],
+      "relevant_filenames": [
+        "01.python.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "list 可修改，tuple 不可修改。",
-      "must_contain": ["不可"],
+      "must_contain": [
+        "不可"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B05",
       "category": "python",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Python 装饰器是什么？",
       "answerable": true,
-      "relevant_filenames": ["01.python.md"],
+      "relevant_filenames": [
+        "01.python.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "在不修改原函数代码的情况下，为函数增加额外功能。",
-      "must_contain": ["不修改"],
+      "must_contain": [
+        "不修改"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B06",
       "category": "fastapi",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "FastAPI 为什么大量用 Pydantic？Depends 是干什么的？",
       "answerable": true,
-      "relevant_filenames": ["05.FastAPI.md"],
+      "relevant_filenames": [
+        "05.FastAPI.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "Pydantic 做数据校验和解析。Depends 是依赖注入。",
-      "must_contain": ["Pydantic"],
+      "must_contain": [
+        "校验",
+        "依赖注入"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B07",
       "category": "ml",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "机器学习相对传统编程，流程反过来的那一点是什么？",
       "answerable": true,
-      "relevant_filenames": ["07.机器学习.md"],
+      "relevant_filenames": [
+        "07.机器学习.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "传统是数据加规则得到结果；机器学习是数据加正确答案训练出规则（模型），再对新数据预测。",
-      "must_contain": ["数据"],
+      "must_contain": [
+        "规则"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "B08",
       "category": "fastapi",
-      "eval_focus": ["recall", "generation"],
-      "query": "笔记里写 FastAPI 开发服务常用什么命令启动？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "FastAPI 开发服务常用什么命令启动？",
       "answerable": true,
-      "relevant_filenames": ["05.FastAPI.md"],
+      "relevant_filenames": [
+        "05.FastAPI.md"
+      ],
       "kb_hint": "AI 应用开发",
       "gold_answer": "uvicorn main:app --reload",
-      "must_contain": ["uvicorn"],
-      "hallucination_traps": ["flask run"]
+      "must_contain": [
+        "uvicorn"
+      ],
+      "hallucination_traps": [
+        "flask run"
+      ]
+    },
+    {
+      "id": "B09",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Dockerfile、镜像、容器三者什么关系？分别对应哪条命令？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "Dockerfile 经 docker build 得到 Image，Image 经 docker run 得到 Container。镜像是模板，容器是运行中的实例。",
+      "must_contain": [
+        "docker build"
+      ],
+      "hallucination_traps": [
+        "容器是镜像的模板"
+      ]
+    },
+    {
+      "id": "B10",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "在 Agent 容器里访问 localhost:5432 等于访问宿主机 Postgres 吗？Compose 里应该写什么地址？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不等于。容器里的 localhost 是当前容器自己。Compose 中应使用服务名，例如 postgres:5432。",
+      "must_contain": [
+        "postgres:5432"
+      ],
+      "hallucination_traps": [
+        "容器 localhost 就是宿主机"
+      ]
+    },
+    {
+      "id": "B11",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Docker Compose 的 depends_on 能保证数据库已经可以处理请求吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不能。它主要控制启动顺序。要等数据库真正就绪，需要 healthcheck，并按健康状态控制依赖启动。",
+      "must_contain": [
+        "healthcheck"
+      ],
+      "hallucination_traps": [
+        "depends_on 等于已经 ready"
+      ]
+    },
+    {
+      "id": "B12",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "为什么不要把 Docker Socket 直接挂给不可信 Agent？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "Docker Socket 是守护进程套接字。把 /var/run/docker.sock 挂进容器后，进程就能调用宿主机 Docker，等于拿到宿主机上的容器控制权。",
+      "must_contain": [
+        "docker.sock"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B13",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Dockerfile 里为什么先 COPY requirements.txt 再 pip install，最后才 COPY 业务代码？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "利用分层构建缓存。只改业务代码、依赖文件没变时，可以复用依赖安装层，不必每次重装全部依赖。",
+      "must_contain": [
+        "缓存"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B14",
+      "category": "datastructure",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Agent 里为什么常用 Hash Map 做工具注册表，而不是一长串 if-elif？平均复杂度？",
+      "answerable": true,
+      "relevant_filenames": [
+        "06.数据结构.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "用工具名映射到函数，调用时按名称直接查找。插入、查找、删除平均都是 O(1)。",
+      "must_contain": [
+        "O(1)"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B15",
+      "category": "datastructure",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Stack 和 Queue 进出顺序差在哪？嵌套子任务更适合哪个？",
+      "answerable": true,
+      "relevant_filenames": [
+        "06.数据结构.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "Stack 是 LIFO 后进先出，适合嵌套任务；Queue 是 FIFO 先进先出，适合按提交顺序调度。",
+      "must_contain": [
+        "LIFO",
+        "FIFO"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B16",
+      "category": "datastructure",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "HNSW 用了图结构，所以它就是 Agent 工作流里的 Graph 吗？向量和向量数据库怎么区分？",
+      "answerable": true,
+      "relevant_filenames": [
+        "06.数据结构.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不是。HNSW 的目的是加速近似最近邻搜索，不等同于工作流 Graph。向量是数值；向量索引加速相似度查询；向量数据库负责保存、索引和检索向量及相关数据。",
+      "must_contain": [
+        "近似",
+        "索引"
+      ],
+      "hallucination_traps": [
+        "HNSW 就是 LangGraph"
+      ]
+    },
+    {
+      "id": "B17",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "异步编程加速的是一次 LLM 推理算得更快，还是什么？三个互不依赖的 2 秒请求，同步和异步总耗时怎么估？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "加速的是 IO 等待的重叠，不是把单次推理算更快。三个互不依赖的 2 秒请求，同步大约 6 秒，异步大约 2 秒。",
+      "must_contain": [
+        "重叠"
+      ],
+      "hallucination_traps": [
+        "asyncio 会让单次 LLM 从 3 秒变成 0.3 秒"
+      ]
+    },
+    {
+      "id": "B18",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "在 FastAPI 的 async def 接口里写 time.sleep 或 requests.get 会怎样？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "会把事件循环锁死，所有用户一起卡住。应使用 await asyncio.sleep 和 httpx.AsyncClient 等异步库。",
+      "must_contain": [
+        "事件循环"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B19",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "asyncio.gather 默认一个任务失败会怎样？并行调多个工具时该怎么设？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "默认会取消还在跑的其它任务并把异常抛给调用方。并行工具应 gather(..., return_exceptions=True)，把失败包装成 tool_result 回给模型。",
+      "must_contain": [
+        "return_exceptions"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "B20",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "asyncio.Semaphore 限制的是 QPS 滑动窗口吗？它实际限制什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不是。它限制的是同时进行中的调用数，不是 QPS 滑动窗口。更细的令牌桶可以放在网关。",
+      "must_contain": [
+        "同时"
+      ],
+      "hallucination_traps": [
+        "Semaphore 就是令牌桶",
+        "Semaphore 就是 QPS"
+      ]
+    },
+    {
+      "id": "B21",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "调用协程函数却漏了 await，运行时常见什么警告？请求发出去了吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "常见 RuntimeWarning: coroutine was never awaited。得到的是 coroutine 对象，请求根本没发出去。",
+      "must_contain": [
+        "never awaited"
+      ],
+      "hallucination_traps": []
     },
     {
       "id": "C01",
       "category": "rag",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "标准 RAG 的写路径（索引）包含哪几步？",
       "answerable": true,
-      "relevant_filenames": ["面试.md"],
+      "relevant_filenames": [
+        "面试.md"
+      ],
       "kb_hint": "RAG",
       "gold_answer": "解析加载 → 分块 → Embedding → 写入向量库和/或 BM25 倒排。",
-      "must_contain": ["分块"],
+      "must_contain": [
+        "分块"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "C02",
       "category": "rag",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "向量检索和 BM25 的分数为什么不能直接加权？常用什么融合？",
       "answerable": true,
-      "relevant_filenames": ["面试.md"],
+      "relevant_filenames": [
+        "面试.md"
+      ],
       "kb_hint": "RAG",
       "gold_answer": "余弦大约 0 到 1，BM25 无上界，量纲不同。常用 RRF 按排名融合。",
-      "must_contain": ["RRF"],
-      "hallucination_traps": ["直接加权平均"]
+      "must_contain": [
+        "RRF"
+      ],
+      "hallucination_traps": [
+        "直接加权平均"
+      ]
     },
     {
       "id": "C03",
       "category": "rag",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "RAG 解决什么问题？不解决什么问题？",
       "answerable": true,
-      "relevant_filenames": ["面试.md"],
+      "relevant_filenames": [
+        "面试.md"
+      ],
       "kb_hint": "RAG",
-      "gold_answer": "推理时把私有资料塞进 Prompt，不更新权重。不解决推理能力本身不够，也不替代微调和 Agent。",
-      "must_contain": ["权重"],
+      "gold_answer": "推理时把私有资料塞进 Prompt，不更新权重。解决模型没见过的文档、上下文塞不下整库；不解决推理能力不够，也不替代微调和 Agent。",
+      "must_contain": [
+        "私有",
+        "微调"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "C04",
       "category": "rag",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "没有相关块时该怎么做？生成失败能不能把检索摘录当成模型答案？",
       "answerable": true,
-      "relevant_filenames": ["面试.md"],
+      "relevant_filenames": [
+        "面试.md"
+      ],
       "kb_hint": "RAG",
       "gold_answer": "没有相关块就不要硬编，直接说不知道。生成失败不要把检索摘录伪装成模型答案。",
-      "must_contain": ["不知道"],
+      "must_contain": [
+        "不知道"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "C05",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "为什么向量数据库比传统数据库更适合语义检索？传统 B 树在高维会遇到什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "传统库擅长精确匹配，语义检索要近似最近邻。高维时 B 树效率急剧下降，也叫维度灾难。向量库用 ANN 做余弦或欧氏距离检索。",
+      "must_contain": [
+        "ANN"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "C06",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "RAG 里检索器、索引构建器、生成器分别做什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "检索器从知识库取出相关文档片段；索引构建器把文档变成可检索的向量；生成器结合检索结果写出最终回答。",
+      "must_contain": [
+        "片段",
+        "向量"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "C07",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "RAG 和 SFT 在数据更新、幻觉、透明度上有什么区别？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "RAG 查外部源，数据可动态更新、不必频繁重训；SFT 相对静态。RAG 基于检索证据更不易幻觉、过程更透明；SFT 像黑盒，遇到不熟悉输入仍可能幻觉。",
+      "must_contain": [
+        "动态",
+        "黑盒"
+      ],
+      "hallucination_traps": [
+        "SFT 完全不会幻觉"
+      ]
+    },
+    {
+      "id": "C08",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "RAG-Fusion 用来增强用户意图时，核心手段是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "采用多查询策略，生成多个查询变体再融合，捕捉用户没说清的多方面信息需求。",
+      "must_contain": [
+        "多查询"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "C09",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "大模型幻觉一般分成哪几类？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "事实性幻觉、逻辑性幻觉、指令跟随偏差。",
+      "must_contain": [
+        "逻辑性",
+        "指令"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "C10",
+      "category": "rag",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "写索引时文档 Embedding 和之后的问句必须满足什么？块太大或太小各有什么问题？",
+      "answerable": true,
+      "relevant_filenames": [
+        "面试.md"
+      ],
+      "kb_hint": "RAG",
+      "gold_answer": "必须用同一个 embedding 模型、同一维度。块太大主题混杂，块太小论据不完整。",
+      "must_contain": [
+        "维度",
+        "混杂"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "D01",
       "category": "database",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "事务 ACID 在 InnoDB 里分别主要靠什么？",
       "answerable": true,
-      "relevant_filenames": ["database.md"],
+      "relevant_filenames": [
+        "database.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "原子性靠 Undo Log 回滚；一致性是目标；隔离性靠锁 + MVCC；持久性靠 Redo Log（WAL）。",
-      "must_contain": ["Undo", "Redo"],
-      "hallucination_traps": ["一致性只靠隔离级别"]
+      "must_contain": [
+        "Undo",
+        "Redo"
+      ],
+      "hallucination_traps": [
+        "一致性只靠隔离级别"
+      ]
     },
     {
       "id": "D02",
       "category": "database",
-      "eval_focus": ["recall", "generation"],
-      "query": "MySQL InnoDB 默认隔离级别是什么？脏读、不可重复读、幻读分别指什么？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "MySQL InnoDB 默认隔离级别是什么？脏读是读到了什么数据？",
       "answerable": true,
-      "relevant_filenames": ["database.md"],
+      "relevant_filenames": [
+        "database.md"
+      ],
       "kb_hint": "计算机基础",
-      "gold_answer": "默认 Repeatable Read。脏读是读到未提交数据；不可重复读是同一行两次结果不同；幻读是范围内多出或少了行。",
-      "must_contain": ["Repeatable"],
-      "hallucination_traps": ["默认 Read Committed"]
+      "gold_answer": "默认 Repeatable Read（可重复读）。脏读是读到别的事务尚未提交的数据。",
+      "must_contain": [
+        "Repeatable",
+        "未提交"
+      ],
+      "hallucination_traps": [
+        "默认 Read Committed"
+      ]
     },
     {
       "id": "D03",
       "category": "database",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "MySQL 8.0 还有查询缓存吗？",
       "answerable": true,
-      "relevant_filenames": ["database.md"],
+      "relevant_filenames": [
+        "database.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "已经删除，不要当成现状来答。",
-      "must_contain": ["删除"],
-      "hallucination_traps": ["8.0 仍默认开查询缓存"]
+      "must_contain": [
+        "删除"
+      ],
+      "hallucination_traps": [
+        "8.0 仍默认开查询缓存"
+      ]
     },
     {
       "id": "D04",
       "category": "network",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "TCP 和 UDP 在连接、可靠性和头部大小上有何不同？",
       "answerable": true,
-      "relevant_filenames": ["network.md"],
+      "relevant_filenames": [
+        "network.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "TCP 面向连接、可靠，头部至少 20 字节；UDP 无连接、不保证送达，头部 8 字节。",
-      "must_contain": ["20", "8"],
+      "must_contain": [
+        "20",
+        "8"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "D05",
       "category": "network",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "三次握手为什么不是两次？",
       "answerable": true,
-      "relevant_filenames": ["network.md"],
+      "relevant_filenames": [
+        "network.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "两次会因延迟的旧 SYN 造成半开连接浪费资源；第三次才能让双方 ISN 都被对端确认。",
-      "must_contain": ["SYN"],
+      "must_contain": [
+        "SYN"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "D06",
       "category": "network",
-      "eval_focus": ["recall", "generation"],
-      "query": "谁会进入 TIME_WAIT？大概等多久、为什么是 2MSL？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "TCP 连接里谁会进入 TIME_WAIT？大概等多久、为什么？",
       "answerable": true,
-      "relevant_filenames": ["network.md"],
+      "relevant_filenames": [
+        "network.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "主动关闭方进入 TIME_WAIT，时长 2MSL（Linux 上常见约 60 秒量级）。保证最后 ACK 到达，并让旧连接报文死掉。",
-      "must_contain": ["2MSL"],
-      "hallucination_traps": ["被动关闭方 TIME_WAIT"]
+      "must_contain": [
+        "主动",
+        "2MSL"
+      ],
+      "hallucination_traps": [
+        "被动关闭方 TIME_WAIT"
+      ]
     },
     {
       "id": "D07",
       "category": "os",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "进程和线程在资源、地址空间、故障隔离上差在哪？",
       "answerable": true,
-      "relevant_filenames": ["os.md"],
+      "relevant_filenames": [
+        "os.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "进程是资源分配单位，地址空间相互独立；线程共享同一进程地址空间。一个线程踩内存，整个进程可能挂。",
-      "must_contain": ["地址空间"],
+      "must_contain": [
+        "独立",
+        "共享"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "D08",
       "category": "os",
-      "eval_focus": ["recall", "generation"],
-      "query": "共享内存作为 IPC 为什么快？它自带同步吗？",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "共享内存作为 IPC 为什么快？要不要另外做同步？",
       "answerable": true,
-      "relevant_filenames": ["os.md"],
+      "relevant_filenames": [
+        "os.md"
+      ],
       "kb_hint": "计算机基础",
       "gold_answer": "拷贝次数最少所以最快。本身不提供同步，必须再配信号量或互斥锁。",
-      "must_contain": ["同步"],
+      "must_contain": [
+        "拷贝",
+        "锁"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "D09",
+      "category": "database",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "InnoDB 索引为什么不用二叉树或红黑树？B+ 树相对 B 树有哪点优势被点名？",
+      "answerable": true,
+      "relevant_filenames": [
+        "database.md"
+      ],
+      "kb_hint": "计算机基础",
+      "gold_answer": "二叉树太高；红黑树也不适合磁盘。B 树内节点带数据，同等页里键更少、树更高，范围也不如叶子链表方便。",
+      "must_contain": [
+        "磁盘"
+      ],
+      "hallucination_traps": [
+        "InnoDB 用红黑树当主键索引"
+      ]
+    },
+    {
+      "id": "D10",
+      "category": "database",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "二级索引找到主键后还要再查整行，这叫什么？查询列都在索引里、不用再查整行又叫什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "database.md"
+      ],
+      "kb_hint": "计算机基础",
+      "gold_answer": "二级索引找到主键后再去聚簇索引拿整行叫回表。查询列都在该索引里、不用回表叫覆盖索引。EXPLAIN 里 Extra: Using index。",
+      "must_contain": [
+        "回表",
+        "覆盖"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "D11",
+      "category": "os",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Linux 的 CFS 怎么决定下一个跑哪个进程？",
+      "answerable": true,
+      "relevant_filenames": [
+        "os.md"
+      ],
+      "kb_hint": "计算机基础",
+      "gold_answer": "用红黑树按 vruntime（虚拟运行时间）排序，每次跑 vruntime 最小的进程。",
+      "must_contain": [
+        "红黑树",
+        "虚拟运行"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "D12",
+      "category": "network",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "TCP 为什么会粘包？UDP 有没有应用层消息边界？",
+      "answerable": true,
+      "relevant_filenames": [
+        "network.md"
+      ],
+      "kb_hint": "计算机基础",
+      "gold_answer": "TCP 是字节流，没有消息边界所以会粘包；UDP 是数据报，保留边界。",
+      "must_contain": [
+        "字节流",
+        "数据报"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "E01",
       "category": "go",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Go 的 slice 和 array 有什么区别？对 nil map 写入会怎样？",
       "answerable": true,
-      "relevant_filenames": ["go.md"],
+      "relevant_filenames": [
+        "go.md"
+      ],
       "kb_hint": "后端开发",
       "gold_answer": "数组长度是类型一部分，值类型整份拷贝。切片是指针、len、cap，共享底层数组。nil map 读安全，写会 panic，必须 make。",
-      "must_contain": ["len"],
-      "hallucination_traps": ["nil map 可以写入"]
+      "must_contain": [
+        "底层数组",
+        "panic"
+      ],
+      "hallucination_traps": [
+        "nil map 可以写入"
+      ]
     },
     {
       "id": "E02",
       "category": "go",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "Go 里 rune 是什么？",
       "answerable": true,
-      "relevant_filenames": ["go.md"],
+      "relevant_filenames": [
+        "go.md"
+      ],
       "kb_hint": "后端开发",
       "gold_answer": "rune 是 int32 的别名，表示 Unicode 码点；一个汉字一个 rune。",
-      "must_contain": ["int32"],
-      "hallucination_traps": ["rune 是 uint8"]
+      "must_contain": [
+        "int32"
+      ],
+      "hallucination_traps": [
+        "rune 是 uint8"
+      ]
     },
     {
       "id": "E03",
       "category": "rpc",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "RPC 是一种协议吗？gRPC 默认用什么传输和序列化？",
       "answerable": true,
-      "relevant_filenames": ["rpc.md"],
+      "relevant_filenames": [
+        "rpc.md"
+      ],
       "kb_hint": "后端开发",
       "gold_answer": "RPC 是调用模型，不是协议。gRPC 默认 HTTP/2 + Protobuf。",
-      "must_contain": ["HTTP/2", "Protobuf"],
-      "hallucination_traps": ["RPC 等于 HTTP/2"]
+      "must_contain": [
+        "HTTP/2",
+        "Protobuf"
+      ],
+      "hallucination_traps": [
+        "RPC 等于 HTTP/2"
+      ]
     },
     {
       "id": "E04",
       "category": "crypto",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "加密、哈希、编码、签名各解决什么？Base64 算加密吗？",
       "answerable": true,
-      "relevant_filenames": ["加密算法.md"],
+      "relevant_filenames": [
+        "加密算法.md"
+      ],
       "kb_hint": "后端开发",
-      "gold_answer": "加密可逆、保机密；哈希不可逆、做指纹；编码谁都能还原、零安全；签名做认证和不可否认。Base64 不是加密。",
-      "must_contain": ["Base64"],
-      "hallucination_traps": ["Base64 是加密"]
+      "gold_answer": "加密可逆、保机密；哈希不可逆、做指纹；编码谁都能还原、零安全；签名做认证和不可否认。Base64 是编码，不是加密。",
+      "must_contain": [
+        "可逆",
+        "指纹",
+        "不是加密"
+      ],
+      "hallucination_traps": [
+        "Base64 是加密"
+      ]
     },
     {
       "id": "E05",
       "category": "crypto",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "用户密码能不能用 MD5 存储？应该用什么？",
       "answerable": true,
-      "relevant_filenames": ["加密算法.md"],
+      "relevant_filenames": [
+        "加密算法.md"
+      ],
       "kb_hint": "后端开发",
       "gold_answer": "不能用 MD5。要用带盐的慢哈希，如 bcrypt、Argon2。",
-      "must_contain": ["bcrypt"],
-      "hallucination_traps": ["MD5 加盐就够"]
+      "must_contain": [
+        "bcrypt"
+      ],
+      "hallucination_traps": [
+        "MD5 加盐就够"
+      ]
+    },
+    {
+      "id": "E06",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "一开始就上微服务对不对？什么阶段更适合先不拆服务？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "不要为了「高级」一开始就微服务。单体适合个人项目、中小型、MVP、校招项目和业务早期。",
+      "must_contain": [
+        "单体",
+        "MVP"
+      ],
+      "hallucination_traps": [
+        "校招项目必须微服务"
+      ]
+    },
+    {
+      "id": "E07",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "分层架构里 Controller、Service、Repository 各自负责什么？判断库存够不够应该放哪一层？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "Controller 处理 HTTP 请求和响应；Service 放真正业务逻辑；Repository 访问数据库等基础设施。库存是否足够属于业务逻辑，应放 Service，不放 Repository。",
+      "must_contain": [
+        "HTTP",
+        "业务",
+        "数据库"
+      ],
+      "hallucination_traps": [
+        "库存判断放在 Repository"
+      ]
+    },
+    {
+      "id": "E08",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "DDD 的核心思想是围绕数据库表设计吗？领域层常见有哪些概念？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "不是，是围绕业务领域设计。领域层有实体、值对象、聚合、领域服务、领域事件。",
+      "must_contain": [
+        "实体",
+        "聚合"
+      ],
+      "hallucination_traps": [
+        "DDD 就是按表拆模块"
+      ]
+    },
+    {
+      "id": "E09",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "六边形架构还有一个常用别名是什么？它要让业务核心不要依赖什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "也叫 Ports and Adapters（端口与适配器）。业务核心不应该依赖具体的外部技术，例如不要直接写死 mysql.Query。",
+      "must_contain": [
+        "适配器"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "E10",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Clean Architecture 最重要的依赖方向是哪句话？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "外层依赖内层，内层不要依赖外层。业务逻辑不应依赖 Gin、MySQL、Redis。",
+      "must_contain": [
+        "外层",
+        "内层"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "E11",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "CQRS 全称和核心思想是什么？普通 CRUD 一定要用吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "Command Query Responsibility Segregation，读和写使用不同模型。普通 CRUD 通常不需要。",
+      "must_contain": [
+        "不同模型"
+      ],
+      "hallucination_traps": [
+        "所有项目都要 CQRS"
+      ]
+    },
+    {
+      "id": "E12",
+      "category": "design-pattern",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "支付方式一堆 if-else，更适合用哪种设计模式？工厂模式的核心思想是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "设计模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "多种算法按情况选择用策略模式；工厂模式把对象的创建过程封装起来。",
+      "must_contain": [
+        "策略",
+        "创建"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "E13",
+      "category": "design-pattern",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Web 框架里的 Middleware 通常可以用哪种设计模式理解？",
+      "answerable": true,
+      "relevant_filenames": [
+        "设计模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "责任链模式。请求经过日志、CORS、JWT、权限、限流再到达业务 Handler。",
+      "must_contain": [
+        "责任链"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "E14",
+      "category": "design-pattern",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "请求先经过 Nginx 再到后面的服务，这更接近哪种设计模式？装饰器模式的核心是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "设计模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "Nginx 更接近代理。装饰器是在不修改原对象代码的情况下动态给对象增加功能。",
+      "must_contain": [
+        "代理",
+        "不修改"
+      ],
+      "hallucination_traps": [
+        "Nginx 是装饰器"
+      ]
+    },
+    {
+      "id": "E15",
+      "category": "design-pattern",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "能把 Kafka 直接说成观察者模式吗？消息队列和观察者是什么关系？",
+      "answerable": true,
+      "relevant_filenames": [
+        "设计模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "不能简单画等号。MQ 的事件驱动可以看成观察者思想在分布式系统里的扩展，但它们不是同一层东西。",
+      "must_contain": [
+        "扩展",
+        "分布式"
+      ],
+      "hallucination_traps": [
+        "Kafka 就是观察者模式"
+      ]
+    },
+    {
+      "id": "E16",
+      "category": "architecture",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "微服务之间常见哪三种通信方式？",
+      "answerable": true,
+      "relevant_filenames": [
+        "架构模式.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "HTTP（REST）、RPC（如 gRPC）、消息队列（RabbitMQ、Kafka、RocketMQ）。",
+      "must_contain": [
+        "gRPC"
+      ],
+      "hallucination_traps": []
     },
     {
       "id": "F01",
       "category": "comparison",
-      "eval_focus": ["generation"],
-      "query": "sandbox、agent_security、agent-harness 三篇笔记里举的 CPU 和内存限制数字一样吗？",
+      "eval_focus": [
+        "generation"
+      ],
+      "query": "sandbox、agent_security、agent-harness 三处举例的 CPU 和内存限制是同一套数字吗？",
       "answerable": true,
-      "relevant_filenames": ["03.sandbox.md", "04.agent_security.md", "07.agent-harness.md"],
+      "relevant_filenames": [
+        "03.sandbox.md",
+        "04.agent_security.md",
+        "07.agent-harness.md"
+      ],
       "kb_hint": "Agent",
       "gold_answer": "不一样，都是示例。sandbox 举例 2 核 / 2GB / 30 秒；security 举例 1 核 / 512MB / 30 秒；harness 举例 2 核 / 4GB / 10 分钟。不能合成一套标准配置。",
-      "must_contain": ["不一样"],
-      "hallucination_traps": ["统一说成 2GB 或 512MB"]
+      "must_contain": [
+        "不一样"
+      ],
+      "hallucination_traps": [
+        "统一说成 2GB 或 512MB"
+      ]
     },
     {
       "id": "F02",
       "category": "harness",
-      "eval_focus": ["recall", "generation"],
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
       "query": "DeepSeek Harness（dsh）里 Turn 和 Step 分别指什么？模型看见的历史必须从哪来？",
       "answerable": true,
-      "relevant_filenames": ["dsh-工作原理.md"],
+      "relevant_filenames": [
+        "dsh-工作原理.md"
+      ],
       "kb_hint": "Harness",
       "gold_answer": "Turn 是一次用户任务；Step 是一次模型请求加上它触发的工具。历史必须先写入 Session 日志再投影，不能在内存里偷偷拼 prompt。",
-      "must_contain": ["Session"],
+      "must_contain": [
+        "Session"
+      ],
       "hallucination_traps": []
+    },
+    {
+      "id": "F03",
+      "category": "comparison",
+      "eval_focus": [
+        "generation"
+      ],
+      "query": "Docker 基础沙箱示例的内存限制，和 agent_security 举的 512MB 是同一套标准吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md",
+        "04.agent_security.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "不是同一套标准。Docker 基础沙箱示例是 --memory 256m、--cpus 1、--pids-limit 64；security 笔记另有 512MB / 1 核等示例，都只是示例。",
+      "must_contain": [
+        "256"
+      ],
+      "hallucination_traps": [
+        "统一答成 512MB"
+      ]
     },
     {
       "id": "G01",
       "category": "unanswerable",
-      "eval_focus": ["refusal"],
+      "eval_focus": [
+        "refusal"
+      ],
       "query": "Docker 的 overlay2 存储驱动具体怎么工作？",
       "answerable": false,
       "relevant_filenames": [],
       "kb_hint": "",
       "gold_answer": "我不知道",
-      "must_contain": ["我不知道"],
-      "hallucination_traps": ["用通用 Docker 常识编 overlay2"]
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "用通用 Docker 常识编 overlay2"
+      ]
     },
     {
       "id": "G02",
       "category": "unanswerable",
-      "eval_focus": ["refusal"],
+      "eval_focus": [
+        "refusal"
+      ],
       "query": "红黑树插入时的三种旋转要怎么画？",
       "answerable": false,
       "relevant_filenames": [],
       "kb_hint": "",
       "gold_answer": "我不知道",
-      "must_contain": ["我不知道"],
+      "must_contain": [
+        "我不知道"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "G03",
       "category": "unanswerable",
-      "eval_focus": ["refusal"],
-      "query": "Python asyncio 里 Task 和 Future 的区别，以及事件循环调度细节是什么？",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "Trio 的 nursery、CancelScope 和 uvloop 事件循环的源码实现差异是什么？",
       "answerable": false,
       "relevant_filenames": [],
       "kb_hint": "",
       "gold_answer": "我不知道",
-      "must_contain": ["我不知道"],
-      "hallucination_traps": ["用通用 asyncio 常识作答"]
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "用通用 asyncio 常识作答"
+      ]
     },
     {
       "id": "G04",
       "category": "unanswerable",
-      "eval_focus": ["refusal"],
+      "eval_focus": [
+        "refusal"
+      ],
       "query": "这个知识库作者的微信号是多少？",
       "answerable": false,
       "relevant_filenames": [],
       "kb_hint": "",
       "gold_answer": "我不知道",
-      "must_contain": ["我不知道"],
+      "must_contain": [
+        "我不知道"
+      ],
       "hallucination_traps": []
     },
     {
       "id": "G05",
       "category": "unanswerable",
-      "eval_focus": ["refusal"],
+      "eval_focus": [
+        "refusal"
+      ],
       "query": "LeetCode 第 1 题 Two Sum 在这份库里的参考代码是什么？",
       "answerable": false,
       "relevant_filenames": [],
       "kb_hint": "",
       "gold_answer": "我不知道",
-      "must_contain": ["我不知道"],
-      "hallucination_traps": ["默写 Two Sum"]
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "默写 Two Sum"
+      ]
+    },
+    {
+      "id": "G06",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "Kubernetes Deployment 的 rollingUpdate maxSurge 默认值在这份知识库里是多少？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "用通用 K8s 常识作答"
+      ]
+    },
+    {
+      "id": "G07",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "这个知识库作者的本科毕业论文题目是什么？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "G08",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "Redis Cluster 槽位迁移时源码里负责搬槽的函数名是什么？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": []
+    },
+    {
+      "id": "G09",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "这份知识库里有没有写出 BERT 预训练 MLM 的损失函数公式？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "默写交叉熵公式"
+      ]
+    },
+    {
+      "id": "G10",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "Flink exactly-once 里 checkpoint barrier 对齐的实现写在这份库的哪一页？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": []
     }
   ]
 }

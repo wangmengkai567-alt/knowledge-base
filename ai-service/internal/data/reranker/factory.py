@@ -2,6 +2,7 @@
 internal/data/reranker/factory.py — Reranker 工厂
 
 zhipu：智谱文本重排序 API。
+qwen：千问 DashScope 文本重排序 API。
 memory：关键词重叠精排，仅作无密钥时的对照实现。
 """
 
@@ -9,6 +10,7 @@ from __future__ import annotations
 
 from internal.biz.repo import Reranker
 from internal.data.reranker.memory import MemoryReranker
+from internal.data.reranker.qwen import QwenReranker
 from internal.data.reranker.zhipu import ZhipuReranker
 
 
@@ -22,6 +24,19 @@ def create_reranker(
     """按配置创建重排序器。更换智谱模型只传 model，不必改代码。"""
     if provider == "memory":
         return MemoryReranker()
+
+    if provider == "qwen":
+        if not api_key or not base_url or not model:
+            raise ValueError(
+                "Reranker provider 'qwen' requires AI_RERANKER__API_KEY, "
+                "AI_RERANKER__BASE_URL and AI_RERANKER__MODEL."
+            )
+        return QwenReranker(
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
+            timeout=timeout,
+        )
 
     if provider == "zhipu":
         if not api_key:

@@ -71,6 +71,7 @@ ai-service/_verify_sprint*.py
 # === 日志 / 本地评测输出 ===
 *.log
 eval*.out
+eval/.run_eval.lock
 
 # 忽略任意位置的名为 面试 和 design 的文件夹
 面试/

@@ -84,11 +84,13 @@ services:
     volumes:
       - ai-postgres-data:/var/lib/postgresql/data
     healthcheck:
+      # Windows Docker Desktop 在非干净关机后要对数据目录 fsync，实测就绪约 3 分钟。
+      # start_period 只推迟判定 unhealthy，第一次 pg_isready 成功仍会立刻标为 healthy。
       test: ["CMD-SHELL", "pg_isready -U ai_kb -d ai_kb"]
       interval: 10s
       timeout: 5s
-      start_period: 10s
-      retries: 5
+      start_period: 180s
+      retries: 10
     restart: unless-stopped
     networks:
       - ai-network
