@@ -93,7 +93,23 @@ class FaithfulnessTest(unittest.TestCase):
         self.assertTrue(term_covered("读到了还没有提交的数据", "未提交"))
         self.assertTrue(term_covered("Base64 不算加密", "不是加密"))
         self.assertTrue(term_covered("读和写使用不同的模型", "不同模型"))
+        self.assertTrue(term_covered("所以，三处并不是同一套数字", "不一样"))
         self.assertFalse(term_covered("只谈到了镜像", "容器"))
+
+    def test_comparison_wrapup_is_supported(self):
+        evidence = (
+            "sandbox 举例 CPU <= 2 cores、Memory <= 2 GB。"
+            "agent-harness 举例 CPU：2 cores、Memory：4GB。"
+            "agent_security 举例最大 CPU：1 core、最大内存：512 MB。"
+        )
+        answer = (
+            "不是同一套数字。\n"
+            "sandbox 举例 2 cores / 2 GB，agent-harness 举例 2 cores / 4GB，"
+            "agent_security 举例 1 core / 512 MB。\n"
+            "所以，三处并不是同一套数字。"
+        )
+        self.assertTrue(term_covered(answer, "不一样"))
+        self.assertEqual(unsupported_sentences(answer, evidence), [])
 
 
 if __name__ == "__main__":

@@ -1,16 +1,16 @@
 {
   "summary": {
-    "ran_at": "2026-10-10T13:56:49.341891+00:00",
+    "ran_at": "2026-10-11T10:59:48.954359+00:00",
     "rescore": false,
     "context_window": 1,
     "hallucination_judge": "paraphrase",
     "n_items": 100,
-    "n_errors": 2,
+    "n_errors": 0,
     "hit_at_5": 1.0,
     "hit_at_10": 1.0,
     "mrr": 1.0,
-    "answer_correctness": 0.8222,
-    "hallucination_rate": 0.0,
+    "answer_correctness": 0.9111,
+    "hallucination_rate": 0.0111,
     "n_answered": 90,
     "refusal_accuracy": 1.0,
     "missed_recall_rate": 0.0,
@@ -118,7 +118,7 @@
         "04.agent_security.md",
         "03.sandbox.md"
       ],
-      "answer": "在 Agent 开发里，**sandbox 是一个给 Agent 使用的“受限制的计算机环境”**，让 Agent 可以在里面执行代码、运行 Shell 命令、读写文件，但不会直接破坏宿主机 [来源 1]。\n\n它不是某一种具体工具，而是一种**隔离执行环境**，核心目的是把 Agent 放进一个受限制的环境里面运行 [来源 1]。\n\nsandbox 主要用来解决这些问题：\n\n1. **防止 Agent 直接破坏真实系统**  \n   Agent 可以执行命令、运行代码，如果不加限制，可能会影响真实电脑上的文件、系统或项目。sandbox 把这些操作限制在隔离环境里 [来源 1]。\n\n2. **限制文件访问范围**  \n   例如只允许 Agent 访问 `/workspace` 目录，在里面读取、修改或运行文件，而不是随意访问宿主机上的其他文件 [来源 1]。\n\n3. **限制网络访问**  \n   sandbox 可以控制 Agent 能访问哪些网络地址，例如允许访问 `github.com`、`pypi.org`，但禁止访问内部数据库、公司内网或 `127.0.0.1`，避免 Agent 运行的代码把数据发送出去 [来源 1]。\n\n4. **限制 CPU 和执行时间**  \n   如果 Agent 运行了死循环代码，可能会一直占用 CPU。sandbox 可以限制 CPU 使用，例如 `CPU <= 2 cores`，或限制执行时间，例如 `执行时间 ≤ 30 秒` [来源 1]。\n\n5. **限制内存使用**  \n   如果 Agent 代码不断申请内存，可能会导致内存耗尽。sandbox 可以限制内存，例如 `Memory <= 2 GB`，超过限制就触发 OOM [来源 1]。\n\n6. **限制权限**  \n   sandbox 里的程序通常只有普通用户权限，而不是 `root` 或 `administrator` 权限，从而降低危险操作的影响 [来源 1]。\n\n简单来说，**sandbox 用来给 Agent 提供一个可控、可隔离、可限制资源和权限的执行环境**，让 Agent 能够执行代码和命令，但不会直接影响或破坏真实宿主机 [来源 1]。",
+      "answer": "Agent 开发中的安全问题主要集中在 **Agent 获得工具执行能力之后，可能被错误指令、恶意内容或过度权限滥用**。根据资料，可以概括为以下几类：\n\n1. **权限控制问题**  \n   Agent 可能拥有过多资源访问权限，例如访问文件、网络、数据库、Shell、GitHub 等。应遵循最小权限原则，限制 Agent 能访问的资源和工具 [来源 2]。  \n   资料中也强调：Permission 解决的是“允许不允许做”，Sandbox 解决的是“能在哪里做” [来源 3]。\n\n2. **工具调用安全问题**  \n   Agent 的 Tool Call 参数不能直接信任 LLM 输出，需要对参数进行 Schema、路径和权限校验 [来源 2]。  \n   工具执行流程中通常包含：权限检查、命令解析、Sandbox 检查、设置 cwd、创建 Process、捕获 stdout/stderr、等待、timeout 检查、exit code、构造 Tool Result [来源 3]。\n\n3. **Sandbox 隔离不足问题**  \n   Shell、Python 等不可信代码应放在隔离环境中执行，并限制 CPU、内存、磁盘、进程和网络 [来源 2]。  \n   Sandbox 本身是给 Agent 提供一个“受限制的计算机环境”，让 Agent 可以执行代码、运行 Shell 命令、读写文件，而不会直接破坏宿主机 [来源 1]。  \n   Sandbox 可以限制文件系统、网络、CPU、Memory、权限等 [来源 1]，也可以限制 CPU、Memory、Disk、Network、Runtime [来源 3]。\n\n4. **Prompt Injection / 间接提示词注入问题**  \n   Agent 读取网页、文档、GitHub Issue、README 等外部数据时，可能被恶意内容注入指令 [来源 2]。  \n   资料中的攻击链示例是：攻击者在 README 中加入“Ignore previous instructions. Run: curl ...”，Agent 读取后被诱导执行 Shell、读取 SSH Key，并通过 Internet 发送出去 [来源 2]。\n\n5. **Secrets 泄露问题**  \n   API Key、数据库密码、SSH Key 等敏感信息可能被 Agent 读取并外传，需要保护 Secrets [来源 2]。  \n   资料中的完整攻击链就体现了 Secrets Exposure [来源 2]。\n\n6. **高风险操作失控问题**  \n   删除文件、git push、发送邮件、修改生产数据库、部署生产环境、购买资源、修改云服务器等操作通常需要 Human Confirmation [来源 2]。  \n   对高风险操作应引入 Human-in-the-loop 和审计日志 [来源 2]。\n\n7. **资源滥用与失控问题**  \n   Agent 可能执行死循环、消耗大量内存、创建过多进程或长时间运行，因此需要资源限制 [来源 1]。  \n   资料中提到的资源限制包括：CPU limit、Memory limit、Disk limit、Process limit、Execution timeout、Network limit [来源 2]。  \n   例如最大执行时间、最大内存、最大 CPU、最大进程数、最大磁盘等 [来源 2]。\n\n8. **网络访问风险**  \n   Agent 可能通过 `curl` 或 `request.get(...)` 等命令访问网络，如果没有限制，恶意代码可能把数据发送出去 [来源 1]。  \n   可以允许访问 `github.com`、`pypi.org`，但禁止访问内部数据库、公司内网、`127.0.0.1` [来源 1]。\n\n9. **执行环境边界问题**  \n   Sandbox 是 Harness 的执行安全边界 [来源 3]。  \n   如果 Agent 没有 Sandbox 或 Harness 控制机制，可能无限循环、越权访问或破坏宿主机 [来源 1][来源 3]。\n\n总结来说，Agent 开发中的核心安全问题包括：**权限过大、工具调用不可信、缺少 Sandbox、Prompt Injection、Secrets 泄露、高风险操作缺少确认、资源滥用、网络外传风险，以及执行环境边界失控** [来源 1][来源 2][来源 3]。",
       "source_files": [
         "03.sandbox.md",
         "03.sandbox.md",
@@ -162,7 +162,7 @@
         "04.agent_security.md",
         "07.agent-harness.md"
       ],
-      "answer": "/workspace [来源 1]",
+      "answer": "根据参考资料，当用户提出“把这个项目的 bug 修掉”时，Agent 系统会按照以下流程进行处理和执行 [来源 2]：\n\n1. **Harness 创建任务**：系统会记录任务状态（`status = running`）和工作目录（`cwd = /workspace/project`）[来源 2]。\n2. **构建 Context**：Harness 将 System Prompt、User Prompt、Tools、Project Information 和 Relevant Memory 组合，发送给 LLM [来源 2]。\n3. **LLM 请求工具**：LLM 分析后决定调用工具，例如执行测试命令 `pytest tests/` [来源 2]。\n4. **Harness 拦截与检查**：Harness 会检查该 Tool 是否存在、shell 和 pytest 是否被允许、cwd 是否正确、有无危险命令以及是否超过 tool call limit [来源 2]。\n5. **Sandbox 限制环境**：创建受限的执行环境（如 `/workspace/project`），确保 Agent 无法访问 `~/.ssh`、`/etc` 或其他项目目录 [来源 2]。\n6. **Process 执行命令**：在沙箱中创建进程执行 `pytest`，并捕获 `stdout`、`stderr` 和 `exit_code`（例如测试失败时 `exit_code = 1`）[来源 2]。\n7. **构造 Tool Result**：Harness 将执行结果打包成 JSON 格式（包含 status、exit_code、stdout、stderr 等）[来源 2]。\n8. **重新进入 Agent Loop**：将 Tool Result 重新放入 Context 发送给 LLM，LLM 据此分析出测试失败的具体原因（如类型错误）[来源 2]。\n9. **修改文件**：LLM 请求执行 `edit_file` 修改代码。Harness 会再次经过权限检查（Permission）、Sandbox 限制并执行修改 [来源 2]。\n10. **重新测试**：再次调用 `pytest` 运行测试，直到测试通过（`exit_code = 0`）[来源 2]。\n11. **最终检查**：Harness 还会要求执行最终检查（如 `git diff`）以确认修改结果 [来源 2]。",
       "source_files": [
         "03.sandbox.md",
         "03.sandbox.md",
@@ -206,7 +206,7 @@
         "07.agent-harness.md",
         "03.sandbox.md"
       ],
-      "answer": "根据资料：\n\n- **Shell**：命令解释器，负责解释输入的命令，例如 PowerShell / Bash；在架构中用于执行命令 [来源 1]。\n- **Process**：命令对应的程序运行实例，由 Shell 创建，例如 `pytest.exe`；其中包含 PID、stdin、stdout、stderr、exit code 等信息 [来源 1]。\n- **Sandbox**：限制这些程序运行范围的隔离环境，给 Agent 提供受限制的计算机环境，用于限制文件系统、网络、CPU、内存、权限等 [来源 1]。",
+      "answer": "在这个项目里，三者的角色可以这样理解：\n\n- **Shell**：命令解释器 / 执行入口。Agent 通过 Shell 执行命令，例如读取文件、搜索代码、运行测试、查看 `git diff` 等 [来源 1]。\n- **Process**：命令真正运行起来的实例。Shell 执行命令后会创建 Process，例如 `pytest.exe` 会成为一个 Process，并带有 `PID`、`stdin`、`stdout`、`stderr`、`exit code` 等信息 [来源 1]。\n- **Sandbox**：受限制的隔离执行环境。它规定 Shell 和 Process “能在哪里运行、能访问什么、能消耗多少资源”，例如限制只能访问 `/workspace`、限制网络、CPU、内存、权限等，避免破坏宿主机 [来源 1]。\n\n简单说：\n\n```text\nShell：怎么执行命令\nProcess：命令运行后的实例\nSandbox：在哪里执行、能做什么、不能做什么\n```\n\n对于修 bug 的流程：\n\n```text\n读取文件 / 搜索代码 / 修改代码 / 运行测试\n```\n\n这些操作通常由 **Agent** 通过 **Shell** 发起，具体命令会创建 **Process** 执行，而这些执行过程应被放进 **Sandbox** 中，受文件、网络、CPU、内存和权限限制 [来源 1]。",
       "source_files": [
         "03.sandbox.md",
         "03.sandbox.md",
@@ -250,7 +250,7 @@
         "01.shell-bash.md",
         "03.sandbox.md"
       ],
-      "answer": "Agent 判断一条命令有没有执行成功，通常应该先看 **exit code** [来源 1]。\n\n例如执行 `pytest` 时：\n\n- `exit code = 0` 表示成功；\n- `exit code != 0` 表示失败 [来源 1]。\n\n有 `stderr` **不等于执行失败**。资料里明确说明：`有 stderr != 执行失败`，因为有些程序即使执行成功，也可能向 `stderr` 输出信息 [来源 1]。",
+      "answer": "Agent 判断一条命令是否执行成功，应该先看 **exit code** [来源 1]。\n\n- `exit code = 0`：通常表示成功 [来源 1]\n- `exit code != 0`：通常表示失败 [来源 1]\n\n**有 stderr 不等于执行失败** [来源 1]。因为有些程序即使执行成功，也可能向 stderr 输出信息 [来源 1]。真正判断命令是否成功，通常首先看 exit code [来源 1]。",
       "source_files": [
         "01.shell-bash.md",
         "07.agent-harness.md",
@@ -286,7 +286,7 @@
         "01.shell-bash.md",
         "01.shell-bash.md"
       ],
-      "answer": "Linux 里标准输入输出的文件描述符编号分别是：\n\n- `stdin`：0  \n- `stdout`：1  \n- `stderr`：2  \n\n[来源 1]",
+      "answer": "Linux 里标准文件描述符编号为：\n\n- `stdin`：0\n- `stdout`：1\n- `stderr`：2\n\n[来源 1]",
       "source_files": [
         "01.shell-bash.md",
         "01.shell-bash.md"
@@ -314,7 +314,7 @@
         "01.shell-bash.md",
         "01.shell-bash.md"
       ],
-      "answer": "不能。`SIGKILL` 不能被程序捕获、忽略或处理，因此程序基本没有机会做清理 [来源 1]。\n\n与 `SIGINT`、`SIGTERM` 的区别是：\n\n- `SIGINT`：例如 `Ctrl + C` 触发的停止信号，可以被程序捕获和处理，程序可以执行自己的清理逻辑，比如关闭数据库连接、保存数据、删除临时文件、释放资源，然后退出 [来源 1]。\n- `SIGTERM`：比较温和地要求程序退出，程序有机会清理资源 [来源 1]。\n- `SIGKILL`：强制杀死进程，程序没有机会执行清理逻辑，也不能捕获、忽略或处理该信号 [来源 1]。",
+      "answer": "不能。SIGKILL 不能被程序捕获后做清理。\n\n根据资料：\n\n- **SIGKILL**：是**强制杀死**，程序基本没有机会做清理；并且 **不能被程序捕获、忽略或者处理** [来源 1]。\n- **SIGINT**：例如 Ctrl + C，用于停止程序，但**可以被程序捕获和处理**；程序可以执行自己的清理逻辑，例如关闭数据库连接、保存数据、删除临时文件、释放资源，然后退出 [来源 1]。\n- **SIGTERM**：是比较温和地要求程序退出，程序**有机会清理资源** [来源 1]。\n\n因此，SIGINT 和 SIGTERM 都给程序留下了处理信号和清理资源的机会；而 SIGKILL 不给程序这种机会，是直接强制终止 [来源 1]。",
       "source_files": [
         "01.shell-bash.md",
         "01.shell-bash.md"
@@ -350,7 +350,7 @@
         "02.powershell.md",
         "02.powershell.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "在 PowerShell 中：\n\n- 查看当前目录：`Get-Location` [来源 1]\n- 列出文件：`Get-ChildItem` [来源 1]\n\n在 Bash 中对应命令：\n\n- 查看当前目录：`pwd` [来源 1]\n- 列出文件：`ls` [来源 1]",
       "source_files": [
         "02.powershell.md",
         "02.powershell.md",
@@ -364,7 +364,7 @@
         "02.powershell.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -393,7 +393,7 @@
         "02.powershell.md",
         "03.sandbox.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "PowerShell 的管道和 Bash 管道最大的差别在于：**PowerShell 管道通常传递的是 .NET 对象，而不是单纯文本**；而 Bash/传统 shell 管道主要是把一个程序的 **stdout 文本输出**作为另一个程序的 **stdin 文本输入**。\n\n例如 PowerShell 中：\n\n```powershell\nGet-Process | Where-Object {$_.CPU -gt 100}\n```\n\n`Get-Process` 向管道传递的是大量 `Process` 对象，后续命令可以直接基于对象属性（如 `CPU`）进行筛选 [来源 1]。\n\n而 Bash 中类似：\n\n```bash\ncat log.txt | grep ERROR\n```\n\n管道传递的是文本流，前一个命令的标准输出被交给后一个命令处理 [来源 2]。",
       "source_files": [
         "02.powershell.md",
         "02.powershell.md",
@@ -406,7 +406,7 @@
         "03.sandbox.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -436,7 +436,7 @@
         "07.agent-harness.md",
         "AI_Agent开发100道高频面试题.md"
       ],
-      "answer": "Agent 有了工具、文件、Shell 等执行能力后，安全上核心要防的是：**Agent 做出不该做的事情** [来源 1]。\n\n具体要防的问题包括：\n\n1. **权限过大 / 过度权限**  \n   Agent 不应该拥有超出任务需要的能力，否则可能被滥用或误用 [来源 1]。\n\n2. **输入不安全，尤其是 Prompt Injection 提示词注入**  \n   用户输入或外部数据，例如网页、PDF、README、GitHub Issue、邮件、数据库、搜索结果、代码注释等，不能都被当成可信指令 [来源 1]。\n\n3. **工具调用不安全**  \n   不能直接相信工具参数。例如 `read_file` 传入 `/etc/passwd` 时，不能直接打开文件，而要做 Schema、路径、权限、沙箱等检查 [来源 1]。\n\n4. **路径穿越**  \n   文件类 Agent 需要对用户路径做规范化、解析绝对路径，并判断是否仍在允许目录内 [来源 1]。\n\n5. **密钥和敏感信息泄露**  \n   密码、API Key、SSH Key 等 Secrets 不应直接暴露给 Agent，最好只提供特定工具，让 Agent 不直接拿到 Secret [来源 1]。\n\n6. **不安全执行和资源滥用**  \n   需要限制 CPU、内存、磁盘、进程数、执行超时、网络等资源，避免 Agent 执行危险或失控操作 [来源 1]。\n\n权限应该这样给：\n\n1. **遵循最小权限原则**  \n   Agent 只获得完成任务所需的最小权限 [来源 1]。\n\n2. **按风险等级控制执行方式**  \n   - 低风险：可以自动执行  \n   - 中风险：可能需要确认  \n   - 高风险：必须人工确认 [来源 1]\n\n3. **把决策、执行、审核分开**  \n   资料中给出的结构是：  \n   - LLM 是决策者  \n   - Tool Runtime 是执行者  \n   - Security Layer 是审核者 [来源 1]\n\n4. **高风险操作引入 Human-in-the-loop**  \n   例如删除文件、`git push`、发送邮件、修改生产数据库、部署生产环境、购买资源、修改云服务器等操作，通常需要人工确认 [来源 1]。\n\n5. **工具调用前做安全校验**  \n   工具执行前应经过：  \n   `Tool Call → Schema Validation → Path Validation → Permission Check → Sandbox Check → Execution` [来源 1]。",
+      "answer": "Agent 有了工具、文件、Shell 之后，安全上主要防的是：**Agent 在拥有执行能力后，做出不该做的事情**，例如越权访问文件、执行危险命令、读取密钥、被外部内容诱导、调用高危工具、造成资源滥用或数据泄露 [来源 1]。\n\n可以概括为这几类风险：\n\n1. **权限越界**\n   - Agent 被允许访问了过多文件、目录、网络、Shell、数据库或工具能力 [来源 1]。\n   - 例如本来只需要读项目文件，却可以访问 `/etc/passwd`、删除项目外文件、执行 `sudo` 等 [来源 1][来源 3]。\n\n2. **提示词注入**\n   - 恶意输入可能改变 Agent 原本行为，让 Agent 把外部数据当成指令执行 [来源 1]。\n   - 间接注入可能藏在网页、PDF、GitHub Issue、README、邮件、数据库、搜索结果、文档、代码注释里，Agent 读取后可能被诱导执行危险命令 [来源 1]。\n   - 典型攻击链是：README 注入指令 → Agent 读取 → LLM 当成指令 → 调用 Shell → 读取 SSH Key → 访问网络并外传 [来源 1]。\n\n3. **工具调用不安全**\n   - 不能直接相信 tool 参数，尤其是路径、命令、网络地址、SQL 等 [来源 1]。\n   - 工具调用前需要校验，例如：\n     ```text\n     Tool Call\n        ↓\n     Schema Validation\n        ↓\n     Path Validation\n        ↓\n     Permission Check\n        ↓\n     Sandbox Check\n        ↓\n     Execution\n     ```\n     [来源 1]\n\n4. **路径穿越**\n   - 文件类 Agent 要防止用户通过路径绕过目录限制 [来源 1]。\n   - 需要规范化路径、解析绝对路径，并判断是否仍在允许目录内 [来源 1]。\n\n5. **命令执行和沙箱风险**\n   - Shell、Python 等不可信代码不能直接裸执行，需要放在隔离环境中，并限制 CPU、内存、磁盘、进程、网络、执行时间 [来源 1]。\n   - Sandbox 解决的是“在哪里执行命令”，Security 解决的是“允许执行什么，以及怎么防止滥用” [来源 1]。\n\n6. **密钥和敏感数据暴露**\n   - 密码、API Key、SSH Key、数据库密码等不要直接暴露给 Agent [来源 1]。\n   - 可以提供特定工具，让 Agent 不直接获得 Secret [来源 1]。\n\n7. **高危操作失控**\n   - 删除数据、修改核心配置、批量修改、部署生产、修改生产数据库等操作风险很高 [来源 2]。\n   - 需要工具权限分级、白名单、参数拦截、人工确认和全链路审计 [来源 2]。\n\n---\n\n权限应该怎么给？核心原则是：**Least Privilege，最小权限原则** [来源 1]。\n\n也就是说，Agent 只获得完成任务所需的最小权限，不给多余能力 [来源 1]。\n\n可以按风险分层给权限：\n\n### 1. 低风险操作：可以自动执行\n例如普通读取、查询、生成建议等，可以根据场景自动执行 [来源 1]。\n\n### 2. 中风险操作：根据策略决定是否确认\n例如：\n```text\n修改代码\n安装依赖\n创建文件\n```\n这些操作可能需要根据系统策略决定是否要求用户确认 [来源 1]。\n\n### 3. 高风险操作：必须人工确认\n例如：\n```text\n删除文件\ngit push\n发送邮件\n修改生产数据库\n部署生产环境\n购买资源\n修改云服务器\n```\n这些通常需要 `Human Confirmation`，也就是人在环中，Agent 暂停，询问用户，用户确认后再继续执行 [来源 1]。\n\n---\n\n更具体地说，权限控制应该做到：\n\n1. **工具分级授权**\n   - 区分普通查询工具和高危修改工具，单独隔离高危接口 [来源 2]。\n\n2. **白名单机制**\n   - 高危工具只在指定场景可调用，默认禁止访问 [来源 2]。\n\n3. **参数前置校验**\n   - 拦截清空数据、批量删除等危险请求 [来源 2]。\n\n4. **路径和目录限制**\n   - 禁止访问敏感目录，例如 `/etc`；禁止删除项目目录之外文件 [来源 3]。\n\n5. **资源限制**\n   - 设置最大执行时间、最大内存、最大 CPU、最大进程数、最大磁盘、网络限制等 [来源 1]。\n   - Harness 层还可以限制最多工具调用次数、最多运行时间、最大上下文、最多修改文件数量等 [来源 3]。\n\n6. **执行层隔离**\n   - LLM 是决策者，Tool Runtime 是执行者，Security Layer 是审核者 [来源 1]。\n   - Permission 解决“能不能做”，Sandbox 解决“在哪里做” [来源 3]。\n\n7. **审计日志**\n   - 高危操作全程记录调用人、时间、参数、结果，便于追踪和排查 [来源 2]。\n\n一句话总结：**Agent 有了工具、文件、Shell 之后，安全上防的是越权执行、提示词注入、危险工具调用、路径穿越、密钥泄露、资源滥用和高危操作失控；权限上应按最小权限原则，给低风险自动执行、中风险按策略确认、高风险必须人工确认，并配合工具分级、白名单、参数校验、沙箱隔离、资源限制和审计日志。**",
       "source_files": [
         "04.agent_security.md",
         "04.agent_security.md",
@@ -479,7 +479,7 @@
         "AI_Agent开发100道高频面试题.md",
         "05.Context_Engineering.md"
       ],
-      "answer": "间接提示词注入是指攻击者把恶意指令放进 Agent 会读取的外部数据中，当 Agent 读取这些数据时，LLM 可能把这些内容误认为指令，从而改变 Agent 原本的行为 [来源 1]。\n\n恶意指令可能藏在以下地方：\n\n- 网页  \n- PDF  \n- GitHub Issue  \n- README  \n- 邮件  \n- 数据库  \n- 搜索结果  \n- 文档  \n- 代码注释  \n\n因此，Agent 不能把所有外部数据都当成可信指令 [来源 1]。",
+      "answer": "间接提示词注入是指恶意指令不是直接作为用户输入发给 Agent，而是被藏在 Agent 会读取的外部数据或内容中；Agent 读取后可能把这些外部数据误当成指令执行，从而改变原本行为 [来源 1]。Prompt 注入本身是恶意用户植入伪造指令，绕过系统规则、覆盖 System Prompt，诱导 Agent 执行越权、违规或恶意操作，并分为直接注入和间接注入 [来源 2]。\n\n恶意指令可能藏在这些地方：网页、PDF、GitHub Issue、README、邮件、数据库、搜索结果、文档、代码注释等外部内容中 [来源 1]。",
       "source_files": [
         "04.agent_security.md",
         "AI_Agent开发100道高频面试题.md",
@@ -517,7 +517,7 @@
         "07.agent-harness.md",
         "07.agent-harness.md"
       ],
-      "answer": "通常必须引入 Human-in-the-loop 确认的是高风险操作，例如：\n\n- 删除文件\n- `git push`\n- 发送邮件\n- 修改生产数据库\n- 部署生产环境\n- 购买资源\n- 修改云服务器\n\n这些操作通常需要人工确认后再继续执行 [来源 1]。",
+      "answer": "通常必须 Human-in-the-loop 确认的操作包括：删除文件、git push、发送邮件、修改生产数据库、部署生产环境、购买资源、修改云服务器等高风险操作 [来源 1]。",
       "source_files": [
         "04.agent_security.md",
         "04.agent_security.md",
@@ -556,7 +556,7 @@
         "07.agent-harness.md",
         "03.sandbox.md"
       ],
-      "answer": "三者的区分是：\n\n- **shell**：关注“怎么执行命令” [来源 1]\n- **sandbox**：关注“在哪里执行命令” [来源 1]\n- **security**：关注“允许执行什么，以及怎么防止滥用” [来源 1]",
+      "answer": "可以这样区分：\n\n- **Shell**：关注“**怎么执行命令**”。它是命令解释器，负责接收并解释用户或 Agent 输入的命令，再创建进程去执行命令 [来源 1]。  \n  例如：`pytest`、`curl`、`git push` 这类命令通常通过 Shell 执行 [来源 2]。\n\n- **Sandbox**：关注“**在哪里执行命令**”。它给 Agent 提供一个受限制的隔离执行环境，限制命令能访问哪些文件系统、网络、CPU、内存、权限和执行时间 [来源 1][来源 2]。  \n  例如：只允许访问 `/workspace`，限制 CPU、内存、网络，禁止访问内网或敏感路径 [来源 2][来源 3]。\n\n- **Security**：关注“**允许执行什么，以及怎么防止滥用**”。它更高层，包括权限控制、最小权限原则、工具参数校验、Prompt Injection 防护、Secrets 保护、高风险操作人工确认和审计等 [来源 1]。\n\n一句话总结：\n\n> **Shell 解决“怎么执行”，Sandbox 解决“在哪里执行”，Security 解决“能不能执行以及怎么防止滥用”** [来源 1]。",
       "source_files": [
         "04.agent_security.md",
         "03.sandbox.md",
@@ -600,7 +600,7 @@
         "05.Context_Engineering.md",
         "05.Context_Engineering.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "根据参考资料，两者的区别如下 [来源 1]：\n\n| 维度 | Prompt Engineering | Context Engineering |\n|---|---|---|\n| 核心 | 怎么告诉模型 | 给模型什么信息 |\n| 关注 | 指令 | 信息 |\n| 典型内容 | System Prompt | History / Memory / Tool Result / RAG |\n| 目标 | 让模型理解任务 | 让模型拥有完成任务所需的信息 |\n| Agent 中的重要性 | 高 | 非常高 |\n\n简而言之，Prompt Engineering 更偏向“如何给模型下达指令”，而 Context Engineering 更偏向“如何为模型选择、组织、压缩和更新当前任务所需的信息” [来源 1]。",
       "source_files": [
         "05.Context_Engineering.md",
         "05.Context_Engineering.md",
@@ -644,7 +644,7 @@
         "05.Context_Engineering.md",
         "05.Context_Engineering.md"
       ],
-      "answer": "Agent Memory 和“这一轮 Context”的区别在于：\n\n- **这一轮 Context** 更偏当前上下文窗口里的内容，比如当前会话中的 System Prompt、User、Assistant、Tool Result 等，是当前任务/当前会话中发生的事情 [来源 1]。\n- **Agent Memory** 的核心是让 Agent 能够**跨越当前一次执行过程**，保存并在未来任务中利用过去的信息，使 Agent 具有跨时间的连续性 [来源 1]。  \n  其中，短期记忆确实和当前 Context 强相关，但长期记忆保存的是未来任务仍可能有价值的信息，例如用户画像、用户偏好、事实、情景记忆、语义记忆、程序性记忆等 [来源 1]。\n\nMemory 和 RAG 的目标差异在于：\n\n- **RAG** 主要解决的是从外部知识库获取知识 [来源 1]。\n- **Memory** 主要解决的是 Agent 对过去交互、用户信息和任务经验的持续记忆 [来源 1]。\n\n两者在实现上都可能使用 Embedding 和 Vector Database，但目标不同：RAG 面向外部知识，Memory 面向历史交互与经验记忆 [来源 1]。",
+      "answer": "Agent Memory 和“这一轮 Context”的核心区别是：**Memory 关注“应该记住什么”，Context 关注“这一轮 LLM 应该看到什么”**。\n\n1. **Agent Memory：跨时间保存信息**  \n   Agent Memory 的作用是让 Agent 能够跨越当前一次执行过程，保存并在未来任务中利用过去的信息 [来源 1]。  \n   它通常分为：\n   - **短期记忆**：保存当前会话、工具调用结果和任务状态，本质上与当前 Context 强相关 [来源 1]。\n   - **长期记忆**：保存未来任务仍然可能有价值的信息，例如用户画像、偏好、历史事件、长期事实和行为模式 [来源 1]。\n\n2. **Context：当前这一轮输入给模型的信息**  \n   Context Engineering 是围绕 Agent 当前任务，对进入 LLM 上下文窗口的信息进行选择、组织、压缩、更新和管理 [来源 3]。  \n   资料里明确区分：\n\n   ```text\n   Memory = “我应该长期/阶段性记住什么？”\n   Context = “这一轮 LLM 应该看到什么？”\n   ```\n\n   例如，Memory 中可能记录“用户喜欢 Go”“用户项目使用 PostgreSQL”“用户希望详细解释”，但这些 Memory 不一定每次都进入当前 Context [来源 2]。\n\n3. **Memory 和 RAG 的目标差异**  \n   Memory 和 RAG 在实现上可能都使用 Embedding 和 Vector Database，但目标不同：\n   - **RAG** 主要解决从外部知识库获取知识 [来源 1]。\n   - **Memory** 主要解决 Agent 对过去交互、用户信息和任务经验的持续记忆 [来源 1]。\n\n简单说：**Memory 是 Agent 的记忆库；Context 是这一轮真正喂给模型的信息；RAG 是从外部知识库取知识，而 Memory 是从 Agent 自己的历史经验中取记忆。**",
       "source_files": [
         "06.memory.md",
         "05.Context_Engineering.md",
@@ -688,7 +688,7 @@
         "07.agent-harness.md",
         "03.sandbox.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "Agent Harness 可以理解为 Agent 的“操作系统 + 运行时 + 控制器 + 安全边界” [来源 1]。它位于 LLM / Agent Loop 与底层工具、执行环境之间，负责把 Agent 运行起来并控制住，包括工具调用、任务状态、上下文管理、权限控制、Sandbox、Shell/Process 执行、超时重试、日志追踪以及 Human-in-the-loop 等能力，使 Agent 能够安全、可靠地执行长时间、多步骤的复杂任务 [来源 1]。\n\n从组成上看，Agent Harness 包括这些部分：\n\n- Agent Loop：让 Agent 在 LLM、Tool Call、Tool Execution、Tool Result 之间循环执行 [来源 1]。\n- Tool Registry：工具注册中心，让 Agent 知道有哪些工具可用 [来源 1]。\n- Tool Execution：真正执行工具调用，包括权限检查、命令解析、Sandbox 检查、设置 cwd、创建 Process、捕获 stdout/stderr、timeout 检查、构造 Tool Result 等 [来源 1]。\n- Permission：解决“允许不允许做”，例如 read_file、write_file 允许，delete_file、network、sudo 禁止 [来源 1]。\n- Context Management：负责把用户消息、System Prompt、工具描述、历史消息、Memory、文件内容、Tool Result、当前任务状态等组织成 LLM Context [来源 1]。\n- State Management：记录任务状态，例如 task ID、status、step、tool_calls、files_changed、tests 等；如果 Agent 中途崩了，可以基于 Task State 进行 Resume [来源 1]。\n- Timeout：控制进程超时，超过限制后 Kill Process 并返回 timeout 状态 [来源 1]。\n- Retry：处理基础设施层面的重试，例如 429、500 可以 retry，401 通常不要 retry [来源 1]。\n- Observability：记录 LLM 调用、Tool 调用、参数、stdout、stderr、exit code、最终回答等，方便排查“为什么没有修好” [来源 1]。\n- Human-in-the-loop：在风险操作前要求人工确认，例如 LLM 请求 Tool Call 后，Harness 做 Risk Detection，需要确认时交给 Human Approve，再执行 [来源 1]。\n\n它和 Sandbox 的区别是：Sandbox 是 Harness 的组成部分 [来源 1]。Sandbox 是 Harness 的执行安全边界，用来限制 Agent 的执行环境 [来源 1]。例如 Sandbox 可以限制 CPU、Memory、Disk、Network、Runtime，也可以限制 Agent 只能访问 `/workspace/project`，不能访问 `~/.ssh`、`/etc` 或其他项目 [来源 1]。换句话说，Harness 负责整体运行与控制，Sandbox 只负责“你能在哪里做”的安全隔离边界 [来源 1]。\n\n它和 LangChain、LangGraph、AutoGen、Crew AI 这类框架的区别是：LangGraph、LangChain、AutoGen、Crew AI 更偏向 Agent 构建框架 / 编排框架；Harness 更强调 Agent 的实际运行与控制环境 [来源 1]。也就是说，这些框架更偏“怎么构建和编排 Agent”，Harness 更偏“Agent 如何被运行、控制、限制、恢复和观测” [来源 1]。\n\n也可以从 Agent 和 Harness 的关系来区分：Agent 更关注“下一步做什么”，也就是基于 LLM 进行决策和工具调用；Harness 更关注“Agent 如何被运行和控制”，包括工具执行、安全隔离、上下文、状态、超时、权限和可观测性等 [来源 1]。",
       "source_files": [
         "07.agent-harness.md",
         "07.agent-harness.md",
@@ -702,7 +702,7 @@
         "03.sandbox.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -731,7 +731,7 @@
         "AI_Agent开发100道高频面试题.md",
         "08.Observability.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "Agent Observability 的三大支柱是：\n\n1. **Logs（日志）**：记录“发生了什么？” [来源 1]  \n2. **Metrics（指标）**：记录“发生了多少、多久、多少钱？” [来源 1]  \n3. **Traces（链路追踪）**：记录“一次请求到底经过了什么？” [来源 1]\n\n它和 **Evaluation** 的区别是：\n\n- **Observability** 主要关注：**Agent 是怎么执行的？** [来源 1]  \n- **Evaluation** 主要关注：**Agent 做得好不好？** [来源 1]",
       "source_files": [
         "08.Observability.md",
         "08.Observability.md",
@@ -744,7 +744,7 @@
         "08.Observability.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -774,7 +774,7 @@
         "10.Multi-Agent.md",
         "09.编排方式.md"
       ],
-      "answer": "在 Agent 开发里，「编排」是指对多个 Agent 的执行顺序、任务分配、状态传递、通信方式以及终止条件进行组织和控制 [来源 1]。\n\n它要组织的事情包括：\n\n- 任务如何拆分 [来源 1]\n- 由哪个 Agent 执行 [来源 1]\n- 下一个 Agent 是谁 [来源 1]\n- Agent 之间如何传递结果 [来源 1]\n- 什么时候结束 [来源 1]",
+      "answer": "编排是指对多个 Agent 的执行顺序、任务分配、状态传递、通信方式以及终止条件进行组织和控制 [来源 1]。",
       "source_files": [
         "09.编排方式.md",
         "10.Multi-Agent.md",
@@ -818,7 +818,7 @@
         "10.Multi-Agent.md",
         "09.编排方式.md"
       ],
-      "answer": "核心差别在于：\n\n- **Router（路由）**：主要负责“选择谁来做”。它先判断任务类型，然后把任务分给合适的 Agent，通常流程是：Router → Agent → 结束 [来源 1]。\n- **Supervisor（监督者）**：主要负责“持续决定下一步做什么”。它会在多个 Agent 执行后不断接收结果、更新状态，并继续决定接下来调用哪个 Agent，或是否结束任务 [来源 1]。\n\n简单说：**Router 是一次性分发任务；Supervisor 是持续调度和管理任务流程** [来源 1]。",
+      "answer": "核心差别在于：**Router 主要做一次性任务分类/选择，Supervisor 会持续动态调度和决定下一步。**\n\n- **Router（路由）**：通常是  \n  `Router → Agent → 结束`  \n  核心是“**选择谁**”，即根据任务类型选择合适的 Agent，适合任务分类场景 [来源 1][来源 4]。\n\n- **Supervisor（监督者）**：通常是  \n  `Supervisor → Agent A → Supervisor → Agent B → Supervisor → Agent C`  \n  核心是“**持续决定下一步做什么**”，会根据执行结果动态调整后续 Agent，适合动态任务调度场景 [来源 1][来源 4]。",
       "source_files": [
         "09.编排方式.md",
         "10.Multi-Agent.md",
@@ -862,7 +862,7 @@
         "09.编排方式.md",
         "09.编排方式.md"
       ],
-      "answer": "- **Handoff**：由**当前 Agent** 决定把任务交给另一个 Agent [来源 1]。  \n- **Supervisor**：由**一个 Supervisor Agent** 动态决定由哪个 Agent 执行任务 [来源 1]。",
+      "answer": "Handoff 由**当前 Agent** 决定把任务交给另一个 Agent [来源 2][来源 4]。\n\nSupervisor 则由**中心 Supervisor / Manager** 决定下一步由哪个 Agent 执行；Agent 本身不负责决定最终调度结构 [来源 2][来源 4]。",
       "source_files": [
         "09.编排方式.md",
         "09.编排方式.md",
@@ -906,7 +906,7 @@
         "AI_Agent开发100道高频面试题.md",
         "AI_Agent开发100道高频面试题.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "Debate / 多 Agent 辩论适合：\n\n- 复杂推理 [来源 1][来源 2]\n- 代码 Review [来源 1][来源 2]\n- 方案比较 / 方案评审 [来源 1][来源 2]\n- 风险分析 [来源 1]\n- 多观点分析 [来源 1]\n\n不适合：\n\n- 简单任务 [来源 1]\n- 对延迟敏感的任务 [来源 1]\n- 不需要多观点的问题 [来源 1]\n\n会增加的成本：\n\n- Token Cost [来源 1]\n- Latency / 延迟 [来源 1]\n- System Complexity / 系统复杂度 [来源 1]",
       "source_files": [
         "09.编排方式.md",
         "10.Multi-Agent.md",
@@ -920,7 +920,7 @@
         "AI_Agent开发100道高频面试题.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -950,7 +950,7 @@
         "10.Multi-Agent.md",
         "AI_Agent开发100道高频面试题.md"
       ],
-      "answer": "Graph 编排相对传统 `A → B → C → End` 的 Workflow，多了两类能力：\n\n1. **条件路由 / 条件分支**：执行路径不是固定的，可以根据判断结果走不同分支，例如 `True → Writer`，`False → Research` [来源 1]。\n2. **循环 / 迭代执行**：流程可以从后续节点回到前面的节点重复执行，而不是只能单向走到结束 [来源 1]。\n\n代码 Agent 测试失败后的常见走法是：\n\n```text\nCoder → Tester → 测试失败？\n                 ├── Yes → Coder\n                 └── No  → Reviewer\n```\n\n也就是测试失败时回到 `Coder` 继续修改或重新生成代码；测试通过则进入 `Reviewer` [来源 1]。",
+      "answer": "Graph 编排相对传统 `A → B → C → End` 的 Workflow，主要多了两类能力：\n\n1. **条件路由**：执行路径不是固定的，可以根据中间结果走不同分支，例如 `True → Writer`、`False → Research` [来源 1]。\n2. **循环 / 迭代执行**：可以从后续节点回到前面的节点，例如 `A → B → C` 后再回到 `B` [来源 1]。\n\n代码 Agent 中常见流程是：\n\n```text\nCoder\n  ↓\nTester\n  ↓\n测试失败？\n ├── Yes → Coder\n └── No  → Reviewer\n```\n\n也就是测试失败后，常见做法是**回到 Coder 修改代码，再重新测试**；测试通过后进入 Reviewer [来源 1]。",
       "source_files": [
         "09.编排方式.md",
         "09.编排方式.md",
@@ -994,7 +994,7 @@
         "AI_Agent开发100道高频面试题.md",
         "09.编排方式.md"
       ],
-      "answer": "固定流程用 **Sequential**；独立子任务用 **Parallel**；按问题类型选择 Agent 用 **Router** [来源 1]。",
+      "answer": "固定流程：用 **Sequential（顺序编排）** [来源 1][来源 2]。\n\n独立子任务：用 **Parallel（并行编排）** [来源 1][来源 2]。\n\n按问题类型选择 Agent：用 **Router（路由编排）** [来源 1][来源 2]。",
       "source_files": [
         "09.编排方式.md",
         "09.编排方式.md",
@@ -1038,7 +1038,7 @@
         "03.sandbox.md",
         "AI_Agent开发100道高频面试题.md"
       ],
-      "answer": "Workflow 的执行路径主要由开发者定义；Agent 的执行路径由模型根据当前状态动态决定 [来源 1]。",
+      "answer": "根据参考资料：\n\n- **Workflow（工作流）**：执行路径主要由**开发者定义**，通常表现为固定流程，例如 `A → B → C → D`；其步骤、顺序、调用工具等往往提前写死，路径不可变，特点是确定性高、可控性高、容易调试 [来源 1][来源 2]。\n\n- **Agent（智能体）**：执行路径由**模型根据当前状态动态决定**，没有固定执行路径；它可以根据用户需求、环境变化、工具返回结果，动态调整步骤、选择工具、重试失败流程或修正策略 [来源 1][来源 2]。",
       "source_files": [
         "10.Multi-Agent.md",
         "AI_Agent开发100道高频面试题.md",
@@ -1126,7 +1126,7 @@
         "07.agent-harness.md",
         "10.Multi-Agent.md"
       ],
-      "answer": "动态 Multi-Agent 防止 `Researcher` 和 `Reviewer` 无限互相调用，通常依靠“循环控制”机制：在编排时设置最大执行次数、最大步数、超时、预算或明确终止条件，避免流程无限循环 [来源 1]。\n\n例如，可能出现：\n\n```text\nResearcher → Reviewer → Researcher → Reviewer → ...\n```\n\n如果不加控制，就会无限循环。因此通常需要限制：\n\n```text\nmax_iterations\nmax_steps\ntimeout\nbudget\ntermination_condition\n```\n\n比如：最多执行 10 次，或者 `Reviewer` 判断通过，或者 Token Budget 用完，就停止继续调用 [来源 1]。\n\n常用终止条件包括：\n\n1. **条件终止**  \n   例如审核通过：\n\n   ```text\n   review_passed == true\n   ```\n\n   [来源 1]\n\n2. **最大次数终止**  \n   例如执行步数达到上限：\n\n   ```text\n   step >= 10\n   ```\n\n   [来源 1]\n\n3. **Agent 或 Supervisor 判断结束**  \n   例如 Supervisor 发出完成指令：\n\n   ```text\n   Supervisor → FINISH\n   ```\n\n   [来源 1]\n\n4. **任务状态判断完成**  \n   例如任务状态已经标记为完成：\n\n   ```text\n   task.status == completed\n   ```\n\n   [来源 1]\n\n5. **预算或资源限制终止**  \n   例如 Token Budget 用完，或达到超时限制，就停止继续执行 [来源 1]。",
+      "answer": "动态 Multi-Agent 里，`Researcher → Reviewer → Researcher → Reviewer ...` 这种互相调用可能导致无限循环。防止这种情况的核心做法是：**给系统设置明确的循环控制和终止条件，而不是让两个 Agent 一直互相触发** [来源 1]。\n\n## 防止无限互相调用的做法\n\n1. **设置最大迭代次数或最大步数**\n   - 例如限制整个任务最多执行 10 次，超过阈值后强制结束 [来源 1]。\n   - 多 Agent 系统中也可以设置全局最大交互轮次，避免 Agent 之间无限拉扯 [来源 2]。\n\n2. **设置超时或预算限制**\n   - 可以使用 `timeout`、`budget` 等控制机制，例如 Token Budget 用完就终止 [来源 1]。\n   - 在 Agent Harness 中也可以限制最多运行时间、最多工具调用次数等 [来源 5]。\n\n3. **明确任务完成标准**\n   - 需要定义清晰的任务完成标准，例如 Reviewer 判断通过、任务状态为 completed 等 [来源 1][来源 2]。\n\n4. **用状态机或共享状态跟踪进度**\n   - 多 Agent 死循环可以通过状态机跟踪任务进度来规避 [来源 2]。\n   - 也可以记录已完成动作和已讨论结论，避免相同问题反复讨论 [来源 2]。\n\n5. **引入仲裁者或校验 Agent**\n   - 可以设置终止仲裁者，由 Supervisor、Judge、Reviewer 等角色判断是否继续或结束 [来源 2]。\n   - 常见方式包括：`Supervisor → FINISH`、`Judge Agent` 验收结果、调度 Agent 判断目标是否达成 [来源 1][来源 2]。\n\n6. **超过阈值后强制终止或转人工**\n   - 如果系统无法自动判断是否完成，可以超过阈值后强制终止，或转人工确认 [来源 2]。\n\n## 常用终止条件\n\n常见终止条件包括：\n\n1. **条件终止**\n   - 例如：`review_passed == true` [来源 1]。\n\n2. **最大次数终止**\n   - 例如：`step >= 10`，或者达到最大交互轮次 [来源 1][来源 2]。\n\n3. **Agent 判断终止**\n   - 例如：`Supervisor → FINISH` [来源 1]。\n   - 也可以由调度 Agent、Judge Agent 或校验 Agent 判断任务是否完成 [来源 2][来源 4]。\n\n4. **状态判断终止**\n   - 例如：`task.status == completed` [来源 1]。\n   - 或检测是否已经获取全部所需信息、没有剩余待执行任务 [来源 4]。\n\n5. **预算或超时终止**\n   - 例如 Token Budget 用完、运行超时、工具调用次数达到上限 [来源 1][来源 5]。\n\n6. **用户主动终止**\n   - 多 Agent 任务终止机制中也可以包含用户主动终止 [来源 2]。\n\n7. **关键错误无法恢复时终止**\n   - 如果出现关键错误且无法恢复，也可以终止任务 [来源 2]。\n\n总结来说，动态 Multi-Agent 中防止 `Researcher` 和 `Reviewer` 无限互相调用，关键是：**设置最大轮次、超时、预算、状态跟踪、完成标准和仲裁/校验机制**；常用终止条件包括：**最大次数、Reviewer 通过、Supervisor 判断 FINISH、任务状态 completed、Token Budget 用完、用户主动终止、关键错误终止** [来源 1][来源 2][来源 4][来源 5]。",
       "source_files": [
         "10.Multi-Agent.md",
         "AI_Agent开发100道高频面试题.md",
@@ -1170,7 +1170,7 @@
         "10.Multi-Agent.md",
         "09.编排方式.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "不是。Multi-Agent 的核心不是“有几个 Agent”，而是“多个 Agent 如何被组织、调度和协作”[来源 1]。\n\n所谓 **Multi-Agent 编排**，是指对多个 Agent 的执行顺序、任务分配、状态传递、通信方式以及终止条件进行组织和控制[来源 2]。它要解决的核心问题包括：\n\n- 任务如何拆分？\n- 由哪个 Agent 执行？\n- 下一个 Agent 是谁？\n- Agent 之间如何传递结果？\n- 什么时候结束？[来源 2]\n\n更概括地说，Multi-Agent 编排可以理解为：\n\n> **Agent Selection + Task Routing + Execution Control + State Management + Communication + Termination**  \n> 即：选择谁、做什么、什么时候做、怎么通信、保存什么状态、什么时候结束[来源 1]。",
       "source_files": [
         "10.Multi-Agent.md",
         "10.Multi-Agent.md",
@@ -1184,7 +1184,7 @@
         "09.编排方式.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -1214,7 +1214,7 @@
         "10.Multi-Agent.md",
         "10.Multi-Agent.md"
       ],
-      "answer": "Agent 的五大核心组件是：\n\n1. **感知模块**：负责接收用户指令、外部环境数据、工具返回结果和用户反馈，是 Agent 的信息输入入口。  \n2. **记忆模块**：分层存储短期对话、本次任务状态、长期跨会话知识与用户偏好，用于解决上下文受限和无记忆能力问题。  \n3. **规划模块**：核心决策模块，负责拆解复杂目标、梳理任务依赖、制定执行计划，并动态调整策略。  \n4. **工具执行模块**：对接各类外部能力，如接口、数据库、代码、检索工具等，延伸大模型的原生能力边界。  \n5. **反思评估模块**：复盘每轮执行结果，识别错误与不足，修正后续决策，实现持续优化，避免重复犯错。 [来源 1]",
+      "answer": "模型回答失败",
       "source_files": [
         "AI_Agent开发100道高频面试题.md",
         "AI_Agent开发100道高频面试题.md",
@@ -1228,7 +1228,7 @@
         "10.Multi-Agent.md"
       ],
       "refused": false,
-      "must_contain_ok": true,
+      "must_contain_ok": false,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -1258,7 +1258,7 @@
         "AI_Agent开发100道高频面试题.md",
         "AI_Agent开发100道高频面试题.md"
       ],
-      "answer": "ReAct 的闭环步骤是：\n\n1. **Thought 思考**：模型基于当前目标和已有信息，推理下一步需要做什么 [来源 1]。  \n2. **Action 行动**：根据推理结果选择对应工具、生成调用参数，并执行外部操作 [来源 1]。  \n3. **Observation 观察**：接收工具返回结果、接口数据、检索内容等外部信息 [来源 1]。  \n4. **迭代循环**：将观察结果重新输入模型，开启新一轮思考，持续迭代，直到任务完成或达到终止条件 [来源 1]。\n\n它和 CoT 的核心差别是：\n\n- **CoT 是纯内部推理范式**：所有逻辑推导都在模型内部完成，不能调用外部工具，也没有环境交互能力，只适合纯逻辑、纯文本推理场景 [来源 1]。  \n- **ReAct 是推理与行动结合的范式**：既支持模型内部推理，也支持外部工具执行和环境信息交互，可以通过外部工具补充未知信息、解决模型知识盲区，适合复杂落地任务 [来源 1]。\n\n简单说：**CoT 只会“想”，ReAct 既能“想”又能“做”** [来源 1]。",
+      "answer": "ReAct 的完整闭环流程是：\n\n1. **Thought 思考**：模型基于当前目标和已有信息，推理下一步需要做什么 [来源 1]。  \n2. **Action 行动**：根据推理结果选择对应工具、生成调用参数、执行外部操作 [来源 1]。  \n3. **Observation 观察**：接收工具返回结果、接口数据、检索内容等外部信息 [来源 1]。  \n4. **迭代循环**：将观察结果输入模型，开启新一轮思考，持续迭代直至任务完成或达到终止条件 [来源 1]。\n\n它和 CoT 的核心差别是：\n\n- **CoT（思维链）**：纯内部推理范式，所有逻辑推导都在模型内部完成，无法调用任何外部工具，也没有环境交互能力，主要适用于纯逻辑、纯文本推理场景 [来源 1]。  \n- **ReAct（推理行动）**：内外结合范式，支持模型内部推理 + 外部工具执行 + 环境信息交互，能够通过外部工具补充未知信息、解决模型知识盲区，适配更复杂的落地任务 [来源 1]。\n\n简单总结：**CoT 只会“想”，ReAct 既能“想”又能“做”** [来源 1]。",
       "source_files": [
         "AI_Agent开发100道高频面试题.md",
         "AI_Agent开发100道高频面试题.md",
@@ -1302,7 +1302,7 @@
         "02.Git.md",
         "02.Git.md"
       ],
-      "answer": "不是。资料里明确说，把 Git 理解为“代码备份工具”并不准确，Git 真正的作用是**版本控制（Version Control）**，用于记录每次修改、查看历史版本、比较版本、回退版本以及支持多人协作开发 [来源 1]。\n\n从工作区到 GitHub，一般经过四个区域 [来源 1]：\n\n```text\n工作区（Working Directory）\n↓\n暂存区（Stage）\n↓\n本地仓库（Repository）\n↓\nGitHub（Remote Repository）\n```\n\n对应常用命令是 [来源 1]：\n\n```bash\ngit add .\ngit commit -m \"提交说明\"\ngit push\n```\n\n更完整地说，资料中的流程是 [来源 1]：\n\n```bash\ngit init\ngit add .\ngit commit -m \"Initial commit\"\ngit push origin main\n```\n\n如果是第一次关联远程仓库，还需要先执行类似命令 [来源 1]：\n\n```bash\ngit remote add knowledge-base https://github.com/wangmengkai567-alt/Knowledge-Base.git\n```\n\n所以，核心路径是：**工作区 → 暂存区 → 本地仓库 → GitHub**；核心命令是：**`git add` → `git commit` → `git push`** [来源 1]。",
+      "answer": "不是。很多初学者认为 Git 是代码备份工具，但其实并不准确；Git 真正的作用是**版本控制（Version Control）**，可以记录每次修改、查看历史版本、比较版本、回退版本，并支持协作开发 [来源 1]。\n\n从工作区到 GitHub，Git 的工作流程会经过四个区域 [来源 1]：\n\n```text\n工作区（Working Directory）\n↓\n暂存区（Stage）\n↓\n本地仓库（Repository）\n↓\nGitHub（Remote Repository）\n```\n\n对应的主要命令是 [来源 1]：\n\n1. **工作区 → 暂存区**\n\n```bash\ngit add agent.py\n```\n\n或者添加全部修改文件：\n\n```bash\ngit add .\n```\n\n2. **暂存区 → 本地仓库**\n\n```bash\ngit commit -m \"增加 Memory\"\n```\n\n3. **本地仓库 → GitHub**\n\n```bash\ngit push\n```\n\n如果是第一次推送到指定远程分支，也可以写成：\n\n```bash\ngit push origin main\n```\n\n其中 `origin` 是远程仓库名，`main` 是分支名 [来源 1]。",
       "source_files": [
         "02.Git.md",
         "02.Git.md",
@@ -1344,7 +1344,7 @@
         "02.Git.md",
         "02.Git.md"
       ],
-      "answer": "`git clone` 第一次会帮你做这些事：\n\n- 创建项目目录 [来源 1]\n- 下载全部代码 [来源 1]\n- 下载历史版本 [来源 1]\n- 建立远程仓库连接 [来源 1]\n\n同时，克隆下来的项目里会有 `.git` 目录，它保存所有历史版本、所有分支和所有提交记录 [来源 1]。",
+      "answer": "`git clone` 第一次下载远程仓库时，Git 会自动帮你做这些事：\n\n1. **创建项目目录**  \n   例如执行 `git clone https://github.com/langchain-ai/langchain.git` 后，会生成一个项目目录，如 `langchain/`。[来源 1]\n\n2. **下载全部代码**  \n   把远程仓库里的代码下载到本地。[来源 1]\n\n3. **下载历史版本**  \n   不只是当前代码，还会下载仓库的历史版本。[来源 1]\n\n4. **建立远程仓库连接**  \n   让本地项目和远程仓库关联起来，方便后续 `pull`、`push` 等操作。[来源 1]\n\n此外，克隆下来的目录中通常会有 `.git` 目录，它保存了：\n\n- 所有历史版本\n- 所有分支\n- 所有提交记录\n\n这个目录很重要，不要删除。[来源 1]",
       "source_files": [
         "02.Git.md",
         "02.Git.md",
@@ -1386,7 +1386,7 @@
         "03.Linux.md",
         "03.Linux.md"
       ],
-      "answer": "Linux 没有 Windows 里的 C 盘、D 盘，所有文件都位于同一棵目录树下，最顶层是根目录 `/` [来源 1]。\n\n- 系统配置文件通常放在 `/etc` [来源 1]。\n- 日志通常放在 `/var`，因为 `/var` 用于存放日志、数据库等可变数据 [来源 1]。",
+      "answer": "根据参考资料，Linux 没有 Windows 中的 C 盘、D 盘，所有文件都位于**同一棵目录树下**（即根目录 `/`）[来源 1]。\n\n关于配置和日志的存放目录：\n- **配置文件**通常放在 `/etc` 目录 [来源 1]。\n- **日志**等可变数据通常放在 `/var` 目录 [来源 1]。",
       "source_files": [
         "03.Linux.md",
         "03.Linux.md",
@@ -1425,7 +1425,7 @@
         "01.python.md",
         "01.python.md"
       ],
-      "answer": "在 Python 中，`list` 和 `tuple` 的主要区别是：\n\n- `list` 是列表，**可修改**，示例：`[1, 2, 3]` [来源 1]\n- `tuple` 是元组，**不可修改**，示例：`(1, 2, 3)` [来源 1]\n\n另外，资料中的列表示例还展示了列表可以进行 `append`、`remove` 等修改操作 [来源 1]。",
+      "answer": "根据参考资料，Python 里 `list`（列表）和 `tuple`（元组）的区别主要体现在以下几个方面：\n\n1. **可变性**：\n   - `list`（列表）：**可修改** [来源 1]。\n   - `tuple`（元组）：**不可修改** [来源 1]。\n\n2. **基本语法表示**：\n   - `list`：使用方括号表示，例如 `[1, 2, 3]` [来源 1]。\n   - `tuple`：使用圆括号表示，例如 `(1, 2, 3)` [来源 1]。\n\n3. **类型提示（Type Hint）中的定义**：\n   - `list`：通常用于指定统一的元素类型，例如 `list[int]` [来源 2]。\n   - `tuple`：用于描述固定长度和各个位置具体元素类型的组合，例如 `tuple[int, int]` [来源 2]。",
       "source_files": [
         "01.python.md",
         "01.python.md",
@@ -1464,7 +1464,7 @@
         "01.python.md",
         "01.python.md"
       ],
-      "answer": "Python 装饰器是一种在**不修改原函数代码**的情况下，为函数增加额外功能的机制 [来源 1]。\n\n资料中给出的装饰器原理示例是：定义一个 `log(func)` 函数，在其中包装原函数 `func`，在调用原函数前后增加额外操作，例如打印“开始”和“结束”，然后返回新的包装函数 `wrapper` [来源 1]。\n\n装饰器也可以使用 `@` 语法糖，例如：\n\n```python\n@log\ndef chat():\n    print(\"调用GPT\")\n```\n\n等价于：\n\n```python\ndef chat():\n    print(\"调用GPT\")\n\nchat = log(chat)\n```\n\n也就是说，`@log` 会把 `chat` 传给 `log`，然后 `log()` 返回 `wrapper`，最终 `chat` 变成 `wrapper` [来源 1]。",
+      "answer": "Python 装饰器是一种在不修改原函数代码的情况下，为函数增加额外功能的机制 [来源 1]。\n\n其基本原理是：装饰器接收原函数，返回一个新的包装函数。例如资料中的例子：\n\n```python\ndef log(func):\n    def wrapper():\n        print(\"开始\")\n        func()\n        print(\"结束\")\n    return wrapper\n```\n\n当 `chat` 被装饰器 `log` 处理后，流程是：`chat` 传给 `log`，`log()` 返回 `wrapper`，原来的 `chat` 变成 `wrapper` [来源 1]。\n\n使用 `@` 语法糖时：\n\n```python\n@log\ndef chat():\n    print(\"调用GPT\")\n```\n\n等价于：\n\n```python\ndef chat():\n    print(\"调用GPT\")\n\nchat = log(chat)\n```\n\n也就是说，装饰器可以在调用原函数前后插入额外逻辑，例如打印“开始”和“结束” [来源 1]。",
       "source_files": [
         "01.python.md",
         "01.python.md",
@@ -1508,7 +1508,7 @@
         "05.FastAPI.md",
         "05.FastAPI.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "FastAPI 大量使用 **Pydantic**，主要是因为它用于请求/响应数据的校验、解析和序列化。资料中指出，FastAPI 的最大特点之一就是使用 Pydantic 进行数据校验；Pydantic 是 Python 的数据验证和数据解析库，FastAPI 可以自动完成类型校验、类型转换、参数验证，并自动生成接口文档。继承 `BaseModel` 后，模型还能支持数据验证、自动转换、JSON 解析和序列化 [来源 2]。\n\n**Depends** 是 FastAPI 的核心特性，用于依赖注入。它的本质是：一个接口需要另一个函数提供数据或完成某项前置工作。FastAPI 会自动执行依赖函数，并把结果传给接口 [来源 1]。\n\n常见用途包括：用户认证、Token 校验、数据库连接、Redis、日志、权限控制、LLM 实例管理等 [来源 1]。\n\n例如：\n\n```python\n@app.get(\"/chat\")\ndef chat(user=Depends(get_current_user)):\n    ...\n```\n\n这里 FastAPI 会先执行 `get_current_user()`，再把结果作为 `user` 传给接口 [来源 1]。\n\nDepends 还支持依赖函数接收参数、嵌套依赖，以及参数复用。实际开发中常见四类依赖：数据库连接、获取当前登录用户、权限验证、分页等公共参数复用 [来源 1]。",
       "source_files": [
         "05.FastAPI.md",
         "05.FastAPI.md",
@@ -1522,7 +1522,7 @@
         "05.FastAPI.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -1552,7 +1552,7 @@
         "07.机器学习.md",
         "07.机器学习.md"
       ],
-      "answer": "机器学习相对传统编程“反过来”的点是：传统编程是先由人写好规则，再用规则处理数据得到结果；机器学习则是先给数据和正确答案，让计算机通过训练自动学习出规则/模型，再用它对新数据做预测 [来源 1]。",
+      "answer": "机器学习相对传统编程“反过来”的关键点是：**规则从哪里来**。\n\n- 传统编程：**程序员先手写规则**，再拿数据去处理，得到结果。  \n  例如：`age >= 18` 就是人为写好的规则 [来源 1]。\n\n- 机器学习：**程序员不直接写规则**，而是提供“数据 + 正确答案”，让模型通过训练自动学习出规则，然后再用这个规则对新数据进行预测 [来源 1]。\n\n所以它反过来的地方是：\n\n> 传统编程：数据 + 规则 → 结果  \n> 机器学习：数据 + 正确答案 → 模型训练 → 得到规则 → 预测新数据 [来源 1]",
       "source_files": [
         "07.机器学习.md",
         "07.机器学习.md",
@@ -1596,7 +1596,7 @@
         "05.FastAPI.md",
         "05.FastAPI.md"
       ],
-      "answer": "FastAPI 开发服务常用以下命令启动：\n\n```bash\nuvicorn main:app --reload\n```\n\n也可以使用：\n\n```bash\nfastapi dev\n```\n\n其中：\n\n- `main`：Python 文件名，例如 `main.py`\n- `app`：FastAPI 实例\n- `--reload`：代码修改后自动重启 [来源 1]",
+      "answer": "根据资料，常见的命令包括：\n\n## FastAPI 常用命令\n\n- 安装 FastAPI：\n\n```bash\npip install fastapi\n```\n\n[来源 1]\n\n- 安装运行服务器：\n\n```bash\npip install uvicorn\n```\n\n[来源 1]\n\n- 启动项目：\n\n```bash\nuvicorn main:app --reload\n```\n\n或：\n\n```bash\nfastapi dev\n```\n\n[来源 1]\n\n其中 `--reload` 表示代码修改后自动重启。[来源 1]\n\n## Docker 常用命令\n\n- 端口映射运行容器：\n\n```bash\ndocker run -p 8000:8000 my-agent:latest\n```\n\n[来源 3]\n\n- 挂载目录进入容器：\n\n```bash\ndocker run -it \\\n  -v ./workspace:/workspace \\\n  python:3.12-slim \\\n  /bin/sh\n```\n\n[来源 3]\n\n- 构建镜像：\n\n```bash\ndocker build -t my-agent:latest .\n```\n\n[来源 3]\n\n- 后台运行容器：\n\n```bash\ndocker run -d \\\n  --name my-agent \\\n  -p 8000:8000 \\\n  my-agent:latest\n```\n\n[来源 3]\n\n- 使用 `.env` 文件注入环境变量：\n\n```bash\ndocker run --env-file .env my-agent:latest\n```\n\n[来源 4]\n\n## Docker Compose 常用命令\n\n- 启动所有服务：\n\n```bash\ndocker compose up -d\n```\n\n[来源 4]\n\n- 构建镜像并启动：\n\n```bash\ndocker compose up -d --build\n```\n\n[来源 4]",
       "source_files": [
         "05.FastAPI.md",
         "05.FastAPI.md",
@@ -1640,7 +1640,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "三者关系可以理解为：\n\n```text\nDockerfile\n    │ docker build\n    ▼\nImage（镜像）\n    │ docker run\n    ▼\nContainer（容器）\n```\n\n具体来说：\n\n1. **Dockerfile**：定义如何构建镜像，例如安装 Python、复制代码、安装依赖 [来源 1]。  \n   对应命令：`docker build`，用于把 Dockerfile 构建成镜像 [来源 1]。\n\n2. **Image（镜像）**：创建容器的模板，例如 Python Agent 的运行环境 [来源 1]。  \n   对应命令：`docker run`，用于基于镜像启动容器 [来源 1]。\n\n3. **Container（容器）**：镜像运行后的实例，例如正在执行代码的 Agent 沙箱 [来源 1]。",
+      "answer": "三者关系是：**Dockerfile 用来构建镜像，镜像用来运行容器**。\n\n- **Dockerfile（镜像构建文件）**：定义如何构建镜像 [来源 1]。  \n  对应命令：**`docker build`**，用于把 Dockerfile 构建成镜像 [来源 1]。  \n  示例：`docker build -t my-agent:latest .` [来源 2]\n\n- **Image（镜像）**：创建容器的模板 [来源 1]。  \n  对应命令：**`docker run`**，用于基于镜像启动容器 [来源 1]。  \n  示例：`docker run -d --name my-agent -p 8000:8000 my-agent:latest` [来源 2]\n\n- **Container（容器）**：镜像运行后的实例 [来源 1]。  \n  对应关系：容器不是由单独一条“构建”命令产生，而是由 **`docker run`** 根据镜像启动出来的 [来源 1]。\n\n简单链路是：\n\n```text\nDockerfile\n    │ docker build\n    ▼\nImage（镜像）\n    │ docker run\n    ▼\nContainer（容器）\n```\n\n[来源 1]",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md",
@@ -1683,7 +1683,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "不等于。在 Agent 容器里，`localhost` 指的是当前容器自身，不是宿主机，也不是其他容器，因此访问 `localhost:5432` 不会直接访问宿主机上的 Postgres [来源 1]。\n\n在 Docker Compose 里，如果 Postgres 也是 Compose 中的一个服务，容器间通信应优先使用服务名。例如 Postgres 服务名是 `postgres`，则地址应写：\n\n```text\npostgres:5432\n```\n\n[来源 1]\n\n如果 Postgres 不是 Compose 服务，而是运行在宿主机上，则需要使用访问宿主机的地址。例如 Docker Desktop 通常支持：\n\n```text\nhost.docker.internal:5432\n```\n\n但在 Linux 环境可能需要额外配置 [来源 1]。",
+      "answer": "不等于。\n\n在 Agent 容器内部，`localhost` 指向的是**当前容器自身**，不是宿主机，也不是其他容器 [来源 1]。因此，在 Agent 容器里访问 `localhost:5432`，通常不会访问到宿主机的 Postgres [来源 1]。\n\n在 Docker Compose 中，如果 Postgres 是同一个 Compose 里的服务，容器之间应该优先使用**服务名**作为访问地址，例如：\n\n```text\npostgres:5432\n```\n\n而不是：\n\n```text\nlocalhost:5432\n```\n\n例如 Compose 配置里可以写：\n\n```yaml\nDATABASE_URL: postgresql://agent:change-me@postgres:5432/agentdb\n```\n\n[来源 1] [来源 2]\n\n如果 Agent 容器需要访问的是**宿主机上的 Postgres**，而不是 Compose 内的 `postgres` 服务，则地址取决于操作系统和 Docker 环境：Docker Desktop 通常支持：\n\n```text\nhost.docker.internal:5432\n```\n\nLinux 环境可能需要额外配置 [来源 1]。",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md",
@@ -1718,7 +1718,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "不能。`depends_on` 不保证数据库已经可以正常处理请求，它主要只是控制服务的启动顺序。如果需要等待数据库真正就绪，可以配置 `healthcheck`，并根据健康状态控制依赖服务的启动 [来源 1]。",
+      "answer": "不能。Docker Compose 的 `depends_on` 不保证服务已经可以正常处理请求，它主要只控制启动顺序 [来源 1]。\n\n如果需要等待数据库真正就绪，可以配置 `healthcheck`，并根据健康状态控制依赖服务的启动 [来源 1]。",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md"
@@ -1751,7 +1751,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "不要把 Docker Socket（Docker 守护进程套接字）直接挂载给不可信 Agent，因为例如挂载 `/var/run/docker.sock` 可能使容器获得控制宿主机 Docker 的能力，从而带来严重安全风险 [来源 1]。",
+      "answer": "不要把 Docker Socket（Docker 守护进程套接字）直接挂载给不可信 Agent，是因为挂载例如 `/var/run/docker.sock` 后，可能使容器获得控制宿主机 Docker 的能力 [来源 1]。",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md",
@@ -1785,7 +1785,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "因为这样可以利用 Docker 的构建缓存：先把 `requirements.txt` 复制进镜像并安装依赖，再复制业务代码。如果之后只修改业务代码（例如 `app/main.py`），而依赖文件没有变化，Docker 通常可以复用依赖安装层，避免重复安装全部依赖。[来源 1]",
+      "answer": "这样写是为了利用 Docker 的分层构建缓存。\n\n参考资料中说明：将依赖文件（如 `requirements.txt`）与业务代码分开复制，可以先复制 `requirements.txt`，再执行 `pip install`，最后复制业务代码 [来源 1]。\n\n这样做的好处是：当你只修改业务代码，例如 `app/main.py`，而依赖文件没有变化时，Docker 通常可以复用前面的依赖安装层，避免重复安装全部依赖 [来源 1]。",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md",
@@ -1822,7 +1822,7 @@
         "06.数据结构.md",
         "06.数据结构.md"
       ],
-      "answer": "在 Agent 中常用 Hash Map 做工具注册表，是因为它可以把“工具名称”直接映射到对应的执行函数；当模型要求调用某个工具时，Agent 可以直接根据工具名称找到函数，而不需要写一长串 `if-elif` 逐个判断工具名称 [来源 1]。\n\n平均复杂度方面，Hash Map 的插入、查找、删除的平均时间复杂度都是 **O(1)** [来源 1]。不过这是平均复杂度；如果发生哈希冲突，实际性能可能变差 [来源 1]。",
+      "answer": "Agent 开发需要数据结构，是因为 Agent 不仅需要调用大语言模型（LLM），还需要管理任务、工具、对话历史、记忆、执行状态以及多个子 Agent 之间的协作；数据结构决定了这些数据如何组织、存储和访问 [来源 3]。\n\n例如：\n\n- **List（列表）**：保存对话消息和工具调用记录 [来源 3]。\n- **Hash Map（哈希映射）**：根据工具名称快速查找工具，例如做工具注册表，避免大量 `if-elif` 判断 [来源 1]。\n- **Stack（栈）**：管理嵌套任务或实现深度优先执行 [来源 3]。\n- **Queue（队列）**：管理待执行任务 [来源 3]。\n- **Graph（图）**：表示复杂的 Agent 工作流 [来源 3]。\n- **Tree（树）**：表示层级任务分解 [来源 3]。\n- **Heap（堆）**：优先调度高优先级任务 [来源 3]。\n- **Trie（字典树）**：实现前缀匹配和命令补全 [来源 3]。\n\n因此，选择合适的数据结构可以帮助 Agent 更高效地完成消息管理、状态管理、去重、任务调度、工作流编排和语义记忆检索等常见需求 [来源 2]。",
       "source_files": [
         "06.数据结构.md",
         "06.数据结构.md",
@@ -1836,7 +1836,7 @@
         "06.数据结构.md"
       ],
       "refused": false,
-      "must_contain_ok": true,
+      "must_contain_ok": false,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -1866,7 +1866,7 @@
         "06.数据结构.md",
         "06.数据结构.md"
       ],
-      "answer": "Stack 和 Queue 的进出顺序差异在于：\n\n- **Stack** 符合 **LIFO（后进先出）**，适合处理后进先出的嵌套任务 [来源 1]。\n- **Queue** 符合 **FIFO（先进先出 / 按提交顺序）**，适合按提交顺序处理任务 [来源 1]。\n\n因此，**嵌套子任务更适合使用 Stack**，因为资料中明确指出“处理后进先出的嵌套任务”推荐使用 **Stack**，原因是它符合 LIFO [来源 1]。",
+      "answer": "Stack 是后进先出（LIFO），最后进入的元素最先取出；Queue 是先进先出（FIFO），最早进入的元素最先处理 [来源 2]。\n\n嵌套子任务更适合 Stack，因为栈可以记录当前尚未完成的任务及其返回位置，符合嵌套任务的后进先出关系 [来源 1][来源 2]。",
       "source_files": [
         "06.数据结构.md",
         "06.数据结构.md",
@@ -1910,7 +1910,7 @@
         "06.数据结构.md",
         "06.数据结构.md"
       ],
-      "answer": "不是。HNSW 虽然使用了图结构，但它的目的是加速近似最近邻搜索，不等同于 Agent 工作流中的 Graph [来源 1]。\n\n向量和向量数据库可以这样区分：\n\n- **Vector（向量）**：一组数值构成的数据，例如用于表示文本语义的嵌入向量 [来源 1]。\n- **Vector Index（向量索引）**：用于加速向量相似度查询的数据结构或索引机制，例如 HNSW、IVF [来源 1]。\n- **Vector Database（向量数据库）**：负责保存、组织、索引和检索向量及其相关数据的系统 [来源 1]。",
+      "answer": "不是等同关系。\n\n资料中明确说明：**HNSW 虽然使用图结构，但其目的是加速近似最近邻搜索，不等同于 Agent 工作流中的 Graph** [来源 1]。\n\n两者区别可以这样理解：\n\n- **HNSW** 属于向量检索中的索引技术。向量数据库可能使用 **HNSW（分层可导航小世界图）**、IVF 等技术来加速向量相似度查询 [来源 1]。它的核心目标是提高“查找相似向量”的效率。\n\n- **Agent 工作流中的 Graph** 则是由节点和边组成的结构，节点表示任务、Agent 或执行步骤，边表示节点之间的依赖、连接或转移关系 [来源 2]。它常用于工作流编排、条件路由、多 Agent 协作和循环执行等场景 [来源 2]。\n\n因此，HNSW 虽然名字或内部实现可能涉及“图”，但它是一种用于向量检索加速的索引结构；Agent 工作流中的 Graph 是一种用于组织任务执行、依赖和状态转移的工作流结构。两者用途和抽象层级不同 [来源 1][来源 2]。",
       "source_files": [
         "06.数据结构.md",
         "06.数据结构.md",
@@ -1954,7 +1954,7 @@
         "08.异步编程.md",
         "08.异步编程.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "不能。异步编程加快的是 **IO 等待的重叠** 和 **多请求吞吐**，而不是把单次 LLM 推理算得更快；单次 `chat.completions` 该 3 秒还是 3 秒 [来源 1]。",
       "source_files": [
         "08.异步编程.md",
         "08.异步编程.md",
@@ -1968,7 +1968,7 @@
         "08.异步编程.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -1998,7 +1998,7 @@
         "05.FastAPI.md",
         "08.异步编程.md"
       ],
-      "answer": "在 FastAPI 的 `async def` 接口里写 `time.sleep` 或 `requests.get` 这类同步阻塞调用，会阻塞事件循环。\n\n资料里把事件循环比作“只做两件事的调度员”：有任务能跑就跑到下一个 `await`，正在等 IO 就先放一边去跑别的任务 [来源 1]。但如果在 `async def` 里执行同步阻塞，例如 `time.sleep`、`requests.get` 或同步客户端调用，就等于把这个调度员锁死，导致所有用户一起卡死 [来源 1]。",
+      "answer": "在 FastAPI 的 `async def` 接口里调用同步阻塞代码（如 `time.sleep`、`requests.get`、同步 SDK）会 **阻塞事件循环**，导致同一进程内其它请求也无法被推进 [来源 1] [来源 2]。\n\n具体表现：\n\n- `time.sleep(3)`：卡死事件循环 [来源 2]\n- `requests.get(...)`：卡死事件循环 [来源 2]\n- 同步 `openai.OpenAI().chat...`：卡死事件循环 [来源 2]\n- 同步 Redis / psycopg2：卡死事件循环 [来源 2]\n\n这类问题通常表现为 **全站延迟升高，但 CPU 不一定高** [来源 3]。资料也强调：不是写成 `async def` 就更快，阻塞代码套一层 `async` 只会更慢、更危险 [来源 2]。",
       "source_files": [
         "08.异步编程.md",
         "08.异步编程.md",
@@ -2042,7 +2042,7 @@
         "08.异步编程.md",
         "08.异步编程.md"
       ],
-      "answer": "默认情况下，`asyncio.gather` 里只要**任意一个任务抛异常**，就会：\n\n- 取消还在运行的其它任务；\n- 把异常抛给调用方 [来源 1]。\n\n并行调用多个工具时，建议设置为：\n\n```python\nresults = await asyncio.gather(\n    call_tool(\"search\", query),\n    call_tool(\"weather\", city),\n    call_tool(\"broken\", \"...\"),\n    return_exceptions=True,\n)\n```\n\n也就是使用 `return_exceptions=True`，这样失败的任务会作为异常对象返回，而不是直接中断整批任务；成功的结果仍然可以保留 [来源 1]。\n\n然后可以这样处理：\n\n```python\nfor item in results:\n    if isinstance(item, Exception):\n        # 记日志、给 LLM 一个 tool error\n        ...\n    else:\n        ...\n```\n\n资料中的工程建议是：Agent 并行调用工具时，**默认使用 `return_exceptions=True`**，再把失败包装成 `tool_result` 返回给模型，避免一个工具失败导致其它工具结果也被丢弃 [来源 1]。",
+      "answer": "默认情况下，`asyncio.gather` 里**任意一个协程抛异常**，会取消还在跑的其它任务，并把异常抛给调用方 [来源 1]。\n\n如果并行调用多个工具时希望“坏的记下来，好的还要”，应使用：\n\n```python\nresults = await asyncio.gather(\n    call_tool(\"search\", query),\n    call_tool(\"weather\", city),\n    call_tool(\"broken\", \"...\"),\n    return_exceptions=True,\n)\n```\n\n然后遍历结果：\n\n```python\nfor item in results:\n    if isinstance(item, Exception):\n        # 记日志，或包装成 tool error 返回给模型\n        ...\n    else:\n        # 正常结果\n        ...\n```\n\n在 Agent 并行工具场景中，建议**默认使用 `return_exceptions=True`**，再把失败包装成 `tool_result` 回给模型，避免一个工具失败导致其它成功结果也被取消 [来源 1]。",
       "source_files": [
         "08.异步编程.md",
         "08.异步编程.md",
@@ -2079,7 +2079,7 @@
         "08.异步编程.md",
         "08.异步编程.md"
       ],
-      "answer": "不是。`asyncio.Semaphore` 限制的不是 QPS 滑动窗口，而是**同时进行的调用数 / 并发数量** [来源 1]。\n\n例如：\n\n```python\nllm_sem = asyncio.Semaphore(8)\n```\n\n表示最多允许 8 个 LLM 请求同时进行，超过 8 个的请求会排队等待 [来源 1]。\n\n资料里也明确说：`Semaphore` 管的是“同时进行的调用数”，不是 QPS 滑动窗口；如果需要更细的限流，比如令牌桶，可以放在网关层 [来源 1]。它常用于保护 LLM 供应商配额，避免并发请求把配额打爆 [来源 1][来源 2]。",
+      "answer": "不是。`asyncio.Semaphore` 管的是 **同时进行的调用数**，不是 QPS 滑动窗口。更细的令牌桶可以放在网关。[来源 1]",
       "source_files": [
         "08.异步编程.md",
         "08.异步编程.md",
@@ -2116,7 +2116,7 @@
         "08.异步编程.md",
         "08.异步编程.md"
       ],
-      "answer": "常见警告是：\n\n```text\nRuntimeWarning: coroutine 'call_llm' was never awaited\n```\n\n这通常表示调用协程函数时漏了 `await`。此时请求并没有发出去，调用得到的只是一个 `coroutine` 对象，例如 `<coroutine object call_llm at 0x...>`，而不是实际执行结果。[来源 1]",
+      "answer": "忘记 `await` 的典型表现是：调用 `async def` 函数后不会真正执行请求，而是得到一个 coroutine 对象；运行时常看到类似警告：\n\n```text\nRuntimeWarning: coroutine 'call_llm' was never awaited\n```\n\n在 Agent 日志里，这可能表现为“工具没执行 / LLM 没调用”[来源 1]。\n\n原因是：`async def` 调出来的对象必须被 `await`，或者交给 `create_task` / `gather`，否则协程根本不会跑[来源 1]。",
       "source_files": [
         "08.异步编程.md",
         "08.异步编程.md",
@@ -2160,7 +2160,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "标准 RAG 的写路径（索引）包含以下几步：\n\n1. **加载 / 解析**：把 PDF、Markdown、TXT 等文档转换为干净文本；扫描件需要 OCR，表格需要保留行列关系 [来源 1]。\n2. **分块**：把整篇文档按段落或句子递归切到大约几百 token，并保留一定 overlap，避免一句话被切断 [来源 1]。\n3. **Embedding**：用 embedding 模型把每个文本块转换成向量，并且文档和后续问句要使用同一个模型、同一维度 [来源 1]。\n4. **写入检索结构**：把向量写入向量库，或把关键词信息写入倒排索引，同时附上知识库 id 等 metadata，便于后续检索过滤 [来源 1]。",
+      "answer": "标准 RAG 的写路径（索引构建）主要包括以下步骤：\n\n1. **加载 / 解析**：把 PDF、Markdown、TXT 等文档转换成干净文本；扫描件需要 OCR，表格要保留行列关系，否则后续检索可能对不上数字 [来源 1]。\n\n2. **分块**：整篇文档太长，不能直接作为一条内容去嵌入。通常按段落或句子递归切分到大约几百 token，并保留一点 overlap，避免一句话被切断；块太大容易主题混杂，块太小则论据不完整 [来源 1]。\n\n3. **Embedding**：使用 embedding 模型把每个文本块转换成向量。文档和后续用户问句必须使用同一个模型、同一维度 [来源 1]。\n\n4. **写入检索结构**：常见有两类检索结构：向量库用于语义近邻检索，关键词倒排用于 BM25 等检索；倒排阶段记录“词 → 哪些块、出现几次”，提问时再套用公式。同时可以带上知识库 id 等 metadata，便于检索时过滤 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2203,7 +2203,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "向量检索和 BM25 的分数不能直接加权，是因为两路检索的分数量纲不同：向量检索常用余弦相似度，分数大约在 0–1 之间；而 BM25 分数没有上界。因此直接加权会导致尺度不一致，融合结果不稳定 [来源 1]。\n\n常用的融合方式是 **RRF（Reciprocal Rank Fusion）按排名融合**，即不直接比较原始分数，而是根据两路结果的排名进行融合。融合后通常还会再用 **rerank 模型精排**，过滤低质量结果 [来源 1]。",
+      "answer": "两路分数的量纲不同：向量检索常用的余弦相似度大约落在 0–1，而 BM25 分数没有上界，所以不能直接加权融合。常见做法是用 RRF 按排名融合，然后再用 rerank 模型精排，丢弃低分结果 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2246,7 +2246,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "RAG 主要解决的是：模型没有见过私有资料、训练语料里没有相关内容，以及整个资料库太大无法全部塞进上下文的问题。它通过在推理时把私有资料片段塞进 Prompt，让模型基于检索到的内容作答，并且不更新模型权重 [来源 1]。\n\n同时，资料还说明 RAG 适合利用外部知识源，在生成回答前先检索相关信息，因此适合文档、结构化/非结构化数据库等场景；在动态数据场景中，也可以通过不断查询外部源来保持信息更新 [来源 2]。\n\nRAG 不解决的问题包括：它不解决模型推理能力本身不够的问题，也不能替代微调（SFT）和 Agent [来源 1]。此外，RAG 主要关注信息检索和整合外部知识，可能无法完全定制模型的行为或写作风格 [来源 2]。",
+      "answer": "根据资料，RAG 系统的核心组件和工作逻辑如下：\n\n## 1. 核心组件\n\nRAG 系统的核心组件主要包括索引构建器和检索器：\n\n- **索引构建器（Indexer）**  \n  功能是把文档转换为可检索的向量表示。技术选型包括分块策略、嵌入模型微调等 [来源 3]。  \n  在写路径中，它通常经历：加载/解析文档、分块、Embedding、写入检索结构，例如向量库或关键词倒排索引，并带上 metadata [来源 1]。\n\n- **检索器（Retriever）**  \n  功能是从知识库中检索相关文档片段。技术选型包括向量数据库、嵌入模型、传统检索方法如 BM25 [来源 3]。\n\n## 2. 工作逻辑\n\n标准 RAG 分为两条路径：**写路径做索引，读路径做检索和生成** [来源 1]。\n\n### 写路径：建立索引\n\n写路径的目标是把文档变成之后能快速查找的结构，流程包括：\n\n1. **加载 / 解析**：把 PDF、Markdown、TXT 等文档变成干净文本，表格需要保留行列关系 [来源 1]。\n2. **分块**：整篇文档太长不能直接嵌入，需要按段落或句子递归切块，并保留一点 overlap，避免语义被切断 [来源 1]。\n3. **Embedding**：用 embedding 模型把每个文本块变成向量 [来源 1]。\n4. **写入检索结构**：常见写入向量库或关键词倒排索引，并带上知识库 id 等 metadata，便于检索时过滤 [来源 1]。\n\n### 读路径：检索 + 生成\n\n读路径在用户提问时进行：\n\n1. **查询处理**：先处理用户问题 [来源 1]。\n2. **检索相关片段**：从知识库中找到与问题相关的文档片段 [来源 3]。\n3. **生成回答**：把检索到的资料片段放入 Prompt，让模型基于这些内容生成回答 [来源 1]。\n\n## 3. RAG 的本质\n\nRAG 是在推理时把私有资料片段塞进 Prompt，让模型回答训练语料里没有的内容。它不更新模型权重，主要解决的是“模型没见过我的文档、上下文也塞不下整库”的问题 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2288,7 +2288,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "没有相关块时，不要调用模型硬编，应直接说不知道 [来源 1]。\n\n生成失败时，不能把检索摘录伪装成模型答案 [来源 1]。",
+      "answer": "没有相关块时，不要调用模型硬编，直接回答“不知道”。\n\n生成失败时，不能把检索摘录伪装成模型答案。[来源 1]",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2323,7 +2323,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "向量数据库更适合语义检索，主要有这些原因：\n\n1. **传统数据库更适合精确匹配，而语义检索需要相似性匹配**  \n   传统数据库主要依赖类似 `WHERE` 的精确匹配方式；但大模型应用中的检索往往不是“完全相同才匹配”，而是要根据语义相似性来找内容。向量数据库可以通过近似最近邻（ANN）算法，快速计算向量之间的余弦相似度或欧氏距离，从而支持语义相似检索，并实现毫秒级响应 [来源 1]。\n\n2. **向量数据库更适合处理高维向量数据**  \n   语义检索通常会把文本等内容转成高维向量。传统数据库的索引结构，例如 B 树，在高维空间下效率会急剧下降，也就是会遇到“维度灾难”问题。向量数据库是专为高维数据设计的，会通过量化、降维等技术来优化存储与计算 [来源 1]。\n\n所以，传统 B 树在高维场景下会遇到**效率急剧下降的维度灾难问题** [来源 1]。",
+      "answer": "向量数据库更适合语义检索，是因为大模型应用常需要基于语义相似性检索，而不是传统数据库依赖的精确匹配（如 `WHERE`）[来源 1]。向量数据库可以把非结构化数据转化为高维向量并直接存储向量表示，再通过近似最近邻（ANN）算法快速计算向量之间的余弦相似度或欧氏距离，实现毫秒级响应[来源 1]。\n\n传统 B 树在高维空间下效率会急剧下降，也就是会遇到“维度灾难”[来源 1]。向量数据库则专为高维数据设计，可通过量化、降维等技术优化存储与计算[来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2360,7 +2360,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "在 RAG 系统中：\n\n- **检索器（Retriever）**：负责从知识库中检索与用户问题相关的文档片段 [来源 1]。\n- **索引构建器（Indexer）**：负责将文档转换为可检索的向量表示，以便后续检索 [来源 1]。\n- **生成器（Generator）**：负责结合检索到的结果生成最终回答 [来源 1]。",
+      "answer": "在 RAG 系统中：\n\n- **检索器（Retriever）**：从知识库中检索相关文档片段 [来源 1]。\n- **索引构建器（Indexer）**：将文档转换为可检索的向量表示 [来源 1]。\n- **生成器（Generator）**：结合检索结果生成最终回答 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2404,7 +2404,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "RAG 和 SFT 在这三个方面的区别如下：\n\n1. **数据更新**\n   - **RAG**：使用动态数据，会不断查询外部数据源，从而保证信息保持最新，不需要频繁重新训练模型 [来源 1]。\n   - **SFT**：使用的是相对静态的数据，在动态数据场景中可能很快过时，而且 SFT 也不能保证模型一定记住这些知识 [来源 1]。\n\n2. **幻觉**\n   - **RAG**：本质上更不容易产生幻觉，因为每个回答都建立在检索到的证据之上 [来源 1]。\n   - **SFT**：可以通过特定领域的训练数据帮助减少幻觉，但当面对不熟悉的输入时，仍然可能产生幻觉 [来源 1]。\n\n3. **透明度**\n   - **RAG**：透明度更高。RAG 系统会把响应生成拆分为不同阶段，并能提供数据检索的匹配度，从而提高对输出的信任 [来源 1]。\n   - **SFT**：更像一个黑匣子，响应背后的推理过程更加不透明 [来源 1]。",
+      "answer": "根据参考资料，RAG 与 SFT 的区别如下：\n\n- **数据更新**：RAG 使用动态数据，会不断查询外部源，使信息保持最新，无需频繁重新训练模型；SFT 使用的是相对静态数据，在动态数据场景中可能很快过时，并且不能保证模型能记住这些知识 [来源 1]。\n\n- **幻觉**：RAG 本质上不太容易产生幻觉，因为每个回答都建立在检索到的证据上；SFT 可以通过特定领域训练数据减少幻觉，但面对不熟悉的输入时仍可能产生幻觉 [来源 1]。\n\n- **透明度**：RAG 系统通过将响应生成分解为不同阶段来提供透明度，并展示数据检索的匹配度，有助于提高对输出的信任；SFT 更像黑匣子，响应背后的推理过程更不透明 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2444,7 +2444,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "RAG-Fusion 用来增强用户意图的核心手段是**采用多查询策略**，以捕捉用户信息需求的多面性，从而揭示用户可能无法清晰表述的意图，并让输出更贴近用户意图 [来源 1]。",
+      "answer": "RAG-Fusion 在增强用户意图时，核心手段是**采用多查询策略**，通过生成多个查询变体来捕捉用户信息需求的多面性表现，从而提供与用户意图更共鸣的全面输出 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2477,7 +2477,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "大模型幻觉一般分为以下三类 [来源 1]：\n\n1. **事实性幻觉**：模型生成与事实不符的内容，例如声称某基金年化收益达 35%，而实际最高仅 12% [来源 1]。\n2. **逻辑性幻觉**：模型生成违反逻辑的内容，例如推荐“低风险高收益”产品 [来源 1]。\n3. **指令跟随偏差**：模型没有准确跟随用户指令，例如用户问 A 股行情，却推荐港股 ETF [来源 1]。",
+      "answer": "根据参考资料，大模型幻觉的典型分类包括：\n\n1. **事实性幻觉**：生成看似合理但不符合事实的内容，例如声称某基金年化收益达35%，而实际最高仅12%。  \n2. **逻辑性幻觉**：生成违反逻辑的内容，例如推荐“低风险高收益”产品。  \n3. **指令跟随偏差**：没有按用户指令要求回答，例如用户问A股行情，却推荐港股ETF。  \n\n[来源 1]",
       "source_files": [
         "面试.md",
         "面试.md",
@@ -2506,7 +2506,7 @@
         "面试.md",
         "面试.md"
       ],
-      "answer": "写索引时，文档 Embedding 和之后的问句必须使用**同一个模型、同一维度** [来源 1]。\n\n分块方面：\n\n- **块太大**：主题容易混杂 [来源 1]。\n- **块太小**：论据可能不完整 [来源 1]。",
+      "answer": "写索引时，文档 Embedding 和之后的问句必须使用同一个模型、同一维度 [来源 1]。\n\n分块时：块太大会导致主题混杂；块太小会导致论据不完整 [来源 1]。",
       "source_files": [
         "面试.md",
         "面试.md"
@@ -2542,7 +2542,7 @@
         "database.md",
         "database.md"
       ],
-      "answer": "在 InnoDB 中，事务 ACID 分别主要依靠：\n\n| 特性 | 含义 | InnoDB 主要依靠 |\n|---|---|---|\n| **A 原子性** | 事务中间失败后，已做的修改要像没发生过一样 | **Undo Log 回滚** [来源 1] |\n| **C 一致性** | 事务前后都要满足约束和业务不变量 | **A、I、D + 约束**（如主键、外键、check）共同保证；一致性是目标，不是单靠某一个组件 [来源 1] |\n| **I 隔离性** | 并发事务之间互不干扰 | **锁 + MVCC**，并通过隔离级别调节 [来源 1] |\n| **D 持久性** | 事务提交后，即使宕机也不丢失 | **Redo Log 先落盘（WAL）** [来源 1] |",
+      "answer": "事务的四大特性是 **ACID**：\n\n| 特性 | 含义 | InnoDB 主要靠什么 |\n|---|---|---|\n| **A 原子性** | 中间失败，已做的要当没发生 | **Undo Log** 回滚 |\n| **C 一致性** | 事务前后都满足约束和业务不变量 | A、I、D + 约束（主键、外键、check）一起保证，是**目标**不是单靠一个组件 |\n| **I 隔离性** | 并发事务互不瞎干扰 | **锁 + MVCC**，由隔离级别调节 |\n| **D 持久性** | 提交了，宕机也不丢 | **Redo Log** 先落盘（WAL） |\n\n补充：一致性是结果，其余三个是手段；不要把一致性说成“隔离性的别名”。[来源 1]",
       "source_files": [
         "database.md",
         "database.md",
@@ -2586,7 +2586,7 @@
         "database.md",
         "database.md"
       ],
-      "answer": "MySQL InnoDB 的默认隔离级别是 **Repeatable Read（可重复读）** [来源 1]。\n\n**脏读**是指一个事务读到了另一个事务**还没有提交**的改动数据；如果对方事务随后回滚，那么读到的数据就是无效/假的 [来源 1]。",
+      "answer": "MySQL 默认事务隔离级别是 **Repeatable Read（RR，可重复读）** [来源 1]。\n\n在该级别下：\n- **脏读**：不会 [来源 1]。\n- **不可重复读**：不会 [来源 1]。\n- **幻读**：SQL 标准下会，但 **InnoDB 基本能避免** [来源 1]。",
       "source_files": [
         "database.md",
         "database.md",
@@ -2600,7 +2600,7 @@
         "database.md"
       ],
       "refused": false,
-      "must_contain_ok": true,
+      "must_contain_ok": false,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -2630,7 +2630,7 @@
         "database.md",
         "database.md"
       ],
-      "answer": "没有了。MySQL 8.0 已经删除了查询缓存 [来源 1]。\n\n补充：在旧版本中，查询缓存需要 SQL 文本完全一样才可能命中，并且表一更新相关缓存就会失效；因此面试或实际使用中不应把查询缓存当作 MySQL 8.0 的现状 [来源 1]。",
+      "answer": "MySQL 8.0 已经删除了查询缓存 [来源 1]。",
       "source_files": [
         "database.md",
         "database.md",
@@ -2674,7 +2674,7 @@
         "network.md",
         "network.md"
       ],
-      "answer": "TCP 和 UDP 在这三个方面的不同如下：\n\n| 维度 | TCP | UDP |\n| --- | --- | --- |\n| 连接 | 面向连接，通过三次握手建立连接、四次挥手释放连接 | 无连接，直接发包 [来源 1] |\n| 可靠性 | 可靠，通过 ACK、重传、校验和、序号等机制保证 | 不保证可靠性，丢了就算 [来源 1] |\n| 头部大小 | 头部至少 20 字节 | 头部 8 字节 [来源 1] |",
+      "answer": "TCP 和 UDP 都是传输层协议，主要区别如下 [来源 1]：\n\n| 维度 | TCP | UDP |\n|---|---|---|\n| 连接 | 面向连接：三次握手建立、四次挥手释放 [来源 1] | 无连接，直接发包 [来源 1] |\n| 可靠性 | 可靠：使用 ACK、重传、校验和、序号等机制 [来源 1] | 不保证送达，丢了就算；若需要可靠性由应用层自己补 [来源 1] |\n| 顺序 | 有序：按序号重组 [来源 1] | 可能乱序 [来源 1] |\n| 速度 | 较慢，因为涉及握手、窗口、重传等 [来源 1] | 快 [来源 1] |\n| 头部大小 | 头部至少 20 字节 [来源 1] | 头部 8 字节 [来源 1] |\n| 流量控制 | 有：使用滑动窗口 `rwnd` [来源 1] | 无 [来源 1] |\n| 拥塞控制 | 有：慢开始 / 拥塞避免 / 快重传 / 快恢复 [来源 1] | 无；乱发可能加剧拥塞 [来源 1] |\n| 典型应用 | HTTP/HTTPS、SMTP、FTP，适合网页、文件、邮件 [来源 1] | DNS、音视频、直播、游戏 [来源 1] |\n\n另外，TCP 是**字节流**，没有应用层消息边界，所以会出现粘包/拆包，应用层需要用长度字段、分隔符或定长协议来拆包；UDP 是**数据报**，一个 `send` 对应一个包，消息边界还在，但不保证送达 [来源 1]。",
       "source_files": [
         "network.md",
         "network.md",
@@ -2715,7 +2715,7 @@
         "network.md",
         "network.md"
       ],
-      "answer": "三次握手不能是两次，主要原因有两个：\n\n1. **防止旧的、失效的连接请求导致服务器错误建立连接**  \n   如果只有两次握手，客户端之前发出的一个旧 `SYN` 报文可能在网络中延迟很久后才到达服务器。服务器会误以为这是新的连接请求，于是回复 `SYN-ACK` 并认为连接已经建立，然后等待客户端发数据。但客户端其实并没有要建连接，也不会响应，最终服务器会白白占用资源，形成半开连接。  \n   有了第三次握手，服务器必须等到客户端回复 `ACK` 后才认为连接建立；旧连接的客户端不会回复这个 `ACK`，服务器超时后就不会空占资源。[来源 1]\n\n2. **三次握手才能让双方的初始序列号都被确认**  \n   TCP 是全双工通信，双方都需要确认对方的收发能力，并同步自己的初始序列号。两次握手只能让一方确认对方的部分信息，而三次握手可以完成双方初始序列号的相互确认。[来源 1]",
+      "answer": "两次握手不够，主要有两个原因：\n\n1. **会浪费服务器资源，产生半开连接**  \n   如果客户端的第一个 `SYN` 在网络中卡住，客户端超时重传 `SYN`，之后正常建连、传完数据并关闭。后来那个旧的 `SYN` 又姗姗来迟，服务器会误以为是新连接，于是回复 `SYN-ACK`，并认为连接已经建立，开始空等数据，形成**半开连接**，浪费资源。  \n   如果有第三次 `ACK`，旧连接对应的客户端并不会发送这个 `ACK`，服务器等不到就会超时关闭，不会一直空占资源。[来源 1]\n\n2. **只有三次才能让双方的初始序列号都被确认**  \n   TCP 是全双工通信，双方都需要同步自己的初始序列号 `ISN`。两次握手无法让双方的 `ISN` 都被对端确认；三次握手才能完成“我能发、你能收、你能发、我能收”的闭环。[来源 1]",
       "source_files": [
         "network.md",
         "network.md",
@@ -2752,7 +2752,7 @@
         "network.md",
         "network.md"
       ],
-      "answer": "在 TCP 连接关闭时，**主动关闭的一方**会进入 `TIME_WAIT` 状态；更准确地说，是主动关闭方在发完最后一个 `ACK` 后进入 `TIME_WAIT` [来源 1]。\n\n等待时间通常是 **2MSL**。在 Linux 上常见约为 **60 秒量级** [来源 1]。\n\n原因主要有三个：\n\n1. **保证最后一个 ACK 能到达对端**  \n   如果最后的 `ACK` 丢了，对端还处于 `LAST-ACK` 状态，会重传 `FIN`。此时主动关闭方还在 `TIME_WAIT`，可以再次回 `ACK`，否则对端无法正常关闭 [来源 1]。\n\n2. **让旧连接的迟到报文在网络中消失**  \n   等待 `2MSL` 后，再使用相同四元组建立新连接时，不会收到上一次连接遗留的迟到报文 [来源 1]。\n\n3. **给协议栈收尾、释放连接控制块的时间** [来源 1]。\n\n为什么是 **2MSL** 而不是 1MSL：  \n一个 MSL 用来覆盖“最后的 ACK 飞到对端”的时间，另一个 MSL 用来覆盖“对端重传的 FIN 飞回来”的时间 [来源 1]。",
+      "answer": "在 TCP 连接中，**只有主动关闭连接的一方**会进入 `TIME_WAIT`。也就是说，如果客户端主动关闭，客户端进入 `TIME_WAIT`；如果服务器主动关闭，服务器进入 `TIME_WAIT` [来源 1]。\n\n`TIME_WAIT` 的等待时间是 **2MSL**，在 Linux 上常见合计约 **60 秒量级** [来源 1]。\n\n它存在主要有三个原因：\n\n1. **保证最后一个 ACK 能到达对端**  \n   如果这个 ACK 丢了，对端会停留在 `LAST-ACK` 并可能重传 FIN；主动关闭方还在 `TIME_WAIT`，就可以再次回复 ACK，否则对端可能无法正常关闭 [来源 1]。\n\n2. **让旧连接的迟到报文在网络中消亡**  \n   等待 2MSL 后，同一个四元组再建立新连接时，不会收到上一世连接残留的报文 [来源 1]。\n\n3. **给协议栈收尾和释放控制块留出时间** [来源 1]。\n\n为什么是 **2MSL** 而不是 1MSL：  \n一趟 MSL 覆盖“最后一个 ACK 飞到对端”的时间，另一趟 MSL 覆盖“对端重传的 FIN 飞回来”的时间 [来源 1]。",
       "source_files": [
         "network.md",
         "network.md",
@@ -2792,7 +2792,7 @@
         "os.md",
         "os.md"
       ],
-      "answer": "进程和线程在这三个方面的差别如下：\n\n| 维度 | 进程 | 线程 |\n|---|---|---|\n| 资源 | 进程是资源分配的最小单位 [来源 1] | 线程只拥有少量私有资源，如栈、寄存器、PC、TLS 等，其余资源继承自进程 [来源 1] |\n| 地址空间 | 进程之间相互独立，默认不共享全局变量 [来源 1] | 线程共享同一进程的地址空间、堆、全局变量、文件描述符 [来源 1] |\n| 故障隔离 | 一个进程崩溃，一般不会影响其他进程 [来源 1] | 一个线程踩内存，整个进程都可能挂掉 [来源 1] |",
+      "answer": "在资源、地址空间、故障隔离方面，进程和线程的区别如下 [来源 1]：\n\n| 维度 | 进程 | 线程 |\n|---|---|---|\n| 资源 | 进程是资源分配的最小单位 | 线程只拥有少量私有资源，如栈、寄存器、程序计数器 PC、线程局部存储 TLS 等，其余资源继承自进程 |\n| 地址空间 | 不同进程的地址空间相互独立，默认不共享全局变量 | 同一进程内的线程共享同一进程的地址空间、堆、全局变量、文件描述符 |\n| 故障隔离 | 一个进程崩溃，一般不会影响其他进程 | 一个线程踩坏内存，整个进程都可能挂掉 |\n\n补充：同进程线程共享地址空间、堆、全局/静态变量、打开的文件、信号处理方式；私有资源包括栈、寄存器、程序计数器、errno、线程局部存储 [来源 1]。",
       "source_files": [
         "os.md",
         "os.md",
@@ -2833,7 +2833,7 @@
         "os.md",
         "os.md"
       ],
-      "answer": "共享内存作为 IPC 快的原因是：它把同一块物理页映射进多个进程的虚拟地址空间，数据不需要在进程之间反复拷贝，拷贝次数最少，几乎零拷贝，所以速度最快 [来源 2]。\n\n但共享内存本身不提供同步机制。如果多个进程同时读写同一块共享内存，必须另外做同步，例如配合信号量、互斥锁或 futex，否则会出现数据竞争、踩数据等问题 [来源 2]。",
+      "answer": "共享内存作为 IPC 快，是因为它把同一块物理页映射进多个进程的虚拟地址空间，拷贝次数最少，几乎零拷贝 [来源 2]。\n\n需要另外做同步。共享内存本身不提供同步，必须再配信号量/互斥锁，否则会踩数据 [来源 2]。",
       "source_files": [
         "os.md",
         "os.md",
@@ -2874,7 +2874,7 @@
         "database.md",
         "database.md"
       ],
-      "answer": "资料里对比了二叉树：InnoDB 用 B+ 树是因为它更“矮、扇出大”，非叶子节点只放键和指针，一页能放很多关键字，三四层就能覆盖海量行；数据库瓶颈在磁盘 I/O，少一层就少一次读盘 [来源 1]。\n\n至于红黑树，参考资料没有直接提到。\n\nB+ 树相对 B 树被点名的优势是：范围查询更方便。B+ 树叶子节点串成有序链表，`BETWEEN`、`ORDER BY` 可以顺序扫叶子；而 B 树数据散在内节点，范围查询更麻烦 [来源 1]。",
+      "answer": "依据资料，能回答的部分如下：\n\n- **为什么不用二叉树**：数据库瓶颈是磁盘 I/O。B+ 树“矮、扇出大”，非叶子节点只放键和指针，一页能塞很多关键字，三四层就能覆盖海量行；少一层就少一次读盘。并且 B+ 树查询路径一样长，全在叶子，查询次数更稳定 [来源 1]。\n\n- **红黑树**：资料没有点名红黑树，只提到对比“二叉树、B 树、哈希”，所以不能据此直接回答红黑树的具体原因 [来源 1][来源 2]。\n\n- **B+ 树相对 B 树被点名的优势**：主要是**范围查询**。B+ 树的叶子节点串成有序链表，`BETWEEN`、`ORDER BY` 可以顺序扫叶子，不用中序乱跳；而 B 树的数据散在内节点，范围查询更麻烦 [来源 1]。",
       "source_files": [
         "database.md",
         "database.md",
@@ -2912,7 +2912,7 @@
         "database.md",
         "database.md"
       ],
-      "answer": "二级索引找到主键后，再去聚簇索引查整行，叫**回表** [来源 1]。\n\n如果查询列都包含在索引里，不需要再回表查整行，叫**覆盖索引** [来源 1]。",
+      "answer": "二级索引找到主键后，再去聚簇索引拿整行，这叫**回表**；如果查询列都已经包含在索引里，不需要再查整行，这叫**覆盖索引** [来源 1]。",
       "source_files": [
         "database.md",
         "database.md",
@@ -2945,7 +2945,7 @@
         "os.md",
         "os.md"
       ],
-      "answer": "Linux 的 CFS（完全公平调度）会把可运行进程按 `vruntime`（虚拟运行时间）组织在一棵红黑树里，然后选择当前 `vruntime` 最小的进程作为下一个运行的进程，以此尽量让各个进程公平地获得 CPU [来源 1]。\n\n此外，进程的 `nice` 值会改变其权重，从而影响 `vruntime` 的计算和调度选择 [来源 1]。",
+      "answer": "Linux 的 CFS 会维护一棵红黑树，按每个进程的 `vruntime`（虚拟运行时间）排序，每次选择 `vruntime` 最小的进程去运行，目标是让每个进程都公平地得到 CPU。nice 值会改变进程权重，从而影响调度。[来源 1]",
       "source_files": [
         "os.md",
         "os.md",
@@ -2984,7 +2984,7 @@
         "network.md",
         "network.md"
       ],
-      "answer": "TCP 会粘包是因为 TCP 是**字节流**协议：它没有应用层消息边界，数据在 TCP 看来是连续的字节序列，因此应用层的一次次消息可能会被合并或拆分传输，从而出现粘包/拆包。解决方式通常是应用层自己划分边界，例如使用**长度字段、分隔符或定长协议** [来源 1] [来源 2]。\n\nUDP **有应用层消息边界**：UDP 是数据报协议，一个 `send` 对应一个包，消息边界仍然保留；但 UDP 不保证包一定到达 [来源 1]。",
+      "answer": "粘包/拆包主要出现在 **TCP** 中。\n\n因为 TCP 是**字节流**：没有应用层消息边界，所以会出现粘包/拆包问题；应用层需要用**长度字段、分隔符或定长协议**来拆包 [来源 1][来源 2]。\n\n相比之下，UDP 是**数据报**：一个 `send` 对应一个包，消息边界还在，但 UDP 不保证送达和顺序 [来源 1]。",
       "source_files": [
         "network.md",
         "network.md",
@@ -3027,7 +3027,7 @@
         "go.md",
         "go.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "数组的长度是固定的，并且长度是类型的一部分；数组是值类型，赋值或传参时会拷贝整份数据 [来源 1]。\n\n切片是对底层数组的封装，包含指针、len、cap 三个字段；传参时只拷贝切片头，底层数组是共享的。`append` 导致长度超过容量时，会分配新的底层数组并拷贝旧元素 [来源 1]。\n\n对 `nil` map 读取是安全的，但写入会 panic，必须先用 `make` 初始化 [来源 1]。",
       "source_files": [
         "go.md",
         "go.md",
@@ -3040,7 +3040,7 @@
         "go.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -3062,7 +3062,7 @@
         "go.md",
         "go.md"
       ],
-      "answer": "在 Go 里，`rune` 是 `int32` 的别名，用来表示一个 Unicode 码点；例如一个汉字对应一个 `rune` [来源 1]。",
+      "answer": "在 Go 里，`rune` 是 `int32` 的别名，表示 Unicode 码点；一个汉字对应一个 `rune` [来源 1]。",
       "source_files": [
         "go.md",
         "go.md"
@@ -3098,7 +3098,7 @@
         "rpc.md",
         "rpc.md"
       ],
-      "answer": "RPC 不是一种协议，而是一种调用模型；底下可以使用自定义 TCP、HTTP/2，甚至 HTTP/1.1 等传输方式 [来源 1]。\n\ngRPC 默认使用 HTTP/2 作为传输，默认使用 Protobuf 作为序列化/载荷格式 [来源 2]。",
+      "answer": "模型回答失败",
       "source_files": [
         "rpc.md",
         "rpc.md",
@@ -3112,7 +3112,7 @@
         "rpc.md"
       ],
       "refused": false,
-      "must_contain_ok": true,
+      "must_contain_ok": false,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -3138,7 +3138,7 @@
         "加密算法.md",
         "加密算法.md"
       ],
-      "answer": "它们各自解决的目标不同：\n\n- **加密**：解决**机密性**，让没有密钥的人读不懂内容；它通常可逆，需要密钥。典型如对称加密、非对称加密 [来源 1]。\n- **哈希**：解决**指纹、去重、完整性粗检**等问题；它不可逆，裸哈希不需要密钥，目标不是保密 [来源 1]。\n- **编码**：解决**传输/存储表示**问题，例如把数据换成适合传输的形式；它可逆，而且没有秘密，任何人都能还原，不提供安全性 [来源 1]。\n- **签名**：解决**认证、不可否认、完整性**问题；通常是私钥签名、公钥验签，重点不是把内容藏起来，而是证明来源并防止抵赖 [来源 1]。\n\n**Base64 不算加密。**  \n资料里明确把 Base64 归为**编码**：它是可逆的，而且没有密钥秘密，任何人都能解码，所以不能提供加密意义上的机密性 [来源 1]。例如看到一串 `eyJ...` 之类的 Base64URL 内容，也不能直接当成加密，真正防篡改可能靠的是签名而不是编码 [来源 1]。",
+      "answer": "根据资料：\n\n- **加密**：有密钥、可逆，目标是**机密性**，即没有密钥的人读不懂。可分对称加密和非对称加密。[来源 1]\n- **哈希**：无密钥、不可逆，输出定长摘要，目标是**指纹、去重、完整性粗检**，不是保密。[来源 1]\n- **编码**：如 Base64、URL Encode，目标是换一种表示形式，**谁都能还原**，不提供安全能力。[来源 1]\n- **签名**：私钥签、公钥验，目标是**认证 + 不可否认 + 完整性**，不负责把内容藏起来。[来源 1]\n\n**Base64 不算加密**。它是编码，任何人都能解码；资料中特别指出，JWT 的 Header/Payload 是 Base64URL，任何人都能解码，真正防篡改的是末尾签名，不能把“看不懂”当成“加密了”。[来源 1]",
       "source_files": [
         "加密算法.md",
         "加密算法.md",
@@ -3178,7 +3178,7 @@
         "加密算法.md",
         "加密算法.md"
       ],
-      "answer": "不能用 MD5 存储用户密码。资料明确把 MD5 列为“不要用什么”用于用户登录密码场景 [来源 1]。\n\n应该使用专门的密码哈希算法：\n\n- 新项目优先：**Argon2id**，并且每用户随机盐 [来源 1][来源 2]\n- 老项目或面试稳妥方案：**bcrypt**，每用户随机盐 [来源 1][来源 2]\n- 如果被审计要求，也可以用 **PBKDF2**，但要说明迭代次数，量级通常在十万到百万，并随硬件调整 [来源 2]\n\n同时，不要把 **MD5、SHA1、`SHA256(password + salt)`** 当作最终密码存储方案 [来源 2]。登录校验时应使用库提供的 `verify` 方法，它会解析盐和成本参数；如果自行比较摘要，也要使用恒定时间比较 [来源 2]。",
+      "answer": "不能。MD5 不适合用来存用户登录密码。\n\n原因：数据库可能被拖库；MD5 计算太快，弱口令和彩虹表攻击成本很低，容易被离线爆破 [来源 3]。资料也明确说，用户登录密码“不要用什么”包括 MD5、SHA-256、可逆 AES、RSA 存密码 [来源 1]。\n\n应该用：**随机盐 + 专门的慢哈希 / 密码哈希函数**，例如 bcrypt、scrypt、Argon2 [来源 3]。\n\n具体选型建议：\n\n- **新项目**：优先 **Argon2id** [来源 2]\n- **面试稳妥 / 老 Java/PHP 项目**：可用 **bcrypt** [来源 2]\n- 如果审计要求 PBKDF2：可以用，但要把迭代次数说清楚，量级通常是十万到百万，并跟硬件能力调整 [来源 2]\n\n另外，每个用户应使用**独立随机盐**，盐可以和哈希一起明文存储；盐的作用是防止彩虹表直接查表，也让相同密码产生不同哈希 [来源 3]。登录校验要用库提供的 `verify`，不要自己简单比较摘要；登录接口还要限流、防撞库 [来源 2][来源 3]。",
       "source_files": [
         "加密算法.md",
         "加密算法.md",
@@ -3219,7 +3219,7 @@
         "架构模式.md",
         "架构模式.md"
       ],
-      "answer": "不建议一开始就上微服务。资料里明确提到：**不要为了「高级」而一开始就微服务** [来源 1]。\n\n更适合先不拆服务的阶段包括：\n\n- 个人项目  \n- 中小型项目  \n- MVP 项目  \n- 校招项目  \n- 业务早期阶段  \n\n这些场景更适合先用单体架构，因为单体架构开发、调试和部署都更简单 [来源 1]。",
+      "answer": "不对，一开始就上微服务通常不合适。\n\n资料里明确提醒：**不要为了“高级”而一开始就微服务** [来源 1]。微服务并不是“免费升级”，它会带来网络通信、服务发现、配置中心、链路追踪、日志、监控、容错、分布式事务、数据一致性、部署复杂度等问题 [来源 2]。\n\n更适合先不拆服务的阶段包括：**个人项目、中小型项目、MVP、校招项目、业务早期阶段** [来源 1]。资料也强调：**小项目不要为了微服务而微服务** [来源 2]。\n\n更推荐的路径是先把 **单体 + 分层架构（Controller → Service → Repository）** 吃透，再逐步进入微服务、RPC、消息队列等分布式架构 [来源 1][来源 2]。",
       "source_files": [
         "架构模式.md",
         "架构模式.md",
@@ -3260,7 +3260,7 @@
         "架构模式.md",
         "架构模式.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "在分层架构中：\n\n- **Controller（控制层）**：负责接收和处理 HTTP 请求，完成参数解析、参数校验，然后调用 Service，并返回 HTTP 响应 [来源 1]。\n- **Service（业务层）**：负责真正的业务逻辑。例如创建订单时的查询商品、判断库存、计算价格、创建订单、扣减库存，都应放在 Service 层，而不是 Controller 层 [来源 1]。\n- **Repository（持久层 / 数据访问层）**：负责与数据库、缓存等基础设施交互，例如查询用户数据；它不应该负责业务判断，如“用户是否有权限、订单是否可以创建、库存是否足够” [来源 1]。\n\n**判断库存够不够应该放在 Service（业务层）**，因为这属于业务逻辑 [来源 1]。",
       "source_files": [
         "架构模式.md",
         "架构模式.md",
@@ -3274,7 +3274,7 @@
         "架构模式.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -3304,7 +3304,7 @@
         "架构模式.md",
         "架构模式.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "不是。DDD（Domain-Driven Design，领域驱动设计）的核心思想是**围绕业务领域来设计软件，而不是单纯围绕数据库表设计软件** [来源 1]。\n\n领域层（Domain Layer）常见的概念包括 [来源 1]：\n\n| 概念 | 英文 |\n| --- | --- |\n| 实体 | Entity |\n| 值对象 | Value Object |\n| 聚合 | Aggregate |\n| 领域服务 | Domain Service |\n| 领域事件 | Domain Event |",
       "source_files": [
         "架构模式.md",
         "架构模式.md",
@@ -3318,7 +3318,7 @@
         "架构模式.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -3348,7 +3348,7 @@
         "架构模式.md",
         "架构模式.md"
       ],
-      "answer": "六边形架构的常用别名是 **Ports and Adapters Architecture（端口与适配器架构）** [来源 1]。\n\n它要让 **业务核心不要依赖具体的外部技术** [来源 1]。",
+      "answer": "六边形架构也叫 **Ports and Adapters Architecture（端口与适配器架构）** [来源 1]。\n\n它的核心思想是：**业务核心不应该依赖具体的外部技术** [来源 1]，也就是说要让业务核心与外部系统解耦 [来源 2]。",
       "source_files": [
         "架构模式.md",
         "架构模式.md",
@@ -3392,7 +3392,7 @@
         "架构模式.md",
         "架构模式.md"
       ],
-      "answer": "Clean Architecture 最重要的依赖方向是：\n\n> **外层依赖内层，内层不要依赖外层。** [来源 1]\n\n资料中也补充了其核心原则：\n\n> **依赖关系应该指向业务核心。** [来源 1]",
+      "answer": "Clean Architecture 最重要的依赖方向是：**外层依赖内层，内层不要依赖外层**；也就是说，**依赖关系应该指向业务核心** [来源 1]。",
       "source_files": [
         "架构模式.md",
         "架构模式.md",
@@ -3427,7 +3427,7 @@
       "retrieve_files": [
         "架构模式.md"
       ],
-      "answer": "CQRS 的全称是 **Command Query Responsibility Segregation**，中文是 **命令查询职责分离** [来源 1]。\n\n它的核心思想是：**读和写使用不同的模型** [来源 1]。\n\n也就是：\n\n```text\n写操作 Command → Write Model\n读操作 Query   → Read Model\n```\n\n普通 CRUD 项目**不一定要用**，资料里明确说：**普通 CRUD 项目通常不需要 CQRS** [来源 1]。",
+      "answer": "CQRS 全称是 **Command Query Responsibility Segregation，命令查询职责分离**。\n\n它的核心思想是：**读和写使用不同的模型**，即写操作走 Command / Write Model，读操作走 Query / Read Model [来源 1]。\n\n普通 CRUD 项目**通常不需要使用 CQRS** [来源 1]。",
       "source_files": [
         "架构模式.md"
       ],
@@ -3457,7 +3457,7 @@
         "设计模式.md",
         "设计模式.md"
       ],
-      "answer": "支付方式出现一堆 `if-else` 时，更适合考虑 **策略模式 + 工厂模式**：用策略模式承载不同支付方式的处理逻辑，用工厂模式负责根据类型创建对应支付对象 [来源 2]。\n\n工厂模式的核心思想是：**把对象的创建过程封装起来** [来源 1]。  \n例如业务代码不直接写 `NewWechatPayment()`，而是通过 `PaymentFactory.Create(\"wechat\")` 获取对应支付实现 [来源 1]。",
+      "answer": "## 支付方式一堆 if-else，更适合用哪种设计模式？\n\n对于 `if payment == xxx` 一串 else if 的场景，资料中给出的建议是：**策略 + 工厂** [来源 2]。\n\n- **策略模式**解决的是\"同一个问题存在多种算法/业务实现，需要根据情况动态选择\"的问题 [来源 1]。例如优惠计算中 NormalDiscount、VIPDiscount、NewUserDiscount 等各自实现统一接口，业务代码通过 `strategy := getStrategy(userType)` 动态选择，新增策略时只需新增一个实现，原有代码基本不用修改 [来源 1]。\n\n- **工厂模式**则负责把对象的创建过程封装起来 [来源 1]，业务代码不需要自己 `wechat := NewWechatPayment()`，而是通过 `payment := PaymentFactory.Create(\"wechat\")` 来获取具体实例 [来源 1]。\n\n两者组合使用，就能避免每加一种支付方式就再堆一个 `else if` 导致代码越来越难维护的问题 [来源 4]。\n\n---\n\n## 工厂模式的核心思想\n\n工厂模式的核心思想是：\n\n> **把对象的创建过程封装起来。** [来源 1]\n\n在后端中非常常见的应用场景包括：支付方式、消息发送方式、数据库驱动、日志实现、存储实现、AI 模型、文件存储等 [来源 1]。例如存储模块：\n\n```text\nStorage\n ├── LocalStorage\n ├── OSSStorage\n ├── S3Storage\n └── MinIOStorage\n```\n\n业务层只需要调用 `storage := NewStorage(\"minio\")`，无需关心具体创建逻辑 [来源 1]。",
       "source_files": [
         "设计模式.md",
         "设计模式.md",
@@ -3494,7 +3494,7 @@
         "设计模式.md",
         "架构模式.md"
       ],
-      "answer": "Web 框架里的 Middleware 通常可以用**责任链模式**理解 [来源 1]。例如 Gin Middleware 也对应责任链模式 [来源 2]。",
+      "answer": "Web 框架里的 Middleware（中间件）通常可以用**责任链模式**理解 [来源 1]。\n\n例如 Gin 的 `router.Use(...)` 串联多个中间件：`Request → Logger → Auth → RateLimit → Handler`，这正是典型的责任链思想 [来源 1]。",
       "source_files": [
         "设计模式.md",
         "设计模式.md",
@@ -3530,7 +3530,7 @@
         "设计模式.md",
         "设计模式.md"
       ],
-      "answer": "请求先经过 Nginx 再到后面的服务，更接近**代理模式（Proxy）**；因为 Nginx 可以理解为代替真实后端服务接收请求，并可在调用前后增加额外逻辑，例如转发、缓存、限流等 [来源 1]。\n\n装饰器模式的核心是：**在不修改原对象代码的情况下，动态给对象增加功能**，例如给原始 Service 叠加日志、监控、缓存、权限、重试等能力 [来源 1]。",
+      "answer": "请求先经过 Nginx 再到后面的服务，更接近 **代理模式（Proxy）**。资料中明确把 `客户端 → Nginx → Go Server` 作为代理模式的常见后端场景，并指出 Nginx 可以理解为一种代理 [来源 1]；同时表格也把 `HTTP Proxy / Nginx` 对应为“代理” [来源 2]。\n\n**装饰器模式的核心**是：  \n> 在不修改原对象代码的情况下，动态给对象增加功能 [来源 1]。\n\n例如给原始 `Service` 层层包装日志、缓存、监控、重试、限流等能力：\n\n```text\nService\n ↓\nLogging Decorator\n ↓\nCache Decorator\n ↓\nRetry Decorator\n ↓\nReal Service\n```",
       "source_files": [
         "设计模式.md",
         "设计模式.md",
@@ -3568,7 +3568,7 @@
         "rpc.md",
         "rpc.md"
       ],
-      "answer": "不能把 Kafka 直接说成观察者模式。资料里明确说：不要简单地说「Kafka = 观察者模式」，它们属于不同层次 [来源 1]。\n\n它们的关系可以这样理解：\n\n1. **观察者模式的核心思想**是：一个对象发生变化时，通知多个对象 [来源 1]。  \n   例如订单支付成功后，`OrderService` 通知积分服务、消息服务、库存服务、通知服务 [来源 1]。\n\n2. **消息队列与观察者模式思想很接近**。在微服务中，常见形式是：\n\n   ```text\n   Order Service → RabbitMQ / Kafka\n                       ↓\n                 积分 / 库存 / 通知 / 营销\n   ```\n\n   这种基于消息队列的事件驱动架构，可以理解为**观察者思想在分布式系统中的一种扩展** [来源 1]。\n\n3. **事件驱动架构**也强调：一个服务产生事件，其他服务监听事件并处理 [来源 2]。  \n   例如：\n\n   ```text\n   用户下单 → OrderCreated → Message Queue\n                                 ├── Inventory Service\n                                 ├── Payment Service\n                                 └── Notification Service\n   ```\n\n   订单服务不需要直接调用所有下游服务，因此服务之间耦合更低 [来源 2]。\n\n所以更准确的说法是：**Kafka 不是观察者模式本身，但 Kafka 这类消息队列可以用于实现类似观察者模式的事件通知机制，是观察者思想在分布式系统/事件驱动架构中的一种落地或扩展** [来源 1][来源 2]。",
+      "answer": "不能简单地说 **Kafka = 观察者模式**。\n\n依据资料：\n\n- 观察者模式的核心思想是：**一个对象发生变化，通知多个对象** [来源 1]。\n- 消息队列如 RabbitMQ、Kafka 在微服务中的典型形态是：  \n  `Order Service → RabbitMQ / Kafka → 积分 / 库存 / 通知 / 营销`，这和观察者模式的思想非常接近 [来源 1]。\n- 但资料明确说：**MQ 的事件驱动架构可以理解为观察者思想在分布式系统中的一种扩展**，不要简单地说「Kafka = 观察者模式」，因为它们属于不同层次 [来源 1]。\n- 事件驱动架构的核心是：一个服务产生事件，其他服务监听事件并处理，例如 `用户下单 → OrderCreated → Message Queue → Inventory / Payment / Notification` [来源 2]。\n- 消息队列和 RPC 相比，MQ 只依赖 Topic，生产者、消费者彼此可以不在线，适合解耦、削峰、广播、允许短暂不一致的下游更新 [来源 3]。\n\n所以可以这样理解：\n\n> **Kafka 不是观察者模式本身；Kafka 作为消息队列，可以在分布式系统中承载“一个事件被多个订阅者处理”的观察者思想。**",
       "source_files": [
         "设计模式.md",
         "设计模式.md",
@@ -3612,7 +3612,7 @@
         "rpc.md",
         "rpc.md"
       ],
-      "answer": "微服务之间常见的三种通信方式是：\n\n1. **HTTP**，例如 REST：Service A → HTTP → Service B [来源 1]  \n2. **RPC**，例如 gRPC：Service A → gRPC → Service B [来源 1]  \n3. **消息队列**，例如 RabbitMQ、Kafka、RocketMQ：Order Service → MQ → Inventory Service [来源 1]",
+      "answer": "微服务之间通信的常见方式包括：\n\n1. **HTTP**\n   - 例子：REST\n   - 形态：Service A → HTTP → Service B [来源 1]\n\n2. **RPC**\n   - 例子：gRPC\n   - 形态：Service A → gRPC → Service B [来源 1]\n\n3. **消息队列**\n   - 例子：RabbitMQ、Kafka、RocketMQ\n   - 形态：Order Service → MQ → Inventory Service [来源 1]",
       "source_files": [
         "架构模式.md",
         "rpc.md",
@@ -3652,7 +3652,7 @@
         "04.agent_security.md",
         "03.sandbox.md"
       ],
-      "answer": "根据现有资料，只能确认 **sandbox** 里举例的限制数字：\n\n- CPU：`CPU <= 2 cores` [来源 1]\n- 内存：`Memory <= 2 GB` [来源 1]\n\n但资料中没有给出 **agent_security** 和 **agent-harness** 两处举例的 CPU、内存限制，因此无法判断这三处是不是同一套数字。",
+      "answer": "不是同一套数字。\n\n- **CPU 限制**\n  - `sandbox` 举例：`CPU <= 2 cores` [来源 1]\n  - `agent-harness` 中的 sandbox 举例：`CPU：2 cores` [来源 2]\n  - `agent_security` 的资源限制举例：`最大 CPU：1 core` [来源 3]\n\n- **内存限制**\n  - `sandbox` 举例：`Memory <= 2 GB` [来源 1]\n  - `agent-harness` 中的 sandbox 举例：`Memory：4GB` [来源 2]\n  - `agent_security` 的资源限制举例：`最大内存：512 MB` [来源 3]\n\n所以，三处并不是同一套数字；只有 `sandbox` 和 `agent-harness` 的 CPU 示例同为 **2 cores**，内存示例三处都不一致，`agent_security` 的 CPU 示例也不同。",
       "source_files": [
         "03.sandbox.md",
         "07.agent-harness.md",
@@ -3666,9 +3666,11 @@
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
-      "unsupported_sentences": [],
+      "unsupported_sentences": [
+        "所以，三处并不是同一套数字"
+      ],
       "answered": true,
-      "hallucinated": false
+      "hallucinated": true
     },
     {
       "id": "F02",
@@ -3692,7 +3694,7 @@
         "dsh-工作原理.md",
         "dsh-工作原理.md"
       ],
-      "answer": "在 DeepSeek Harness（dsh）里：\n\n- **Turn**：指**一次用户任务** [来源 1]。\n- **Step**：指**一次模型请求 + 它触发的工具**；如果模型产生了 tool call，就会继续开启下一个 Step [来源 1]。\n\n模型看见的历史必须来自 **Session 日志**。  \n也就是说，模型下一轮请求看到的内容不是从内存里临时拼出来的 prompt，而是通过 `session.deriveMessages()` 从 Session 日志中投影出来的 [来源 1]。资料中还强调：**Session 日志是模型历史的唯一真相** [来源 1]。",
+      "answer": "在 dsh 里：\n\n- **Turn** 是“一次用户任务”，从 `turn/start` 到 `turn/end`，一个 Turn 里可以有 0 个或多个 Step [来源 2]。\n- **Step** 是“一次模型请求 + 这次回复触发的全部 tool call”，模型请求里也可能包含多次 retry [来源 1][来源 2]。\n\n如果模型没有产生 tool call，这个 Turn 会结束；如果产生了 tool call，工具执行完后，如果 Inbox 还有 `next-step`，或者工具还欠一次模型请求，就会再开一个 Step [来源 2]。\n\n关于“模型看见的世界”：dsh 的铁律是 **模型看见的东西必须先写进 Session 日志**，下一轮请求通过 `session.deriveMessages()` 从日志投影出来，而不是在内存里偷偷拼 prompt [来源 1]。也就是说，任何进入模型请求的内容都必须能从日志重建，即 **Model-visible ⟺ logged** [来源 3]。",
       "source_files": [
         "dsh-工作原理.md",
         "dsh-工作原理.md",
@@ -3732,7 +3734,7 @@
         "04.Docker.md",
         "04.Docker.md"
       ],
-      "answer": "模型回答失败",
+      "answer": "根据资料，Docker 基础执行沙箱示例中的内存限制是 `--memory 256m`，用于限制内存、防止内存耗尽 [来源 1]。\n\n资料没有提到 `agent_security`，也没有提到 `512MB`，因此无法判断这两者是否属于同一套标准。",
       "source_files": [
         "04.Docker.md",
         "04.Docker.md",
@@ -3742,7 +3744,7 @@
         "04.Docker.md"
       ],
       "refused": false,
-      "must_contain_ok": false,
+      "must_contain_ok": true,
       "trap_hit": [],
       "missed_recall": false,
       "refusal_correct": false,
@@ -3911,7 +3913,20 @@
       "kb_id": 8,
       "kb_resolve": "fallback_nonempty",
       "missing_files": [],
-      "error": "POST /api/v1/knowledge/bases/8/retrieve -> 500 b'{\"code\":500001,\"reason\":\"EMBEDDING_API_ERROR\",\"message\":\"Embedding API HTTP 403\"}'"
+      "hit_at_5": null,
+      "hit_at_10": null,
+      "mrr": null,
+      "retrieve_files": [],
+      "answer": "我不知道",
+      "source_files": [],
+      "refused": true,
+      "must_contain_ok": true,
+      "trap_hit": [],
+      "missed_recall": false,
+      "refusal_correct": true,
+      "unsupported_sentences": [],
+      "answered": false,
+      "hallucinated": false
     },
     {
       "id": "G09",
@@ -3942,7 +3957,20 @@
       "kb_id": 8,
       "kb_resolve": "fallback_nonempty",
       "missing_files": [],
-      "error": "POST /api/v1/knowledge/bases/8/retrieve -> 500 b'{\"code\":500001,\"reason\":\"EMBEDDING_API_ERROR\",\"message\":\"Embedding API HTTP 403\"}'"
+      "hit_at_5": null,
+      "hit_at_10": null,
+      "mrr": null,
+      "retrieve_files": [],
+      "answer": "我不知道",
+      "source_files": [],
+      "refused": true,
+      "must_contain_ok": true,
+      "trap_hit": [],
+      "missed_recall": false,
+      "refusal_correct": true,
+      "unsupported_sentences": [],
+      "answered": false,
+      "hallucinated": false
     }
   ]
 }

@@ -41,6 +41,10 @@ _ID_STOP = {
 _SHORT_HAN = 8
 
 _SYNONYMS = (
+    ("不是同一套数字", "不一样"),
+    ("并不是同一套数字", "不一样"),
+    ("不是同一套", "不一样"),
+    ("并不是同一套", "不一样"),
     ("黑匣子", "黑盒"),
     ("黑箱子", "黑盒"),
     ("黑箱", "黑盒"),
@@ -50,6 +54,9 @@ _SYNONYMS = (
     ("不算", "不是"),
     ("并非", "不是"),
 )
+
+# Comparison wrap-up: restates "the listed examples differ" without a new fact.
+_WRAPUP_RE = re.compile(r"(并)?不是同一套|并不?一样|各不相同")
 
 
 def normalize_match(text: str) -> str:
@@ -161,6 +168,8 @@ def unsupported_sentences(answer: str, evidence: str) -> list[str]:
         numbers = novel_numbers(claim, evidence)
         if numbers:
             bad.append(claim)
+            continue
+        if _WRAPUP_RE.search(claim) and not numbers:
             continue
         if _han_count(claim) <= _SHORT_HAN:
             continue

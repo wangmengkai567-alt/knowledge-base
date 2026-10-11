@@ -69,6 +69,20 @@ def _is_rate_limited(code: int, payload: bytes) -> bool:
     )
 
 
+def is_quota_denied(err: object) -> bool:
+    """True when the upstream model returns 403 / Unpurchased / access denied."""
+    text = str(err).upper()
+    return (
+        "HTTP 403" in text
+        or "RETURNED 403" in text
+        or "RETURNED 401" in text
+        or "ACCESSDENIED" in text
+        or "UNPURCHASED" in text
+        or "QUOTA EXHAUSTED" in text
+        or ("403" in text and ("EMBEDDING" in text or "RERANK" in text))
+    )
+
+
 def http_json(method: str, path: str, token: str | None = None, body: dict | None = None, timeout: int = 180):
     data = None if body is None else json.dumps(body).encode("utf-8")
     headers = {"Content-Type": "application/json"}
@@ -290,6 +304,20 @@ def main() -> None:
             )
         except Exception as e:
             record["error"] = str(e)
+            if is_quota_denied(e):
+                rows.append(record)
+                print(
+                    f"[{i}/{len(items)}] {item['id']} kb={kb_id} "
+                    f"refused={record.get('refused')} hit10={record.get('hit_at_10')} "
+                    f"hallu={record.get('hallucinated')} err={record.get('error')}",
+                    flush=True,
+                )
+                print(
+                    f"ABORT: model quota/access denied at {item['id']} "
+                    f"({i}/{len(items)}); stopping to avoid burning the rest of the run.",
+                    flush=True,
+                )
+                break
         rows.append(record)
         print(f"[{i}/{len(items)}] {item['id']} kb={kb_id} refused={record.get('refused')} hit10={record.get('hit_at_10')} hallu={record.get('hallucinated')} err={record.get('error')}", flush=True)
         time.sleep(SLEEP_S)

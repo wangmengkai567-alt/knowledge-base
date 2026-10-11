@@ -5,7 +5,8 @@ RAGBiz 负责：
 - 检索相关 chunks（委托 RetrievalBiz）
 - 按 context_window 向两侧扩邻块再拼 context
 - 使用 RAG 模板构建 messages
-- 调用 LLM 生成回答；失败时返回「模型回答失败」，不贴检索摘录
+- 调用 LLM 生成回答；失败时返回「模型回答失败」，不贴检索摘录；
+  上游 401/403（Key 无效、额度耗尽、模型未开通）直接抛出，不伪装成回答
 - 无相关资料、或重排后低于相关性门槛时不调用 LLM，直接回答「我不知道」
 - 通过门槛的资料若模型仍整句拒答，则重试一次；仍拒答则返回「模型回答失败」
 
@@ -45,6 +46,14 @@ _MUST_ANSWER_USER = (
 
 def _is_canonical_refusal(text: str) -> bool:
     return bool(_REFUSAL_RE.match((text or "").strip()))
+
+
+_ACCESS_DENIED_RE = re.compile(r"LLM API returned 40[13]\b")
+
+
+def _is_access_denied(exc: Exception) -> bool:
+    """Upstream 401/403 (bad key, quota exhausted, model not purchased) won't fix itself on retry."""
+    return bool(_ACCESS_DENIED_RE.search(str(exc)))
 
 
 @dataclass
@@ -174,6 +183,8 @@ class RAGBiz:
                 source_count=source_count,
                 exc_info=True,
             )
+            if _is_access_denied(exc):
+                raise
             return _LLM_FAILED_ANSWER, ""
 
         text = (result.content or "").strip()
@@ -200,6 +211,8 @@ class RAGBiz:
                 source_count=source_count,
                 exc_info=True,
             )
+            if _is_access_denied(exc):
+                raise
             return _LLM_FAILED_ANSWER, model
 
         retry_text = (retry.content or "").strip()

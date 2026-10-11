@@ -13,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from internal.biz.entity import ChatChunk, ChatResult, RetrievalResult
 from internal.biz.rag import RAGBiz
 from internal.prompt.base import PromptTemplate
+from pkg.errors.base import APIError
+from pkg.errors.codes import ErrorCode
 
 
 def _source() -> RetrievalResult:
@@ -69,6 +71,20 @@ class _ScriptedLLM:
         yield ChatChunk(delta=result.content, model=result.model, finish_reason="stop")
 
 
+class _FailingLLM(_ScriptedLLM):
+    def __init__(self, status: int) -> None:
+        super().__init__([])
+        self._status = status
+
+    async def generate(self, messages, temperature=None, max_tokens=None) -> ChatResult:
+        self.calls.append(messages)
+        raise APIError(
+            code=ErrorCode.LLM_ERROR,
+            reason="LLM_ERROR",
+            message=f'LLM API returned {self._status}: {{"error":{{"message":"Free quota exhausted."}}}}',
+        )
+
+
 def _biz(sources: list[RetrievalResult], replies: list[str]) -> tuple[RAGBiz, _ScriptedLLM]:
     llm = _ScriptedLLM(replies)
     biz = RAGBiz(
@@ -115,6 +131,20 @@ class RAGGroundedAnswerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.answer, "我不知道")
         self.assertEqual(llm.calls, [])
         self.assertEqual(result.sources, [])
+
+    async def test_llm_access_denied_raises_instead_of_masking(self):
+        llm = _FailingLLM(403)
+        biz = RAGBiz(retrieval_biz=_StubRetrieval([_source()]), llm_provider=llm, prompt_manager=_StubPrompts())
+        with self.assertRaises(APIError) as ctx:
+            await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
+        self.assertIn("returned 403", str(ctx.exception))
+        self.assertEqual(len(llm.calls), 1)
+
+    async def test_llm_server_error_still_masked(self):
+        llm = _FailingLLM(500)
+        biz = RAGBiz(retrieval_biz=_StubRetrieval([_source()]), llm_provider=llm, prompt_manager=_StubPrompts())
+        result = await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
+        self.assertEqual(result.answer, "模型回答失败")
 
     async def test_stream_nonempty_sources_does_not_emit_refusal(self):
         biz, llm = _biz([_source()], ["我不知道", "先加载配置，再连接存储。"])
