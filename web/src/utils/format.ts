@@ -49,13 +49,6 @@ export function fileExt(name: string): string {
   return m ? m[1].toLowerCase() : ''
 }
 
-/** 相关度分数转百分比（0~100）。后端多为 0~1，也兼容已经是百分制的值。 */
-export function scorePercent(score: number): number {
-  if (!Number.isFinite(score) || score <= 0) return 0
-  const pct = score <= 1 ? score * 100 : score
-  return Math.max(0, Math.min(100, Math.round(pct)))
-}
-
 /** 知识块摘要：去掉 Markdown 标记，优先取引用/正文，展示成通顺的一句话 */
 export function formatChunkSummary(raw?: string): string {
   if (!raw) return ''

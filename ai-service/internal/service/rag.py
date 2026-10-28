@@ -1,83 +1,82 @@
-"""
-internal/service/rag.py — RAG 检索增强生成应用层
-
-职责：DTO 校验 → 调 biz → DTO 返回。
-不含业务逻辑，只做 DTO ↔ DO 转换。
-"""
+"""问答 DTO 转换；同步与 SSE 共用来源序列化。"""
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from dataclasses import asdict
+from typing import TYPE_CHECKING
 
-from api.openapi.schemas.rag import RAGQueryResponse, RAGSourceDTO
-from internal.biz.rag import RAGBiz, RAGStreamEvent
+from api.openapi.schemas.rag import HitScoreDTO, MaterialSegmentDTO, RAGQueryResponse, RAGSourceDTO
+from internal.service.retrieval import retrieval_dto
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from internal.biz.materials import AnswerSource
+    from internal.biz.rag import RAGBiz, RAGStreamEvent
+
+
+def source_dto(source: AnswerSource) -> RAGSourceDTO:
+    return RAGSourceDTO(
+        citation_id=source.citation_id,
+        source_type=source.source_type,
+        content=source.content,
+        chunk_ids=[segment.chunk_id for segment in source.segments],
+        segments=[MaterialSegmentDTO(**asdict(segment)) for segment in source.segments],
+        truncated=source.truncated,
+        document_id=source.document_id,
+        document_filename=source.document_filename,
+        knowledge_base_id=source.knowledge_base_id,
+        document_updated_at=source.document_updated_at,
+        retrieval_hits=[
+            HitScoreDTO(
+                chunk_id=hit.chunk_id,
+                score=hit.score,
+                score_type=hit.score_type,
+                score_method=hit.score_method,
+                scores=[asdict(score) for score in hit.scores],
+            )
+            for hit in source.retrieval_hits
+        ],
+    )
 
 
 class RAGService:
-    """RAG 应用层 — DTO 校验 + 调 biz + DTO 返回。"""
-
     def __init__(self, rag_biz: RAGBiz) -> None:
         self._rag_biz = rag_biz
 
     async def query(
         self,
         query: str,
-        knowledge_base_id: int,
+        knowledge_base_ids: list[int],
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> RAGQueryResponse:
-        """RAG 查询：已有分块则直接生成，否则先检索再生成。"""
         result = await self._rag_biz.query(
-            query=query,
-            knowledge_base_id=knowledge_base_id,
-            top_k=top_k,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            chunk_ids=chunk_ids,
-            allowed_kb_ids=allowed_kb_ids,
+            query, knowledge_base_ids, top_k, temperature, max_tokens
         )
-
-        # 领域对象 → 接口 DTO
-        sources = [
-            RAGSourceDTO(
-                chunk_id=s.chunk_id,
-                content=s.chunk_content[:200],  # 截断至 200 字符
-                score=round(s.score, 4),
-                document_id=s.document_id,
-                document_filename=s.document_filename,
-                knowledge_base_id=s.knowledge_base_id,
-            )
-            for s in result.sources
-        ]
-
+        sources = [source_dto(source) for source in result.sources]
         return RAGQueryResponse(
             answer=result.answer,
             model=result.model,
             sources=sources,
             source_count=len(sources),
+            retrieval_results=[retrieval_dto(hit) for hit in result.retrieval_results],
+            input_measurement=result.input_measurement,
+            estimated_input_tokens=result.estimated_input_tokens,
+            prompt_tokens=result.prompt_tokens,
+            completion_tokens=result.completion_tokens,
         )
 
     async def query_stream(
         self,
         query: str,
-        knowledge_base_id: int,
+        knowledge_base_ids: list[int],
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> AsyncIterator[RAGStreamEvent]:
-        """RAG 流式查询：已有分块则直接生成，否则先检索再生成。"""
         async for event in self._rag_biz.query_stream(
-            query=query,
-            knowledge_base_id=knowledge_base_id,
-            top_k=top_k,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            chunk_ids=chunk_ids,
-            allowed_kb_ids=allowed_kb_ids,
+            query, knowledge_base_ids, top_k, temperature, max_tokens
         ):
             yield event

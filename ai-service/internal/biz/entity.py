@@ -8,7 +8,7 @@ biz 层操作的核心数据结构，用 dataclass 定义。
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from internal.biz.constants import (
     DocumentStatus,
@@ -16,6 +16,9 @@ from internal.biz.constants import (
     KbStatus,
     UserStatus,
 )
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 @dataclass
@@ -104,6 +107,22 @@ class Chunk:
     created_at: datetime | None = None
 
 
+@dataclass(frozen=True)
+class SourceScore:
+    kind: str
+    value: float
+    method: str
+
+
+@dataclass
+class RetrievedChunk:
+    chunk_id: int
+    score: float
+    score_type: str
+    score_method: str
+    scores: list[SourceScore] = field(default_factory=list)
+
+
 @dataclass
 class RetrievalResult:
     """检索结果值对象 — Sprint 8。
@@ -112,7 +131,7 @@ class RetrievalResult:
     """
 
     chunk_id: int
-    score: float              # 相似度分数（0~1，越高越相关）
+    score: float | None       # 当前排序分；类型与计算方法见 score_type / score_method
     chunk_content: str        # 分块文本内容
     chunk_position: int       # 分块位置
     document_id: int          # 来源文档 ID
@@ -120,9 +139,14 @@ class RetrievalResult:
     knowledge_base_id: int    # 来源知识库 ID
     document_updated_at: datetime | None = None  # 来源文档更新/创建时间（前端时间筛选）
 
-    def with_score(self, new_score: float) -> RetrievalResult:
-        """创建新实例并更新 score — 用于 Reranker 重排序时更新分数。"""
-        return replace(self, score=round(new_score, 6))
+    score_type: str | None = None
+    score_method: str | None = None
+    scores: list[SourceScore] = field(default_factory=list)
+
+    def with_score(self, new_score: float, method: str) -> RetrievalResult:
+        """保留召回分，另登记真实重排分及计算方式。"""
+        return replace(self, score=new_score, score_type="rerank", score_method=method,
+                       scores=[*self.scores, SourceScore("rerank", new_score, method)])
 
 
 @dataclass
@@ -141,7 +165,7 @@ class ChatResult:
 
 @dataclass
 class ChatChunk:
-    """LLM 流式对话分片值对象 
+    """LLM 流式对话分片值对象
 
     每个 chunk 包含一小段增量内容（delta），
     客户端逐步接收并拼接为完整回复。
@@ -154,7 +178,7 @@ class ChatChunk:
 
 @dataclass
 class EmbeddingUsage:
-    """嵌入 API token 用量 
+    """嵌入 API token 用量
 
     来源优先级：Provider API 真实 usage > 基于字符数的估算值。
     Embedding 场景下 prompt_tokens 与 total_tokens 通常相等。
@@ -166,7 +190,7 @@ class EmbeddingUsage:
 
 @dataclass
 class EmbeddingResult:
-    """嵌入结果值对象 
+    """嵌入结果值对象
 
     封装向量列表 + 模型元信息 + token 用量，
     避免 Provider 接口丢失 usage 导致 Service 层只能估算。
@@ -176,4 +200,3 @@ class EmbeddingResult:
     model: str                              # 使用的模型名称
     dimension: int                          # 向量维度
     usage: EmbeddingUsage = field(default_factory=EmbeddingUsage)
-

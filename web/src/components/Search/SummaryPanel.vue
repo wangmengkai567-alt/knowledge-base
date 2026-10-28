@@ -1,250 +1,45 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, Refresh, ChatDotRound, CopyDocument } from '@element-plus/icons-vue'
-import { searchApi } from '@/api/search'
 import { useKnowledgeStore } from '@/stores/knowledge'
-import { getCached, setCached } from '@/utils/searchCache'
 import { renderMarkdown } from '@/utils/markdown'
 import { formatDate } from '@/utils/format'
 import { ElMessage } from 'element-plus'
-import type { RagSource, SearchHit } from '@/types'
-
-interface RagCache {
-  answer: string
-  sources: RagSource[]
-  model: string
-}
-
-const RAG_TOP_K = 8
+import type { RagSource } from '@/types'
 
 const props = defineProps<{
   query: string
-  kbIds: number[]
-  hits: SearchHit[]
-  retrieveLoading: boolean
+  answer: string
+  sources: RagSource[]
+  loading: boolean
+  error: string
+  generatedAt: string
 }>()
+const emit = defineEmits<{ (e: 'regenerate'): void }>()
 const router = useRouter()
 const knowledge = useKnowledgeStore()
-
-const loading = ref(false)
-const answer = ref('')
-const sources = ref<RagSource[]>([])
-const model = ref('')
-const generatedAt = ref('')
-const hasGeneratedContent = ref(false)
-
-const emit = defineEmits<{
-  (e: 'update:sourceDocs', docs: RagSource[]): void
-}>()
-
-const targetKbs = computed(() => (props.kbIds.length ? props.kbIds : knowledge.kbs.map((k) => k.kbId)))
-const answerHtml = computed(() => renderMarkdown(answer.value))
-// 引用来源只按文档去重展示名称，不把分块正文铺到页面上。
-const sourceDocs = computed(() => {
-  const seen = new Set<number>()
-  const list: RagSource[] = []
-  for (const s of sources.value) {
-    if (!s.documentId || seen.has(s.documentId)) continue
-    seen.add(s.documentId)
-    list.push(s)
-  }
-  return list
-})
-
-const phase = computed(() => {
-  if (props.retrieveLoading) return 'searching'
-  if (loading.value && !answer.value) return 'generating'
-  if (loading.value && answer.value) return 'streaming'
-  if (answer.value.includes('模型回答失败')) return 'failed'
-  if (answer.value) return 'done'
-  return 'idle'
-})
-
-const answerTitle = computed(() => {
-  const q = props.query.replace(/[？?]+$/g, '').trim()
-  return q || '根据资料生成的回答'
-})
-const generatedLabel = computed(() => (generatedAt.value ? formatDate(generatedAt.value, true) : ''))
-const kbNameOf = (s: RagSource) => {
-  const name = knowledge.getKbName(s.kbId)
-  return name ? `来自${name}` : '来自知识库'
+const answerHtml = computed(() => renderMarkdown(props.answer))
+const sourceDocs = computed(() => props.sources)
+const phase = computed(() => props.loading ? 'generating' : props.error ? 'failed' : props.answer ? 'done' : 'idle')
+const answerTitle = computed(() => props.query.replace(/[？?]+$/g, '').trim() || '根据资料生成的回答')
+const generatedLabel = computed(() => props.generatedAt ? formatDate(props.generatedAt, true) : '')
+const kbNameOf = (source: RagSource) => {
+  const name = knowledge.getKbName(source.kbId)
+  return name ? '来自' + name : '来自知识库'
 }
-
-const lastKey = ref('')
-let abort: AbortController | null = null
-
-function cacheKey(ids: number[], chunkIds: number[]): string {
-  return `rag:${props.query.trim().toLowerCase()}::${ids.join(',')}::${chunkIds.join(',')}`
+function goSource(source: RagSource) {
+  router.push('/knowledge/' + source.kbId + '/documents/' + source.documentId)
 }
-
-function answerKbId(fallbackIds: number[]): number {
-  const best = props.hits.slice().sort((a, b) => b.score - a.score)[0]
-  if (best?.kbId) return best.kbId
-  return fallbackIds[0]
-}
-
-function mergeSources(incoming: RagSource[]) {
-  const scoreById = new Map(props.hits.map((h) => [h.chunkId, h.score]))
-  const seen = new Set(sources.value.map((s) => s.chunkId))
-  for (const s of incoming) {
-    if (seen.has(s.chunkId)) continue
-    seen.add(s.chunkId)
-    sources.value.push({
-      ...s,
-      score: scoreById.get(s.chunkId) ?? s.score,
-    })
-  }
-  sources.value = [...sources.value].sort((a, b) => b.score - a.score).slice(0, 8)
-}
-
-function chunkIdsForAll(): number[] {
-  const seen = new Set<number>()
-  return props.hits
-    .slice()
-    .sort((a, b) => b.score - a.score)
-    .filter((h) => {
-      if (seen.has(h.chunkId)) return false
-      seen.add(h.chunkId)
-      return true
-    })
-    .slice(0, RAG_TOP_K)
-    .map((h) => h.chunkId)
-}
-
-function goSource(s: RagSource) {
-  if (!s.documentId || !s.kbId) return
-  router.push(`/knowledge/${s.kbId}/documents/${s.documentId}`)
-}
-
 async function copyAnswer() {
-  const text = answer.value.trim()
-  if (!text) return
+  if (!props.answer.trim()) return
   try {
-    await navigator.clipboard.writeText(text)
+    await navigator.clipboard.writeText(props.answer)
     ElMessage.success('已复制回答')
   } catch {
     ElMessage.error('复制失败')
   }
 }
-
-async function streamOne(kbId: number, chunkIds: number[], kbIds: number[], signal: AbortSignal) {
-  await searchApi.ragSummaryStream(
-    kbId,
-    props.query,
-    RAG_TOP_K,
-    (ev) => {
-      if (ev.type === 'sources' && ev.sources) mergeSources(ev.sources)
-      if (ev.type === 'chunk' && ev.delta) {
-        hasGeneratedContent.value = true
-        answer.value += ev.delta
-        if (ev.model) model.value = ev.model
-      }
-      if (ev.type === 'error' && ev.error) {
-        if (answer.value) answer.value += `\n\n模型回答失败`
-        else answer.value = '模型回答失败'
-      }
-    },
-    signal,
-    chunkIds,
-    kbIds,
-  )
-}
-
-async function load(force = false) {
-  if (!props.query.trim()) return
-  const ids = targetKbs.value.length ? targetKbs.value : [1]
-  const chunkIds = chunkIdsForAll()
-  const key = cacheKey(ids, chunkIds)
-
-  if (props.retrieveLoading) {
-    abort?.abort()
-    loading.value = true
-    answer.value = ''
-    sources.value = []
-    model.value = ''
-    generatedAt.value = ''
-    hasGeneratedContent.value = false
-    lastKey.value = ''
-    return
-  }
-
-  if (!force && props.kbIds.length === 0 && knowledge.kbs.length === 0) return
-  if (!force && key === lastKey.value && answer.value && !loading.value) return
-  if (!force && !loading.value) {
-    const cached = getCached<RagCache>(key)
-    if (cached) {
-      answer.value = cached.answer
-      sources.value = cached.sources
-      model.value = cached.model
-      hasGeneratedContent.value = true
-      generatedAt.value = generatedAt.value || new Date().toISOString()
-      lastKey.value = key
-      return
-    }
-  }
-
-  abort?.abort()
-  abort = new AbortController()
-  const signal = abort.signal
-
-  loading.value = true
-  lastKey.value = key
-  answer.value = ''
-  sources.value = []
-  model.value = ''
-  generatedAt.value = ''
-  hasGeneratedContent.value = false
-  try {
-    if (!chunkIds.length) {
-      hasGeneratedContent.value = true
-      answer.value = '我不知道'
-    } else {
-      const hitKbIds = [...new Set(props.hits.map((h) => h.kbId).filter((id) => id > 0))]
-      const allowed = hitKbIds.length ? hitKbIds : ids
-      await streamOne(answerKbId(allowed), chunkIds, allowed, signal)
-    }
-    if (!hasGeneratedContent.value) {
-      answer.value = '模型回答失败'
-    }
-    if (answer.value && !loading.value) {
-      generatedAt.value = new Date().toISOString()
-    }
-    if (
-      answer.value &&
-      !answer.value.includes('模型回答失败') &&
-      answer.value.trim() !== '我不知道'
-    ) {
-      setCached(key, { answer: answer.value, sources: sources.value, model: model.value })
-    }
-  } catch (err: any) {
-    if (err?.name === 'AbortError') return
-    if (!hasGeneratedContent.value) {
-      answer.value = '模型回答失败'
-    } else if (err?.message) {
-      answer.value += '\n\n模型回答失败'
-    }
-  } finally {
-    if (!signal.aborted) {
-      loading.value = false
-      if (answer.value && !generatedAt.value) generatedAt.value = new Date().toISOString()
-    }
-  }
-}
-
-watch(sourceDocs, (docs) => emit('update:sourceDocs', docs), { immediate: true })
-watch(
-  () => [
-    props.query,
-    props.kbIds.join(','),
-    targetKbs.value.join(','),
-    props.retrieveLoading,
-    props.hits.map((h) => h.chunkId).join(','),
-  ],
-  () => load(),
-)
-onMounted(load)
-onUnmounted(() => abort?.abort())
 </script>
 
 <template>
@@ -255,8 +50,8 @@ onUnmounted(() => abort?.abort())
       </span>
       <div class="min-w-0 flex-1">
         <h2 class="qa-card__title">{{ answerTitle }}</h2>
-        <p v-if="phase === 'searching' || phase === 'generating' || phase === 'streaming'" class="qa-card__status">
-          {{ phase === 'searching' ? '正在检索知识库' : phase === 'generating' ? '正在根据资料生成' : '正在生成' }}
+        <p v-if="phase === 'generating'" class="qa-card__status">
+          正在检索并根据资料生成
           <span class="status-dots"><i /><i /><i /></span>
         </p>
       </div>
@@ -264,7 +59,7 @@ onUnmounted(() => abort?.abort())
         <button class="icon-btn" type="button" :disabled="!answer" aria-label="复制回答" @click="copyAnswer">
           <el-icon><CopyDocument /></el-icon>
         </button>
-        <button class="icon-btn" type="button" :disabled="loading" aria-label="重新生成" @click="load(true)">
+        <button class="icon-btn" type="button" :disabled="loading" aria-label="重新生成" @click="emit('regenerate')">
           <el-icon :class="{ 'is-loading': loading }"><Refresh /></el-icon>
         </button>
         <time v-if="generatedLabel" class="qa-card__time">{{ generatedLabel }}</time>
@@ -279,19 +74,27 @@ onUnmounted(() => abort?.abort())
         <div class="skeleton h-4 w-2/3" />
       </div>
 
+      <el-alert v-else-if="error" :title="error" type="error" :closable="false" />
       <template v-else>
         <div class="rag-answer" v-html="answerHtml" />
       </template>
     </div>
 
     <footer v-if="sourceDocs.length" class="qa-card__sources">
-      <button v-for="s in sourceDocs" :key="s.documentId" class="qa-source" type="button" @click="goSource(s)">
-        <el-icon class="text-brand-500"><Document /></el-icon>
-        <span>
-          <b>{{ s.documentFilename }}</b>
-          <small>{{ kbNameOf(s) }}</small>
-        </span>
-      </button>
+      <el-popover v-for="s in sourceDocs" :key="s.citationId" trigger="click" placement="top" :width="480">
+        <template #reference>
+          <button class="qa-source" type="button">
+            <el-icon class="text-brand-500"><Document /></el-icon>
+            <span>
+              <b>[来源 {{ s.citationId }}] {{ s.documentFilename }}</b>
+              <small>{{ kbNameOf(s) }}</small>
+            </span>
+          </button>
+        </template>
+        <p class="mb-2 font-medium">[来源 {{ s.citationId }}] {{ s.documentFilename }}</p>
+        <pre class="max-h-80 overflow-auto whitespace-pre-wrap text-xs leading-relaxed">{{ s.content }}</pre>
+        <el-button class="mt-2" link type="primary" @click="goSource(s)">打开原文</el-button>
+      </el-popover>
     </footer>
   </section>
 </template>

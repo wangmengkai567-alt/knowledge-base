@@ -12,7 +12,6 @@ import Pagination from '@/components/Common/Pagination.vue'
 import Loading from '@/components/Common/Loading.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import { paginateSlice } from '@/utils/format'
-import type { RagSource } from '@/types'
 
 defineOptions({ name: 'SearchResults' })
 
@@ -20,13 +19,13 @@ const route = useRoute()
 const router = useRouter()
 const knowledge = useKnowledgeStore()
 const user = useUserStore()
-const { loading, query, rawHits, allHits, failedKbCount, filters, sort, page, pageSize, run, setPage, changeSize } =
+const { loading, query, allHits, answer, sources, error, generatedAt, filters, sort, page, pageSize, run, setPage, changeSize } =
   useSearch()
 
 const filterOpen = ref(false)
 const docScope = ref<'all' | 'related'>('related')
 const viewMode = ref<'list' | 'grid'>('list')
-const sourceDocs = ref<RagSource[]>([])
+const sourceDocs = sources
 
 onMounted(async () => {
   if (knowledge.kbs.length === 0) await knowledge.load()
@@ -66,9 +65,6 @@ const displayName = computed(
 )
 const initial = computed(() => displayName.value?.trim()?.[0]?.toUpperCase() || 'U')
 
-function onSourceDocs(docs: RagSource[]) {
-  sourceDocs.value = docs
-}
 </script>
 
 <template>
@@ -104,10 +100,12 @@ function onSourceDocs(docs: RagSource[]) {
     <div v-else class="qa-page__stack">
       <SummaryPanel
         :query="query"
-        :kbIds="filters.kbIds"
-        :hits="rawHits"
-        :retrieve-loading="loading"
-        @update:source-docs="onSourceDocs"
+        :answer="answer"
+        :sources="sources"
+        :loading="loading"
+        :error="error"
+        :generated-at="generatedAt"
+        @regenerate="run(undefined, true)"
       />
 
       <div class="qa-page__split">
@@ -138,24 +136,12 @@ function onSourceDocs(docs: RagSource[]) {
             </div>
           </div>
 
-          <el-alert
-            v-if="failedKbCount && !loading"
-            class="mb-3"
-            type="warning"
-            :closable="false"
-            :title="
-              scopedHits.length
-                ? `${failedKbCount} 个知识库检索失败，已展示其余结果`
-                : '检索失败，请稍后重试或检查服务是否可用'
-            "
-          />
-
           <Loading v-if="loading" :rows="4" />
           <EmptyState
             v-else-if="!scopedHits.length"
-            :title="failedKbCount ? '检索失败' : docScope === 'related' ? '暂无关联文档' : '未找到相关资料'"
+            :title="error ? '检索失败' : docScope === 'related' ? '暂无关联文档' : '未找到相关资料'"
             :description="
-              failedKbCount
+              error
                 ? '请稍后重试，或缩小知识库范围后再搜'
                 : docScope === 'related'
                   ? '回答尚未引用文档，或可改回「全部文档」查看检索结果'

@@ -9,19 +9,23 @@ biz 层定义接口，data 层实现。
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator
-from datetime import datetime
+from typing import TYPE_CHECKING
 
-from internal.biz.entity import (
-    Chunk,
-    ChatResult,
-    ChatChunk,
-    Document,
-    EmbeddingResult,
-    KnowledgeBase,
-    RetrievalResult,
-    User,
-)
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+    from datetime import datetime
+
+    from internal.biz.entity import (
+        ChatChunk,
+        ChatResult,
+        Chunk,
+        Document,
+        EmbeddingResult,
+        KnowledgeBase,
+        RetrievalResult,
+        RetrievedChunk,
+        User,
+    )
 
 
 class UserRepo(ABC):
@@ -270,7 +274,7 @@ class Retriever(ABC):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
-    ) -> list[tuple[int, float]]:
+    ) -> list[RetrievedChunk]:
         """相似度检索。
 
         参数:
@@ -283,7 +287,7 @@ class Retriever(ABC):
                            未传时混合检索回退 query_text。
 
         返回:
-            (chunk_id, score) 列表，按相似度降序
+            RetrievedChunk 列表，包含分数类型、计算方式与各路评分
         """
         ...
 

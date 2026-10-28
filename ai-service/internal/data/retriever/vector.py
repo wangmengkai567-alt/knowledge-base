@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import structlog
 
+from internal.biz.entity import RetrievedChunk, SourceScore
 from internal.biz.repo import Retriever, VectorStore
 
 logger = structlog.get_logger()
@@ -27,7 +28,7 @@ class VectorRetriever(Retriever):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
-    ) -> list[tuple[int, float]]:
+    ) -> list[RetrievedChunk]:
         """委托 VectorStore.search 执行相似度检索。
 
         `query_text` / `keyword_query` 仅供接口统一，纯向量检索忽略。
@@ -44,4 +45,6 @@ class VectorRetriever(Retriever):
             result_count=len(results),
         )
 
-        return results
+        return [RetrievedChunk(cid, score, "vector", "cosine_similarity",
+                               [SourceScore("vector", score, "cosine_similarity")])
+                for cid, score in results]

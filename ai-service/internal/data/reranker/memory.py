@@ -21,11 +21,10 @@ internal/data/reranker/memory.py — 内存重排序器实现
 from __future__ import annotations
 
 import re
-from dataclasses import replace
+from typing import TYPE_CHECKING
 
 import structlog
 
-from internal.biz.entity import RetrievalResult
 from internal.biz.query_plan import lexical_query
 from internal.biz.repo import Reranker
 
@@ -34,6 +33,9 @@ logger = structlog.get_logger()
 # 英文/数字按整词切；中文按连续字串切，再在打分时拆成二字。
 _EN_WORD = re.compile(r"[a-zA-Z0-9]+")
 _ZH_RUN = re.compile(r"[\u4e00-\u9fff]+")
+
+if TYPE_CHECKING:
+    from internal.biz.entity import RetrievalResult
 
 
 def _tokenize(text: str) -> set[str]:
@@ -79,7 +81,7 @@ class MemoryReranker(Reranker):
         if not query_tokens:
             # query 无有效词（如纯标点）：保持原顺序、score 归零，避免除零
             return [
-                replace(r, score=0.0)
+                r.with_score(0.0, "memory:query_term_recall")
                 for r in results
             ][: top_k if top_k else len(results)]
 
@@ -108,7 +110,7 @@ class MemoryReranker(Reranker):
                 norm = (r.score - sem_min) / (sem_max - sem_min) if sem_max > sem_min else 0.0
                 final_score = SEMANTIC_FLOOR_BASE + SEMANTIC_FLOOR_SPAN * norm
 
-            scored.append((final_score, replace(r, score=round(final_score, 6))))
+            scored.append((final_score, r.with_score(round(final_score, 6), "memory:query_term_recall+normalized_retrieval_floor")))
 
         scored.sort(key=lambda x: x[0], reverse=True)
         reranked = [r for _, r in scored]

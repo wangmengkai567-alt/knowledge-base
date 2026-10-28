@@ -231,7 +231,7 @@ docker exec -it ollama ollama pull nomic-embed-text
 | POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/embed` | 重试嵌入 |
 | GET | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks` | 分块列表 |
 | POST | `/api/v1/knowledge/bases/{kb_id}/retrieve` | 混合检索（返回分块；列表由前端按文档去重） |
-| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query` | 生成回答。可传 `chunk_ids` 跳过检索。无资料「我不知道」；生成失败「模型回答失败」 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query` | 提交问题与 `knowledge_base_ids`，后端检索并生成；返回真实检索分、实际送模片段与引用编号。无资料「我不知道」；依赖或引用错误明确报错 |
 | POST | `/api/v1/knowledge/bases/{kb_id}/rag/query/stream` | 同上，SSE：有资料时先 `sources` 再逐段 `chunk` |
 | GET | `/health/live` | 进程是否在跑 |
 | GET | `/health/ready` | 数据库和 Redis 是否连得上 |

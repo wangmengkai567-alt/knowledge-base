@@ -15,22 +15,16 @@ from __future__ import annotations
 
 import math
 import uuid
+from typing import TYPE_CHECKING
 
 import httpx
 import structlog
 
-from internal.biz.entity import RetrievalResult
 from internal.biz.repo import Reranker
-from internal.data.reranker.memory import MemoryReranker
 from pkg.errors.base import RAGError
 
-# 智谱在 return_raw_scores=false 时会把本批分数归一化，无关文档也会全是 ~1.0，
-# 检索门槛 min_relevance 因此失效。分数挤在 1 附近时回退到词面打分。
-_COLLAPSE_MIN_TOP = 0.9
-_COLLAPSE_MAX_SPREAD = 0.02
 # return_raw_scores=true 时分数大约是 10+ 的 logit：实测无关约 10–13，对题约 16–22。
 # 压到 0–1 后才能和配置里的 min_relevance=0.5 比较。
-_RAW_SCORE_UNIT = 1.5
 _RAW_SCORE_MIDPOINT = 16.0
 _RAW_SCORE_STEEPNESS = 0.4
 
@@ -39,6 +33,9 @@ logger = structlog.get_logger()
 # 智谱文档约束：documents 最多 128 条，query / 单条文本最多 4096 字符。
 _MAX_DOCUMENTS = 128
 _MAX_CHARS = 4096
+
+if TYPE_CHECKING:
+    from internal.biz.entity import RetrievalResult
 
 
 def _clip(text: str, limit: int = _MAX_CHARS) -> str:
@@ -158,21 +155,27 @@ class ZhipuReranker(Reranker):
 
         api_results = data.get("results") or []
         if not api_results:
-            logger.warning("zhipu_rerank_empty_results", model=self._model)
-            limit = top_n if top_n > 0 else len(results)
-            return results[:limit]
+            raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排返回空结果")
 
         reranked: list[RetrievalResult] = []
         seen: set[int] = set()
         for item in api_results:
             idx = item.get("index")
-            if not isinstance(idx, int) or idx in seen or not (0 <= idx < len(results)):
-                continue
+            if type(idx) is not int or idx in seen or not (0 <= idx < len(results)):
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排索引无效")
             seen.add(idx)
-            score = float(item.get("relevance_score") or 0.0)
-            reranked.append(results[idx].with_score(score))
+            try:
+                score = float(item["relevance_score"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排缺少分数") from exc
+            if not math.isfinite(score):
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排分数无效")
+            reranked.append(results[idx].with_score(score, f"zhipu:{self._model}:raw_logit"))
 
-        reranked = await _calibrate_zhipu_scores(query, results, reranked, top_n)
+        if len(reranked) != (top_n or len(results)):
+            raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排结果不完整")
+        reranked = _calibrate_zhipu_scores(reranked)
+        reranked.sort(key=lambda item: item.score, reverse=True)
 
         usage = data.get("usage") or {}
         logger.info(
@@ -188,36 +191,13 @@ class ZhipuReranker(Reranker):
         return reranked
 
 
-def _scores_collapsed(scores: list[float]) -> bool:
-    if len(scores) < 2:
-        return False
-    return max(scores) >= _COLLAPSE_MIN_TOP and (max(scores) - min(scores)) < _COLLAPSE_MAX_SPREAD
-
-
 def _squash_raw_score(raw: float) -> float:
     return round(1.0 / (1.0 + math.exp(-_RAW_SCORE_STEEPNESS * (raw - _RAW_SCORE_MIDPOINT))), 6)
 
 
-async def _calibrate_zhipu_scores(
-    query: str,
-    original: list[RetrievalResult],
-    reranked: list[RetrievalResult],
-    top_n: int,
-) -> list[RetrievalResult]:
+def _calibrate_zhipu_scores(reranked: list[RetrievalResult]) -> list[RetrievalResult]:
     scores = [item.score for item in reranked]
-    if not scores:
-        return reranked
-    if max(scores) <= _RAW_SCORE_UNIT:
-        if _scores_collapsed(scores):
-            logger.warning(
-                "zhipu_rerank_scores_collapsed_fallback_lexical",
-                model="rerank",
-                top_score=max(scores),
-                spread=max(scores) - min(scores),
-            )
-            return await MemoryReranker().rerank(query, original, top_k=top_n or None)
-        return reranked
-    calibrated = [item.with_score(_squash_raw_score(item.score)) for item in reranked]
+    calibrated = [item.with_score(_squash_raw_score(item.score), f"{item.score_method}:sigmoid(0.4*(raw-16))") for item in reranked]
     logger.info(
         "zhipu_rerank_raw_scores_squashed",
         raw_top=max(scores),

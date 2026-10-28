@@ -17,11 +17,21 @@ class RetrievalRequest(BaseModel):
     top_k: int = Field(default=10, ge=1, le=50, description="返回的最相关结果数量")
 
 
+class SourceScoreDTO(BaseModel):
+    kind: str
+    value: float
+    method: str
+
+
 class RetrievalResultDTO(BaseModel):
     """单条检索结果 DTO。"""
 
     chunk_id: int = Field(description="分块 ID")
-    score: float = Field(description="相似度分数（0~1，越高越相关）")
+    score: float | None = Field(description="当前排序分；没有真实分数时为空")
+    score_type: str | None
+    score_method: str | None
+    scores: list[SourceScoreDTO]
+    knowledge_base_id: int
     content: str = Field(description="分块文本内容")
     position: int = Field(description="分块在文档中的位置序号")
     document_id: int = Field(description="来源文档 ID")

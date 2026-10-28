@@ -58,8 +58,8 @@ from internal.service.auth import AuthService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
 from internal.service.knowledge_base import KnowledgeBaseService
-from internal.service.retrieval import RetrievalService
-from internal.service.rag import RAGService
+from internal.service.retrieval import RetrievalService, retrieval_dto
+from internal.service.rag import RAGService, source_dto
 from internal.biz.rag import RAG_EVENT_SOURCES, RAG_EVENT_CHUNK
 from internal.streaming.sse import format_sse_data, SSE_DONE
 from pkg.errors.base import APIError
@@ -575,12 +575,10 @@ class HTTPServer:
                     await self._knowledge_base_service.get_knowledge_base(kid, user_id=request.state.user_id)
             return await rag_service.query(
                 query=body.query,
-                knowledge_base_id=kb_id,
+                knowledge_base_ids=allowed,
                 top_k=body.top_k,
                 temperature=body.temperature,
                 max_tokens=body.max_tokens,
-                chunk_ids=body.chunk_ids,
-                allowed_kb_ids=allowed,
             )
 
         @router.post(
@@ -611,30 +609,19 @@ class HTTPServer:
                 try:
                     async for event in rag_service.query_stream(
                         query=body.query,
-                        knowledge_base_id=kb_id,
+                        knowledge_base_ids=allowed,
                         top_k=body.top_k,
                         temperature=body.temperature,
                         max_tokens=body.max_tokens,
-                        chunk_ids=body.chunk_ids,
-                        allowed_kb_ids=allowed,
                     ):
                         if event.event_type == RAG_EVENT_SOURCES:
-                            # 发送 sources 元数据
-                            sources_data = [
-                                {
-                                    "chunk_id": s.chunk_id,
-                                    "content": s.chunk_content[:200],
-                                    "score": round(s.score, 4),
-                                    "document_id": s.document_id,
-                                    "document_filename": s.document_filename,
-                                    "knowledge_base_id": s.knowledge_base_id,
-                                }
-                                for s in event.sources
-                            ]
                             yield format_sse_data({
                                 "type": "sources",
-                                "sources": sources_data,
-                                "source_count": len(sources_data),
+                                "sources": [source_dto(source).model_dump() for source in event.sources],
+                                "source_count": len(event.sources),
+                                "retrieval_results": [retrieval_dto(hit).model_dump() for hit in event.retrieval_results],
+                                "input_measurement": event.input_measurement,
+                                "estimated_input_tokens": event.estimated_input_tokens,
                             })
                         elif event.event_type == RAG_EVENT_CHUNK and event.chunk:
                             # 发送 LLM 流式分片
@@ -643,6 +630,8 @@ class HTTPServer:
                                 "delta": event.chunk.delta,
                                 "model": event.chunk.model,
                                 "finish_reason": event.chunk.finish_reason,
+                                "prompt_tokens": event.prompt_tokens,
+                                "completion_tokens": event.completion_tokens,
                             })
                     yield SSE_DONE
                 except Exception as e:

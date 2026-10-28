@@ -1,352 +1,173 @@
-"""
-internal/biz/rag.py — RAG 检索增强生成业务逻辑
-
-RAGBiz 负责：
-- 检索相关 chunks（委托 RetrievalBiz）
-- 按 context_window 向两侧扩邻块再拼 context
-- 使用 RAG 模板构建 messages
-- 调用 LLM 生成回答；失败时返回「模型回答失败」，不贴检索摘录；
-  上游 401/403（Key 无效、额度耗尽、模型未开通）直接抛出，不伪装成回答
-- 无相关资料、或重排后低于相关性门槛时不调用 LLM，直接回答「我不知道」
-- 通过门槛的资料若模型仍整句拒答，则重试一次；仍拒答则返回「模型回答失败」
-
-"""
+"""后端持有知识库问答：真实检索 → 统一资料处理 → 有来源的回答。"""
 
 from __future__ import annotations
 
+import asyncio
 import re
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import structlog
-
-from internal.biz.context_expand import build_windows, windows_to_context_chunks
 from internal.biz.entity import ChatChunk, RetrievalResult
-from internal.biz.repo import ChunkRepo, LLMProvider
-from internal.biz.retrieval import RetrievalBiz
-from internal.prompt.base import build_context_block
-from internal.prompt.manager import PromptManager
+from internal.biz.materials import AnswerSource, InputBudget, MaterialProcessor, PreparedMaterials
+from pkg.errors.base import RAGError
 
-logger = structlog.get_logger()
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
-# RAG 流式事件类型常量
+    from internal.biz.repo import ChunkRepo, LLMProvider
+    from internal.biz.retrieval import RetrievalBiz
+    from internal.prompt.manager import PromptManager
+
 RAG_EVENT_SOURCES = "sources"
 RAG_EVENT_CHUNK = "chunk"
-
-_NO_EVIDENCE_ANSWER = "我不知道"
-_LLM_FAILED_ANSWER = "模型回答失败"
-_REFUSAL_RE = re.compile(r"^我不知道[。.!！]?$")
-_MUST_ANSWER_USER = (
-    "不要因为没有词典式定义就拒绝。"
-    "资料能回答的部分必须依据资料作答。"
-    "若资料与问题不是同一主题、无法据此作答，全部回复必须且只能是：我不知道。"
-)
-
-
-def _is_canonical_refusal(text: str) -> bool:
-    return bool(_REFUSAL_RE.match((text or "").strip()))
-
-
-_ACCESS_DENIED_RE = re.compile(r"LLM API returned 40[13]\b")
-
-
-def _is_access_denied(exc: Exception) -> bool:
-    """Upstream 401/403 (bad key, quota exhausted, model not purchased) won't fix itself on retry."""
-    return bool(_ACCESS_DENIED_RE.search(str(exc)))
 
 
 @dataclass
 class RAGResult:
-    """RAG 查询结果值对象 """
-
-    answer: str               # LLM 生成的回答
-    model: str                # 使用的模型名称
-    sources: list[RetrievalResult]  # 引用的来源列表
+    answer: str
+    model: str
+    sources: list[AnswerSource]
+    retrieval_results: list[RetrievalResult]
+    input_measurement: str
+    estimated_input_tokens: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 @dataclass
 class RAGStreamEvent:
-    """RAG 流式事件值对象 
-
-    通过 event_type 区分：
-    - "sources": 检索来源元数据（sources 有值，chunk 为 None）
-    - "chunk": LLM 流式分片（chunk 有值，sources 为空）
-    """
-
-    event_type: Literal["sources", "chunk"]  # RAG_EVENT_SOURCES | RAG_EVENT_CHUNK
-    sources: list[RetrievalResult] = field(default_factory=list)
+    event_type: Literal["sources", "chunk"]
+    sources: list[AnswerSource] = field(default_factory=list)
+    retrieval_results: list[RetrievalResult] = field(default_factory=list)
     chunk: ChatChunk | None = None
+    input_measurement: str = ""
+    estimated_input_tokens: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 class RAGBiz:
-    """RAG 检索增强生成 — 检索（含可选一次 rerank）→ 拼 context → 调 LLM。"""
-
     def __init__(
         self,
         retrieval_biz: RetrievalBiz,
         llm_provider: LLMProvider,
         prompt_manager: PromptManager,
+        chunk_repo: ChunkRepo,
         default_rag_template: str = "rag",
-        chunk_repo: ChunkRepo | None = None,
         context_window: int = 0,
     ) -> None:
         self._retrieval_biz = retrieval_biz
         self._llm_provider = llm_provider
         self._prompt_manager = prompt_manager
-        self._default_rag_template = default_rag_template
-        self._chunk_repo = chunk_repo
-        self._context_window = max(0, context_window)
+        self._template = default_rag_template
+        self._budget = InputBudget(model=llm_provider.model_name)
+        self._materials = MaterialProcessor(chunk_repo, context_window, self._budget)
 
-    def _build_context(self, sources: list[RetrievalResult]) -> str:
-        """将检索结果构建为 context 文本块 — 抽取公共逻辑，避免 query/query_stream 重复。"""
-        context_chunks = [
-            {
-                "content": s.chunk_content,
-                "document_filename": s.document_filename,
-                "score": s.score,
-            }
-            for s in sources
-        ]
-        return build_context_block(context_chunks)
-
-    async def _build_generation_context(self, sources: list[RetrievalResult]) -> str:
-        """把命中块向两侧扩邻块后再送给 LLM。"""
-        if not sources or self._context_window <= 0 or self._chunk_repo is None:
-            return self._build_context(sources)
-
-        doc_ids = {s.document_id for s in sources}
-        chunks_by_doc = {}
-        for doc_id in doc_ids:
-            chunks_by_doc[doc_id] = await self._chunk_repo.list_by_document(doc_id)
-
-        windows = build_windows(sources, chunks_by_doc, self._context_window)
-        return build_context_block(windows_to_context_chunks(windows))
-
-    def _relevance_threshold(self) -> float:
-        return float(getattr(self._retrieval_biz, "_min_relevance", 0.0) or 0.0)
-
-    def _keep_grounded(self, sources: list[RetrievalResult]) -> list[RetrievalResult]:
-        threshold = self._relevance_threshold()
-        if threshold <= 0:
-            return sources
-        return [item for item in sources if item.score >= threshold]
-
-    async def _retrieve_sources(
+    async def _prepare(
         self,
         query: str,
-        knowledge_base_id: int,
+        knowledge_base_ids: list[int],
         top_k: int,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
-    ) -> list[RetrievalResult]:
-        if chunk_ids:
-            sources = await self._retrieval_biz.load_by_ids(
-                chunk_ids,
-                allowed_kb_ids or [knowledge_base_id],
-            )
-            refine = getattr(self._retrieval_biz, "refine_for_generation", None)
-            if refine is not None:
-                sources = await refine(query, sources, top_k)
-            return self._keep_grounded(sources)
-        sources = await self._retrieval_biz.retrieve(
-            query=query,
-            knowledge_base_id=knowledge_base_id,
-            top_k=top_k,
-            apply_threshold=True,
-            dedupe_by_document=False,
-        )
-        return self._keep_grounded(sources)
-
-    def _build_messages(self, query: str, context: str) -> list[dict[str, str]]:
-        template = self._prompt_manager.get_template(self._default_rag_template)
-        return template.build_messages(variables={"query": query, "context": context})
-
-    async def _complete_with_evidence(
-        self,
-        messages: list[dict[str, str]],
-        temperature: float | None,
         max_tokens: int | None,
-        source_count: int,
-    ) -> tuple[str, str]:
-        """Generate from non-empty evidence. Canonical 我不知道 is not an allowed final answer."""
-        try:
-            result = await self._llm_provider.generate(
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
+    ) -> tuple[list[RetrievalResult], PreparedMaterials]:
+        batches = await asyncio.gather(
+            *(
+                self._retrieval_biz.retrieve(
+                    query=query,
+                    knowledge_base_id=kid,
+                    top_k=top_k,
+                    apply_threshold=True,
+                    dedupe_by_document=False,
+                )
+                for kid in dict.fromkeys(knowledge_base_ids)
             )
-        except Exception as exc:
-            logger.warning(
-                "rag_llm_failed",
-                error=str(exc),
-                source_count=source_count,
-                exc_info=True,
-            )
-            if _is_access_denied(exc):
-                raise
-            return _LLM_FAILED_ANSWER, ""
+        )
+        hits = [hit for batch in batches for hit in batch]
+        # 相同配置产生的最终分才允许跨库排序；无分数条目保留，不补造数值。
+        kinds = {(hit.score_type, hit.score_method) for hit in hits}
+        if len(kinds) > 1:
+            raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
+        hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
+        hits = hits[:top_k]
+        template = self._prompt_manager.get_template(self._template)
+        prepared = await self._materials.prepare(
+            hits,
+            lambda context: template.build_messages({"query": query, "context": context}),
+            max_tokens if max_tokens is not None else self._budget.output_limit,
+        )
+        return hits, prepared
 
+    async def _answer(
+        self,
+        prepared: PreparedMaterials,
+        temperature: float | None,
+    ) -> tuple[str, str, int, int]:
+        if not prepared.sources:
+            return "我不知道", "", 0, 0
+        result = await self._llm_provider.generate(
+            messages=prepared.messages,
+            temperature=temperature,
+            max_tokens=prepared.output_tokens,
+        )
+        if result.prompt_tokens > self._budget.input_limit:
+            raise RAGError(
+                reason="INPUT_MEASUREMENT_EXCEEDED", message="模型实际输入超过预算，需校准计量方式"
+            )
+        if result.completion_tokens > prepared.output_tokens:
+            raise RAGError(reason="OUTPUT_BUDGET_EXCEEDED", message="模型输出超过回答预算")
         text = (result.content or "").strip()
-        model = result.model
-        if text and not _is_canonical_refusal(text):
-            return result.content, model
-
-        logger.info(
-            "rag_refused_with_evidence_retry",
-            source_count=source_count,
-            first_answer_length=len(text),
-        )
-        retry_messages = [*messages, {"role": "user", "content": _MUST_ANSWER_USER}]
-        try:
-            retry = await self._llm_provider.generate(
-                messages=retry_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-        except Exception as exc:
-            logger.warning(
-                "rag_llm_retry_failed",
-                error=str(exc),
-                source_count=source_count,
-                exc_info=True,
-            )
-            if _is_access_denied(exc):
-                raise
-            return _LLM_FAILED_ANSWER, model
-
-        retry_text = (retry.content or "").strip()
-        if retry_text and not _is_canonical_refusal(retry_text):
-            return retry.content, retry.model
-        logger.warning(
-            "rag_refused_with_evidence_after_retry",
-            source_count=source_count,
-        )
-        return _LLM_FAILED_ANSWER, retry.model or model
-
-    def _text_event(self, text: str, model: str = "") -> RAGStreamEvent:
-        return RAGStreamEvent(
-            event_type=RAG_EVENT_CHUNK,
-            chunk=ChatChunk(delta=text, model=model, finish_reason="stop"),
-        )
+        if not text:
+            raise RAGError(reason="EMPTY_ANSWER", message="模型返回空回答")
+        if not re.fullmatch(r"我不知道[。.!！]?", text):
+            citations = [int(value) for value in re.findall(r"\[来源\s*(\d+)\]", text)]
+            allowed = {source.citation_id for source in prepared.sources}
+            if not citations or any(value not in allowed for value in citations):
+                raise RAGError(
+                    reason="INVALID_CITATION", message="回答缺少引用或引用不属于本次送模资料"
+                )
+        return text, result.model, result.prompt_tokens, result.completion_tokens
 
     async def query(
         self,
         query: str,
-        knowledge_base_id: int,
+        knowledge_base_ids: list[int],
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> RAGResult:
-        """RAG 查询：检索（或使用已有 chunk_ids）→ 拼 context → 调 LLM。"""
-        sources = await self._retrieve_sources(
-            query,
-            knowledge_base_id,
-            top_k,
-            chunk_ids=chunk_ids,
-            allowed_kb_ids=allowed_kb_ids,
-        )
-
-        logger.info(
-            "rag_retrieval_completed",
-            knowledge_base_id=knowledge_base_id,
-            query_length=len(query),
-            source_count=len(sources),
-        )
-
-        if not sources:
-            return RAGResult(answer=_NO_EVIDENCE_ANSWER, model="", sources=[])
-
-        context = await self._build_generation_context(sources)
-        messages = self._build_messages(query, context)
-
-        logger.info(
-            "rag_prompt_built",
-            template=self._default_rag_template,
-            message_count=len(messages),
-            context_length=len(context),
-        )
-
-        answer, model = await self._complete_with_evidence(
-            messages,
-            temperature,
-            max_tokens,
-            source_count=len(sources),
-        )
-
-        logger.info(
-            "rag_query_completed",
-            knowledge_base_id=knowledge_base_id,
-            model=model,
-            answer_length=len(answer),
-            source_count=len(sources),
-        )
-
+        hits, prepared = await self._prepare(query, knowledge_base_ids, top_k, max_tokens)
+        answer, model, prompt_tokens, completion_tokens = await self._answer(prepared, temperature)
         return RAGResult(
-            answer=answer,
-            model=model,
-            sources=sources,
+            answer,
+            model,
+            prepared.sources,
+            hits,
+            prepared.measurement,
+            prepared.estimated_input_tokens,
+            prompt_tokens,
+            completion_tokens,
         )
 
     async def query_stream(
         self,
         query: str,
-        knowledge_base_id: int,
+        knowledge_base_ids: list[int],
         top_k: int = 5,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        chunk_ids: list[int] | None = None,
-        allowed_kb_ids: list[int] | None = None,
     ) -> AsyncIterator[RAGStreamEvent]:
-        """RAG 流式查询：检索（或使用已有 chunk_ids）→ 拼 context → 调 LLM。"""
-        sources = await self._retrieve_sources(
-            query,
-            knowledge_base_id,
-            top_k,
-            chunk_ids=chunk_ids,
-            allowed_kb_ids=allowed_kb_ids,
+        hits, prepared = await self._prepare(query, knowledge_base_ids, top_k, max_tokens)
+        yield RAGStreamEvent(
+            event_type=RAG_EVENT_SOURCES,
+            sources=prepared.sources,
+            retrieval_results=hits,
+            input_measurement=prepared.measurement,
+            estimated_input_tokens=prepared.estimated_input_tokens,
         )
-
-        logger.info(
-            "rag_stream_retrieval_completed",
-            knowledge_base_id=knowledge_base_id,
-            query_length=len(query),
-            source_count=len(sources),
-        )
-
-        if not sources:
-            yield self._text_event(_NO_EVIDENCE_ANSWER)
-            logger.info(
-                "rag_stream_no_evidence",
-                knowledge_base_id=knowledge_base_id,
-            )
-            return
-
-        context = await self._build_generation_context(sources)
-        messages = self._build_messages(query, context)
-
-        logger.info(
-            "rag_stream_prompt_built",
-            template=self._default_rag_template,
-            message_count=len(messages),
-            context_length=len(context),
-        )
-
-        yield RAGStreamEvent(event_type=RAG_EVENT_SOURCES, sources=sources)
-
-        answer, model = await self._complete_with_evidence(
-            messages,
-            temperature,
-            max_tokens,
-            source_count=len(sources),
-        )
-        yield self._text_event(answer, model)
-
-        logger.info(
-            "rag_stream_completed",
-            knowledge_base_id=knowledge_base_id,
-            chunk_count=1,
-            source_count=len(sources),
+        answer, model, prompt_tokens, completion_tokens = await self._answer(prepared, temperature)
+        yield RAGStreamEvent(
+            event_type=RAG_EVENT_CHUNK,
+            chunk=ChatChunk(delta=answer, model=model, finish_reason="stop"),
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
         )

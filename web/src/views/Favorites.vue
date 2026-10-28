@@ -2,10 +2,9 @@
 import { useRouter } from 'vue-router'
 import { useFavoritesStore } from '@/stores/favorites'
 import { Star, Delete, Document } from '@element-plus/icons-vue'
-import { scorePercent, formatDate } from '@/utils/format'
+import { formatDate } from '@/utils/format'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import PageHeader from '@/components/Common/PageHeader.vue'
-import ScoreRing from '@/components/Common/ScoreRing.vue'
 
 const router = useRouter()
 const fav = useFavoritesStore()
@@ -32,7 +31,6 @@ function go(kbId: number, docId: number) {
         :key="f.chunkId"
         class="liquid-card liquid-card-interactive flex items-start gap-3 rounded-xl p-4"
       >
-        <ScoreRing :value="scorePercent(f.score)" :size="42" />
         <div class="min-w-0 flex-1 cursor-pointer" @click="go(f.kbId, f.docId)">
           <div class="flex items-center gap-1.5">
             <el-icon class="text-brand-500"><Document /></el-icon>

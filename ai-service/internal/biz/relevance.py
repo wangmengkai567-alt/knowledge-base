@@ -7,12 +7,16 @@ and can keep a high-scoring neighbor that shares none of them.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import structlog
 
-from internal.biz.entity import RetrievalResult
 from internal.biz.query_plan import query_english_terms, text_has_term
 
 logger = structlog.get_logger()
+
+if TYPE_CHECKING:
+    from internal.biz.entity import RetrievalResult
 
 
 def apply_relevance_gate(
@@ -38,6 +42,8 @@ def apply_relevance_gate(
     for item in candidates:
         haystack = f"{item.document_filename or ''}\n{item.chunk_content or ''}"
         hits = sum(1 for term in terms if text_has_term(haystack, term))
+        if item.score_type != "rerank" or item.score is None:
+            raise ValueError("相关性门槛只接受真实重排分")
         above = item.score >= min_relevance
         if not terms:
             if above:

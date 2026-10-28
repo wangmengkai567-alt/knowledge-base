@@ -266,7 +266,6 @@ def create_app() -> FastAPI:
         # 否则纯向量语义检索对短关键词（如 "docker"）会召回不相关文档排在前。
         reranker=reranker,
         rerank_enabled=settings.rag.rerank_enabled,
-        rerank_top_k=settings.rag.rerank_top_k,
         min_relevance=settings.rag.min_relevance,
         query_expand_enabled=settings.rag.query_expand_enabled,
         max_query_variants=settings.rag.max_query_variants,

@@ -9,16 +9,14 @@ internal/data/retriever/hybrid.py — 混合检索器（Sprint 18）
 - RRF 只依赖排名（1/(k+rank)），对分数分布不敏感，工程实践稳健
 - 论文：Cormack, Clarke, and Buettcher (2009). 参数 k 通常取 60。
 
-fallback 语义：
-- 关键词分支失败 → 只返回向量结果（不阻断请求）
-- 向量分支失败 → 抛出异常（向量是核心，失败视为服务不可用）
-- 两路都为空 → 返回空列表
+依赖失败直接抛出；没有关键词命中与关键词服务失败明确区分。
 """
 
 from __future__ import annotations
 
 import structlog
 
+from internal.biz.entity import RetrievedChunk, SourceScore
 from internal.biz.repo import KeywordStore, Retriever, VectorStore
 from internal.biz.rrf import reciprocal_rank_fusion
 
@@ -53,7 +51,7 @@ class HybridRetriever(Retriever):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
-    ) -> list[tuple[int, float]]:
+    ) -> list[RetrievedChunk]:
         """两路检索 + RRF 融合。
 
         两路各取 ``top_k * candidate_multiplier`` 个候选，融合后截断到
@@ -73,31 +71,11 @@ class HybridRetriever(Retriever):
             filter_metadata=filter_metadata,
         )
 
-        # 关键词分支（可选，失败降级）
-        keyword_results: list[tuple[int, float]] = []
-        if bm25_query:
-            try:
-                keyword_results = await self._keyword_store.search(
-                    query=bm25_query,
-                    top_k=candidate_k,
-                    filter_metadata=filter_metadata,
-                )
-            except Exception as e:
-                # 关键词失败不阻断向量分支
-                logger.warning(
-                    "hybrid_keyword_branch_failed",
-                    error=str(e),
-                    exc_info=True,
-                )
-                keyword_results = []
-        else:
-            # Sprint 18-fix (P1)：从 debug 提升为 warning——
-            # HybridRetriever 未拿到 query_text 时实际退化为纯向量检索，
-            # 属于隐形降级，必须在日志中可见，便于发现调用方漏传 query_text。
-            logger.warning(
-                "hybrid_no_query_text_degraded_to_vector_only",
-                hint="caller should pass query_text; falling back to vector-only",
-            )
+        keyword_results = await self._keyword_store.search(
+            query=bm25_query,
+            top_k=candidate_k,
+            filter_metadata=filter_metadata,
+        ) if bm25_query else []
 
         fused = reciprocal_rank_fusion(
             [vector_results, keyword_results],
@@ -113,6 +91,18 @@ class HybridRetriever(Retriever):
             candidate_k=candidate_k,
             candidate_multiplier=self._candidate_multiplier,
         )
-        return fused[:top_k]
+        vector_scores = dict(vector_results)
+        keyword_scores = dict(keyword_results)
+        method = f"hybrid_rrf(k={self._rrf_k}; rank starts at 1)"
+        output: list[RetrievedChunk] = []
+        for cid, score in fused[:top_k]:
+            scores = []
+            if cid in vector_scores:
+                scores.append(SourceScore("vector", vector_scores[cid], "cosine_similarity"))
+            if cid in keyword_scores:
+                scores.append(SourceScore("bm25", keyword_scores[cid], "BM25"))
+            scores.append(SourceScore("rrf", score, method))
+            output.append(RetrievedChunk(cid, score, "rrf", method, scores))
+        return output
 
 

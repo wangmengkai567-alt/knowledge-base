@@ -8,20 +8,29 @@ function stripExt(name: string): string {
   return i > 0 ? name.slice(0, i) : name
 }
 
-function mapSource(s: any, kbId: number): RagSource {
+function mapSource(s: any): RagSource {
   return {
-    chunkId: s.chunk_id,
-    content: s.content,
-    score: s.score,
-    documentId: s.document_id,
-    documentFilename: s.document_filename,
-    kbId: s.knowledge_base_id ?? kbId,
+    citationId: s.citation_id, sourceType: s.source_type,
+    chunkIds: s.chunk_ids, segments: s.segments, truncated: s.truncated,
+    content: s.content, documentId: s.document_id,
+    documentFilename: s.document_filename, kbId: s.knowledge_base_id,
+  }
+}
+
+function mapHit(r: any): SearchHit {
+  return {
+    chunkId: r.chunk_id, docId: r.document_id, kbId: r.knowledge_base_id,
+    docName: r.document_filename, docTitle: stripExt(r.document_filename),
+    content: r.content, position: r.position, fileType: fileExt(r.document_filename),
+    score: r.score, scoreType: r.score_type, scoreMethod: r.score_method, scores: r.scores,
+    keywords: [], updatedAt: r.document_updated_at || undefined,
   }
 }
 
 export type RagStreamHandler = (event: {
   type: 'sources' | 'chunk' | 'error'
   sources?: RagSource[]
+  results?: SearchHit[]
   delta?: string
   model?: string
   error?: string
@@ -61,21 +70,7 @@ export const searchApi = {
       `/v1/knowledge/bases/${kbId}/retrieve`,
       { query, top_k: topK },
     ).then((res) => ({
-      results: res.results.map(
-        (r): SearchHit => ({
-          chunkId: r.chunk_id,
-          docId: r.document_id,
-          kbId: res.knowledge_base_id,
-          docName: r.document_filename,
-          docTitle: stripExt(r.document_filename),
-          content: r.content,
-          position: r.position,
-          fileType: fileExt(r.document_filename),
-          score: r.score,
-          keywords: [],
-          updatedAt: r.document_updated_at || undefined,
-        }),
-      ),
+      results: res.results.map(mapHit),
       total: res.total,
     })),
 
@@ -89,7 +84,6 @@ export const searchApi = {
     topK: number,
     onEvent: RagStreamHandler,
     signal?: AbortSignal,
-    chunkIds?: number[],
     knowledgeBaseIds?: number[],
   ): Promise<void> => {
     const base = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -104,7 +98,6 @@ export const searchApi = {
       body: JSON.stringify({
         query,
         top_k: topK,
-        ...(chunkIds !== undefined ? { chunk_ids: chunkIds } : {}),
         ...(knowledgeBaseIds?.length ? { knowledge_base_ids: knowledgeBaseIds } : {}),
       }),
       signal,
@@ -129,7 +122,8 @@ export const searchApi = {
       if (data.type === 'sources') {
         onEvent({
           type: 'sources',
-          sources: (data.sources || []).map((s: any) => mapSource(s, kbId)),
+          sources: data.sources.map(mapSource),
+          results: data.retrieval_results.map(mapHit),
         })
       } else if (data.type === 'chunk') {
         onEvent({ type: 'chunk', delta: data.delta || '', model: data.model })

@@ -14,13 +14,14 @@ base_url 填 /compatible-mode/v1 也只取其域名。
 
 from __future__ import annotations
 
+import math
 import uuid
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 import httpx
 import structlog
 
-from internal.biz.entity import RetrievalResult
 from internal.biz.repo import Reranker
 from pkg.errors.base import RAGError
 
@@ -31,6 +32,9 @@ _DEFAULT_INSTRUCT = "Given a web search query, retrieve relevant passages that a
 # qwen3.7-text-rerank：最多 500 篇；单篇上限远高于分块长度，按字符截断只防异常大块。
 _MAX_DOCUMENTS = 500
 _MAX_CHARS = 8000
+
+if TYPE_CHECKING:
+    from internal.biz.entity import RetrievalResult
 
 
 def rerank_endpoint(base_url: str) -> str:
@@ -151,10 +155,19 @@ class QwenReranker(Reranker):
         seen: set[int] = set()
         for item in api_results:
             idx = item.get("index")
-            if not isinstance(idx, int) or idx in seen or not (0 <= idx < len(results)):
-                continue
+            if type(idx) is not int or idx in seen or not (0 <= idx < len(results)):
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排返回无效分块索引")
             seen.add(idx)
-            reranked.append(results[idx].with_score(float(item.get("relevance_score") or 0.0)))
+            try:
+                score = float(item["relevance_score"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排缺少真实分数") from exc
+            if not math.isfinite(score) or not 0 <= score <= 1:
+                raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排分数无效")
+            reranked.append(results[idx].with_score(score, f"qwen:{self._model}:relevance_score"))
+        expected = top_n or len(results)
+        if len(reranked) != expected:
+            raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排返回结果数量不完整")
         reranked.sort(key=lambda r: r.score, reverse=True)
 
         usage = data.get("usage") or {}

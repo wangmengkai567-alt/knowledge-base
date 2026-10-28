@@ -13,8 +13,11 @@ export interface SearchHit {
   position: number
   /** 父级文档类型（用于筛选） */
   fileType: string // pdf / md / txt
-  /** 相似度分数 0~1 */
-  score: number
+  /** 排序分；类型和计算方式见 scoreType / scoreMethod */
+  score: number | null
+  scoreType?: string | null
+  scoreMethod?: string | null
+  scores?: { kind: string; value: number; method: string }[]
   /** 关键词 */
   keywords: string[]
   /** 命中文档更新时间（ISO），供时间筛选 */
@@ -35,20 +38,15 @@ export type SortOption = 'relevance' | 'name'
 
 /** RAG 引用来源 */
 export interface RagSource {
-  chunkId: number
+  citationId: number
+  sourceType: string
+  chunkIds: number[]
   content: string
-  score: number
+  segments: { chunk_id: number; position: number; start: number; end: number; content: string }[]
+  truncated: boolean
   documentId: number
   documentFilename: string
   kbId: number
-}
-
-/** RAG 摘要响应 */
-export interface RagSummary {
-  answer: string
-  model: string
-  sources: RagSource[]
-  sourceCount: number
 }
 
 /** 收藏项 */
@@ -59,7 +57,7 @@ export interface FavoriteItem {
   docName: string
   docTitle: string
   content: string
-  score: number
+  score: number | null
   keyword: string
   savedAt: string
 }

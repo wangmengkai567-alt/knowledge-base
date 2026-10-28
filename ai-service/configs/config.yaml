@@ -50,7 +50,6 @@ rag:
   max_query_variants: 3
   context_window: 1
   rerank_enabled: true
-  rerank_top_k: 5
   min_relevance: 0.5
   retriever_provider: "hybrid"
 
@@ -83,7 +82,7 @@ vector_store:
 rate_limit:
   enabled: true
   standard_limit: 60
-  # 一次跨库搜索会扇出 N 个 /retrieve + N 个 /rag/query
+  # 浏览器每次提问提交一个问答请求；跨库检索由后端协调
   heavy_limit: 120
   window_seconds: 60
 

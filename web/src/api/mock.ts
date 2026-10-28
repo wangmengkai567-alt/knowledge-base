@@ -8,8 +8,6 @@ import type {
   DocDetail,
   Chunk,
   SearchHit,
-  RagSummary,
-  RagSource,
   User,
   LoginRequest,
   LoginResponse,
@@ -584,7 +582,7 @@ function handle(ctx: Ctx): any {
         })
       }
     }
-    hits.sort((a, b) => b.score - a.score)
+    hits.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity))
     return ok({
       query,
       knowledge_base_id: kbId,
@@ -592,54 +590,6 @@ function handle(ctx: Ctx): any {
       total: hits.length,
     })
   }
-  // RAG 摘要
-  let ragm = path.match(p('^knowledge/bases/(\\d+)/rag/query$'))
-  if (ragm && pm === 'post') {
-    const kbId = Number(ragm[1])
-    const query = (data?.query || '') as string
-    const topK = data?.topK || 5
-    const terms = tokenize(query)
-    const docs = store.docs.get(kbId) || []
-    const all: SearchHit[] = []
-    for (const doc of docs) {
-      for (const c of store.chunks.get(doc.docId) || []) {
-        all.push({
-          chunkId: c.chunkId,
-          docId: doc.docId,
-          kbId,
-          docName: doc.title + '.pdf',
-          docTitle: doc.title,
-          content: c.content,
-          position: c.chunkIndex,
-          fileType: 'pdf',
-          score: scoreChunk(c.content, terms),
-          keywords: [],
-          updatedAt: doc.createdAt,
-        })
-      }
-    }
-    all.sort((a, b) => b.score - a.score)
-    const top = all.slice(0, topK)
-    const sources: RagSource[] = top.map((h) => ({
-      chunkId: h.chunkId,
-      content: h.content.slice(0, 200),
-      score: h.score,
-      documentId: h.docId,
-      documentFilename: h.docName,
-      kbId,
-    }))
-    const answer = `根据「${store.kbs.find((k) => k.kbId === kbId)?.name || '知识库'}」的检索结果，针对“${query}”整理如下：\n\n核心结论：${
-      top[0]?.content || '暂无直接相关文档，建议补充知识库内容。'
-    }\n\n关键步骤：\n1. 明确检索目标与范围；\n2. 在搜索框输入关键词或自然语言问题；\n3. 结合右侧引用来源交叉验证结论。\n\n注意事项：摘要由 AI 基于检索片段生成，关键决策请以原文为准，并注意数据分级与权限要求。`
-    const summary: RagSummary = {
-      answer,
-      model: 'deepseek-chat',
-      sources,
-      sourceCount: sources.length,
-    }
-    return ok(summary)
-  }
-
   return fail('000004', `Mock 未实现接口: ${method.toUpperCase()} ${url}`)
 }
 
