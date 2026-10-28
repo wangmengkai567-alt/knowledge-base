@@ -58,6 +58,26 @@ export function renderMarkdown(src: string): string {
   })
 }
 
+const answerMd = new MarkdownIt({ html: false, linkify: true })
+answerMd.renderer.rules.text = (tokens, index, _options, env) => {
+  const text = tokens[index].content
+  const escape = answerMd.utils.escapeHtml
+  const inLink = tokens.slice(0, index).reduce((depth, token) =>
+    depth + (token.type === 'link_open' ? 1 : token.type === 'link_close' ? -1 : 0), 0)
+  if (inLink) return escape(text)
+  return text.split(/(\[来源\s*[1-9]\d*\s*\])/g).map(part => {
+    const match = /^\[来源\s*([1-9]\d*)\s*\]$/.exec(part)
+    if (!match || !env.citations.has(Number(match[1]))) return escape(part)
+    return '<a href="#source-' + env.runId + '-' + match[1] + '" data-citation-id="' + match[1] + '">' + escape(part) + '</a>'
+  }).join('')
+}
+
+/** 引用只在普通文本中变为链接，代码块和无效引用保持原样。 */
+export function renderAnswer(src: string, runId: string, citationIds: number[]): string {
+  const html = answerMd.render(src, { runId: runId.replace(/[^a-zA-Z0-9-]/g, ''), citations: new Set(citationIds) })
+  return DOMPurify.sanitize(_withNoReferrer(html), { ADD_ATTR: ['data-citation-id'] })
+}
+
 /**
  * 给所有 <img> 加上 referrerpolicy="no-referrer"，规避外链图床（CSDN 等）
  * 的 Referer 防盗链（实测带跨站 Referer 会被 403，不带则 200）。

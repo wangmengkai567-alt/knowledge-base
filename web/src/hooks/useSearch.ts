@@ -5,7 +5,7 @@ import { useSearchHistoryStore } from '@/stores/history'
 import { usePagination } from './usePagination'
 import { paginateSlice } from '@/utils/format'
 import { tokenize } from '@/utils/highlight'
-import type { SearchHit, SearchFilters, SortOption, RagSource } from '@/types'
+import type { SearchHit, SearchFilters, SortOption, RagSource, RunEvent, RunStatus, RunUsage } from '@/types'
 
 /** 后端一次问答产生回答、检索列表与实际送模资料。本地筛选只影响列表。 */
 export function useSearch() {
@@ -21,11 +21,17 @@ export function useSearch() {
   const model = ref('')
   const error = ref('')
   const generatedAt = ref('')
+  const allowWeb = ref(false)
+  const runId = ref('')
+  const status = ref<RunStatus | null>(null)
+  const stopReason = ref('')
+  const events = ref<RunEvent[]>([])
+  const usage = ref<RunUsage | null>(null)
   const filters = reactive<SearchFilters>({ kbIds: [], fileTypes: [], timeRange: '' })
   const sort = ref<SortOption>('relevance')
   const { page, pageSize, total, totalPages, setTotal, setPage, changeSize, reset } = usePagination(8)
   let abort: AbortController | null = null
-  let lastKey = ''
+  let activeKey = ''
   const terms = () => tokenize(query.value)
   function refreshPage() {
     hits.value = paginateSlice(allHits.value, page.value, pageSize.value)
@@ -50,17 +56,26 @@ export function useSearch() {
     reset()
     refreshPage()
   }
-  async function run(q?: string, force = false) {
+  function cancel() {
+    if (!loading.value || status.value !== 'running') return
+    abort?.abort()
+    loading.value = false
+    status.value = 'cancelled'
+    stopReason.value = 'user_cancelled'
+    activeKey = ''
+  }
+  async function run(q?: string) {
     if (q !== undefined) query.value = q
     const text = query.value.trim()
     const kbIds = [...new Set(filters.kbIds.length ? filters.kbIds : knowledge.kbs.map((kb) => kb.kbId))].sort((a, b) => a - b)
     if (!text) return
-    const key = JSON.stringify([text, kbIds])
-    if (!force && key === lastKey) return
+    const key = JSON.stringify([text, kbIds, allowWeb.value])
+    if (loading.value && key === activeKey) return
     abort?.abort()
-    abort = new AbortController()
-    const signal = abort.signal
-    lastKey = key
+    const controller = new AbortController()
+    abort = controller
+    const signal = controller.signal
+    activeKey = key
     loading.value = true
     error.value = ''
     answer.value = ''
@@ -68,50 +83,77 @@ export function useSearch() {
     rawHits.value = []
     model.value = ''
     generatedAt.value = ''
+    runId.value = ''
+    status.value = 'running'
+    stopReason.value = ''
+    events.value = []
+    usage.value = null
     recompute()
     try {
       if (!kbIds.length) throw new Error('请先创建或选择知识库')
-      await searchApi.ragSummaryStream(kbIds[0], text, 8, (event) => {
-        if (signal.aborted) return
-        if (event.type === 'error') throw new Error(event.error)
-        if (event.type === 'sources') {
-          sources.value = event.sources!
-          rawHits.value = event.results!
+      await searchApi.ragSummaryStream(kbIds[0], text, 8, (message) => {
+        if (signal.aborted || abort !== controller) return
+        if (message.type === 'event') {
+          runId.value = message.runId
+          events.value.push(message.event)
+          if (message.event.kind === 'run_finished') {
+            status.value = message.event.data.status as RunStatus
+            stopReason.value = String(message.event.data.stop_reason)
+          }
+          if (message.sources) {
+            sources.value = message.sources
+            rawHits.value = message.results!
+            recompute()
+          }
+        } else {
+          const result = message.result
+          runId.value = result.runId
+          status.value = result.status
+          stopReason.value = result.stopReason
+          answer.value = result.answer
+          model.value = result.model
+          sources.value = result.sources
+          rawHits.value = result.results
+          usage.value = result.usage
+          generatedAt.value = new Date().toISOString()
           recompute()
         }
-        if (event.type === 'chunk') {
-          answer.value += event.delta || ''
-          model.value = event.model || ''
-        }
-      }, signal, kbIds)
-      if (signal.aborted) return
-      if (!answer.value) throw new Error('问答未完成，请重试')
-      generatedAt.value = new Date().toISOString()
+      }, signal, kbIds, allowWeb.value)
+      if (signal.aborted || abort !== controller) return
       history.add(text, rawHits.value.length)
     } catch (cause: unknown) {
-      if (signal.aborted) return
-      error.value = cause instanceof Error ? cause.message : '问答失败'
-      lastKey = ''
+      if (signal.aborted || abort !== controller) return
+      error.value = cause instanceof Error ? cause.message : '问答连接失败'
+      answer.value = ''
+      status.value = null
     } finally {
-      if (!signal.aborted) loading.value = false
+      if (abort === controller) {
+        loading.value = false
+        activeKey = ''
+      }
     }
   }
   function clear() {
+    cancel()
     abort?.abort()
-    lastKey = ''
+    loading.value = false
     query.value = ''
     answer.value = ''
     sources.value = []
     rawHits.value = []
     error.value = ''
-    loading.value = false
+    runId.value = ''
+    status.value = null
+    stopReason.value = ''
+    events.value = []
+    usage.value = null
     recompute()
   }
-  watch(() => filters.kbIds.join(','), () => { if (query.value.trim()) run() })
+  watch(() => [filters.kbIds.join(','), allowWeb.value], () => { if (query.value.trim()) run() })
   watch(() => [filters.fileTypes.join(','), filters.timeRange, sort.value], recompute)
   watch(page, refreshPage)
   watch(pageSize, refreshPage)
   onUnmounted(() => abort?.abort())
   return { loading, query, hits, rawHits, allHits, answer, sources, model, error, generatedAt,
-    filters, sort, terms, page, pageSize, total, totalPages, run, clear, setPage, changeSize }
+    allowWeb, runId, status, stopReason, events, usage, cancel, filters, sort, terms, page, pageSize, total, totalPages, run, clear, setPage, changeSize }
 }

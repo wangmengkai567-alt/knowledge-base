@@ -5,21 +5,20 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from time import monotonic
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import structlog
 
-from internal.biz.answer_run import AnswerRun, RunLimits
-from internal.biz.entity import ChatChunk
+from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
 from internal.biz.materials import AnswerSource, InputBudget, WebSource, clip_source
 from internal.biz.tool_types import ToolError, ToolFailure, ToolResult
 from internal.biz.tools import ToolScope
 from pkg.errors.base import APIError
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import Callable
 
     from internal.biz.entity import ChatResult, RetrievalResult
     from internal.biz.tool_model import ToolModel
@@ -28,26 +27,10 @@ if TYPE_CHECKING:
     from internal.prompt.manager import PromptManager
 
 logger = structlog.get_logger()
-RAG_EVENT_SOURCES = "sources"
-RAG_EVENT_CHUNK = "chunk"
-RAG_EVENT_TERMINAL = "terminal"
 _FINAL_CONTROL = {
     "role": "system",
     "content": "现在只发布最终答案，不再调用工具。依据已有资料作答；资料不足时说明缺失信息。严格使用规定的 JSON 格式。",
 }
-
-
-@dataclass
-class RAGStreamEvent:
-    event_type: Literal["sources", "chunk", "terminal"]
-    sources: list[AnswerSource | WebSource] = field(default_factory=list)
-    retrieval_results: list[RetrievalResult] = field(default_factory=list)
-    chunk: ChatChunk | None = None
-    input_measurement: str = ""
-    estimated_input_tokens: int = 0
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    run: AnswerRun | None = None
 
 
 def retrieval_results(run: AnswerRun) -> list[RetrievalResult]:
@@ -86,11 +69,13 @@ class RAGBiz:
         allow_web: bool = False,
         user_urls: tuple[str, ...] = (),
         cancelled: asyncio.Event | None = None,
+        on_event: Callable[[AnswerRun, RunEvent], None] | None = None,
     ) -> AnswerRun:
         run = AnswerRun(
             ToolScope(user_id, tuple(dict.fromkeys(knowledge_base_ids)), allow_web),
             self._limits,
             self._budget.measurement,
+            on_event=on_event,
         )
         run.emit(
             "run_started",
@@ -202,7 +187,9 @@ class RAGBiz:
             usage.estimated_input_tokens += estimate
             usage.charged_tokens += estimate + output_tokens
             usage.unreported_model_calls += 1
-            run.sources.extend(pending_sources)
+            if pending_sources:
+                run.sources.extend(pending_sources)
+                run.emit("sources_updated", citation_ids=[s.citation_id for s in run.sources])
             pending_sources = []
             run.emit(
                 "model_started",
@@ -407,6 +394,7 @@ class RAGBiz:
 
     @staticmethod
     def _publish(run: AnswerRun, result: ChatResult, final_reason: str) -> None:
+        run.emit("answer_check_started")
         try:
             value = json.loads(result.content)
             if (
@@ -449,21 +437,3 @@ class RAGBiz:
                 "completed" if value["status"] == "answered" else "insufficient",
                 "answer_completed" if value["status"] == "answered" else "insufficient_material",
             )
-
-    async def query_stream(self, *args, **kwargs) -> AsyncIterator[RAGStreamEvent]:
-        run = await self.query(*args, **kwargs)
-        yield RAGStreamEvent(
-            event_type=RAG_EVENT_SOURCES,
-            sources=run.sources,
-            retrieval_results=retrieval_results(run),
-            input_measurement=run.input_measurement,
-            estimated_input_tokens=run.usage.estimated_input_tokens,
-        )
-        if run.answer and run.status in ("completed", "insufficient"):
-            yield RAGStreamEvent(
-                event_type=RAG_EVENT_CHUNK,
-                chunk=ChatChunk(run.answer, run.model, "stop"),
-                prompt_tokens=run.usage.prompt_tokens,
-                completion_tokens=run.usage.completion_tokens,
-            )
-        yield RAGStreamEvent(event_type=RAG_EVENT_TERMINAL, run=run)

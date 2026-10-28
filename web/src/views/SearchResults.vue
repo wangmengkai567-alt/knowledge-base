@@ -19,7 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const knowledge = useKnowledgeStore()
 const user = useUserStore()
-const { loading, query, allHits, answer, sources, error, generatedAt, filters, sort, page, pageSize, run, setPage, changeSize } =
+const { loading, query, allHits, answer, sources, error, generatedAt, allowWeb, runId, status, stopReason, events, usage, cancel, filters, sort, page, pageSize, run, setPage, changeSize } =
   useSearch()
 
 const filterOpen = ref(false)
@@ -33,6 +33,7 @@ onMounted(async () => {
 })
 
 function initFromRoute() {
+  allowWeb.value = window.history.state.allowWeb === true
   const q = (route.query.q as string) || ''
   const kbIds = route.query.kbIds ? String(route.query.kbIds).split(',').map(Number) : []
   if (kbIds.length) filters.kbIds = kbIds
@@ -48,7 +49,7 @@ watch(
 
 watch(docScope, () => setPage(1))
 
-const relatedIds = computed(() => new Set(sourceDocs.value.map((s) => s.documentId).filter(Boolean)))
+const relatedIds = computed(() => new Set(sourceDocs.value.filter((s) => s.sourceType === 'knowledge_base').map((s) => s.documentId).filter(Boolean)))
 const scopedList = computed(() => {
   if (docScope.value !== 'related') return allHits.value
   if (!relatedIds.value.size) return allHits.value
@@ -76,7 +77,7 @@ const initial = computed(() => displayName.value?.trim()?.[0]?.toUpperCase() || 
         </span>
         <div>
           <h1>智能问答</h1>
-          <p>基于你的知识库，快速找到你需要的答案</p>
+          <p>查找知识库资料，也可允许联网补充答案</p>
         </div>
       </div>
       <button
@@ -94,10 +95,14 @@ const initial = computed(() => displayName.value?.trim()?.[0]?.toUpperCase() || 
     <EmptyState
       v-if="!query"
       title="输入问题开始提问"
-      description="先检索知识库资料，再由模型根据资料生成回答"
+      description="选择知识库并提问，可允许联网补充资料"
     />
 
     <div v-else class="qa-page__stack">
+      <div class="flex flex-wrap items-center gap-3 text-sm text-ink-600">
+        <el-switch v-model="allowWeb" active-text="允许联网" />
+        <span class="text-xs text-ink-400">开启后可自动搜索并读取网页，仅外发必要关键词</span>
+      </div>
       <SummaryPanel
         :query="query"
         :answer="answer"
@@ -105,7 +110,13 @@ const initial = computed(() => displayName.value?.trim()?.[0]?.toUpperCase() || 
         :loading="loading"
         :error="error"
         :generated-at="generatedAt"
-        @regenerate="run(undefined, true)"
+        :run-id="runId"
+        :status="status"
+        :stop-reason="stopReason"
+        :events="events"
+        :usage="usage"
+        @cancel="cancel"
+        @regenerate="run()"
       />
 
       <div class="qa-page__split">

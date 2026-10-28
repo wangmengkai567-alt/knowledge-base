@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,7 +44,7 @@ class HitScoreDTO(BaseModel):
 
 class RAGSourceDTO(BaseModel):
     citation_id: int
-    source_type: str
+    source_type: Literal["knowledge_base"]
     content: str = Field(description="完整的实际送模片段，合并与截断后与上下文一致")
     chunk_ids: list[int]
     segments: list[MaterialSegmentDTO]
@@ -60,7 +60,7 @@ class RAGSourceDTO(BaseModel):
 
 class RAGWebSourceDTO(BaseModel):
     citation_id: int
-    source_type: str
+    source_type: Literal["web_search_summary", "web_page"]
     url: str
     title: str
     fetched_at: str
@@ -86,6 +86,7 @@ class RunEventDTO(BaseModel):
 
 
 class RAGQueryResponse(BaseModel):
+    version: Literal[4] = 4
     run_id: str
     status: str
     stop_reason: str

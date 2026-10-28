@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Collection } from '@element-plus/icons-vue'
 import { documentApi } from '@/api/document'
 import DocumentPreview from '@/components/Knowledge/DocumentPreview.vue'
@@ -10,6 +10,7 @@ import type { Chunk, DocDetail } from '@/types'
 
 const props = defineProps<{ kbId: string; docId: string }>()
 const router = useRouter()
+const route = useRoute()
 const kbId = computed(() => Number(props.kbId))
 const docId = computed(() => Number(props.docId))
 
@@ -53,7 +54,12 @@ async function load() {
     // 用后端真实分块总数修正"分段数"（mapDoc 默认填 0）
     doc.value.chunkCount = chunkRes.total
     chunks.value = chunkRes.list
-    selected.value = chunks.value[0] || null
+    const targetId = Number(route.query.chunkId)
+    selected.value = targetId ? chunks.value.find(chunk => chunk.chunkId === targetId) || null : chunks.value[0] || null
+    if (targetId && selected.value?.chunkId === targetId) {
+      await nextTick()
+      document.getElementById('source-chunk')?.scrollIntoView({ block: 'center' })
+    }
   } finally {
     loading.value = false
   }
@@ -95,7 +101,7 @@ onMounted(load)
 
       <DocumentPreview :doc="doc" :loading="loading" :html="mergedHtml" />
 
-      <aside class="liquid-card rounded-2xl p-4">
+      <aside id="source-chunk" class="liquid-card rounded-2xl p-4">
         <template v-if="selected">
           <div class="mb-3 flex items-center">
             <p class="text-sm font-semibold tracking-tight text-ink-800">知识块信息</p>
@@ -111,7 +117,7 @@ onMounted(load)
             {{ selected.content }}
           </div>
         </template>
-        <p v-else class="py-10 text-center text-xs text-ink-300">选择左侧目录查看知识块</p>
+        <p v-else class="py-10 text-center text-xs text-ink-300">{{ route.query.chunkId ? '原文分块已变化，请查看问答中的资料快照' : '选择左侧目录查看知识块' }}</p>
       </aside>
     </div>
   </div>

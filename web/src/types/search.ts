@@ -36,17 +36,60 @@ export interface SearchFilters {
 
 export type SortOption = 'relevance' | 'name'
 
-/** RAG 引用来源 */
-export interface RagSource {
+interface SourceBase {
   citationId: number
-  sourceType: string
-  chunkIds: number[]
   content: string
-  segments: { chunk_id: number; position: number; start: number; end: number; content: string }[]
   truncated: boolean
+}
+
+export interface KnowledgeSource extends SourceBase {
+  sourceType: 'knowledge_base'
+  chunkIds: number[]
+  segments: { chunk_id: number; position: number; start: number; end: number; content: string }[]
   documentId: number
   documentFilename: string
+  documentUpdatedAt: string | null
   kbId: number
+}
+
+export interface WebSource extends SourceBase {
+  sourceType: 'web_search_summary' | 'web_page'
+  url: string
+  title: string
+  fetchedAt: string
+}
+
+export type RagSource = KnowledgeSource | WebSource
+export type RunStatus = 'running' | 'completed' | 'insufficient' | 'budget_exhausted' |
+  'repeated_call' | 'tool_failed' | 'model_failed' | 'invalid_answer' | 'timeout' | 'cancelled'
+
+export interface RunUsage {
+  model_calls: number
+  tool_calls: number
+  prompt_tokens: number
+  completion_tokens: number
+  estimated_input_tokens: number
+  charged_tokens: number
+  unreported_model_calls: number
+}
+
+export interface RunEvent {
+  sequence: number
+  kind: string
+  elapsed_ms: number
+  data: Record<string, unknown>
+}
+
+export interface RunResult {
+  runId: string
+  status: RunStatus
+  stopReason: string
+  errorCode: string | null
+  answer: string
+  model: string
+  sources: RagSource[]
+  results: SearchHit[]
+  usage: RunUsage
 }
 
 /** 收藏项 */

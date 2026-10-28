@@ -14,9 +14,8 @@ internal/server/http.py — HTTP Server 创建与路由注册
 from __future__ import annotations
 
 import os
-from contextlib import asynccontextmanager
-from dataclasses import asdict
-from typing import AsyncGenerator
+from contextlib import aclosing, asynccontextmanager
+from typing import TYPE_CHECKING, AsyncGenerator
 
 import structlog
 from fastapi import FastAPI, Request
@@ -51,7 +50,6 @@ from api.openapi.schemas.knowledge_base import (
 )
 from api.openapi.schemas.rag import RAGQueryRequest, RAGQueryResponse
 from api.openapi.schemas.retrieval import RetrievalRequest, RetrievalResponse
-from internal.biz.rag import RAG_EVENT_CHUNK, RAG_EVENT_SOURCES, RAG_EVENT_TERMINAL
 from internal.conf.config import ServerConfig, SessionConfig
 from internal.server.middleware.auth import AuthMiddleware
 from internal.server.middleware.metrics import MetricsMiddleware, metrics_endpoint
@@ -61,13 +59,15 @@ from internal.service.auth import AuthService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
 from internal.service.knowledge_base import KnowledgeBaseService
-from internal.service.rag import RAGService, source_dto
-from internal.service.retrieval import RetrievalService, retrieval_dto
 from internal.streaming.sse import SSE_DONE, format_sse_data
 from pkg.errors.base import APIError
 from pkg.errors.codes import ErrorCode
 from pkg.errors.fastapi import register_exception_handlers
 from pkg.session import SessionManager
+
+if TYPE_CHECKING:
+    from internal.service.rag import RAGService
+    from internal.service.retrieval import RetrievalService
 
 logger = structlog.get_logger()
 
@@ -179,7 +179,11 @@ class HTTPServer:
             # 否则首次检索会返回空（"未找到相关结果"）。失败仅告警，不阻断启动。
             if self._embedding_biz is not None:
                 await self._warmup_indices()
+            if self._rag_service is not None:
+                await self._rag_service.start()
             yield
+            if self._rag_service is not None:
+                await self._rag_service.close()
             # 关闭 Redis 连接
             await self._session_manager.close()
             logger.info("app_stopping", service=service_name)
@@ -594,7 +598,7 @@ class HTTPServer:
                     "description": "SSE 流式响应",
                     "content": {
                         "text/event-stream": {
-                            "example": 'data: {"type": "sources", ...}\n\ndata: {"type": "chunk", ...}\n\ndata: [DONE]\n\n',
+                            "example": 'data: {"type": "event", "kind": "run_started", ...}\n\ndata: {"type": "result", ...}\n\ndata: [DONE]\n\n',
                         }
                     },
                 }
@@ -612,48 +616,23 @@ class HTTPServer:
                     await self._knowledge_base_service.get_knowledge_base(kid, user_id=request.state.user_id)
             async def event_generator():
                 try:
-                    async for event in rag_service.query_stream(
-                        query=body.query,
-                        knowledge_base_ids=allowed,
-                        top_k=body.top_k,
-                        temperature=body.temperature,
-                        max_tokens=body.max_tokens,
-                        user_id=request.state.user_id,
-                        allow_web=body.allow_web,
+                    async with aclosing(rag_service.query_stream(
+                        query=body.query, knowledge_base_ids=allowed, top_k=body.top_k,
+                        temperature=body.temperature, max_tokens=body.max_tokens,
+                        user_id=request.state.user_id, allow_web=body.allow_web,
                         user_urls=tuple(body.user_urls),
-                    ):
-                        if event.event_type == RAG_EVENT_SOURCES:
-                            yield format_sse_data({
-                                "type": "sources",
-                                "sources": [source_dto(source).model_dump() for source in event.sources],
-                                "source_count": len(event.sources),
-                                "retrieval_results": [retrieval_dto(hit).model_dump() for hit in event.retrieval_results],
-                                "input_measurement": event.input_measurement,
-                                "estimated_input_tokens": event.estimated_input_tokens,
-                            })
-                        elif event.event_type == RAG_EVENT_CHUNK and event.chunk:
-                            # 发送 LLM 流式分片
-                            yield format_sse_data({
-                                "type": "chunk",
-                                "delta": event.chunk.delta,
-                                "model": event.chunk.model,
-                                "finish_reason": event.chunk.finish_reason,
-                                "prompt_tokens": event.prompt_tokens,
-                                "completion_tokens": event.completion_tokens,
-                            })
-                        elif event.event_type == RAG_EVENT_TERMINAL and event.run:
-                            run = event.run
-                            yield format_sse_data({
-                                "type": "result" if run.status in ("completed", "insufficient") else "error",
-                                "run_id": run.run_id, "status": run.status,
-                                "stop_reason": run.stop_reason, "error_code": run.error_code,
-                                "error": run.error_code or run.stop_reason,
-                                "usage": asdict(run.usage),
-                            })
+                    )) as events:
+                        async for event in events:
+                            yield format_sse_data(event)
                     yield SSE_DONE
-                except Exception as e:
-                    logger.error("rag_stream_error", error=str(e), exc_info=True)
-                    yield format_sse_data({"type": "error", "error": str(e)})
+                except Exception:
+                    logger.exception("rag_stream_error")
+                    yield format_sse_data({
+                        "type": "error", "version": 4,
+                        "error_code": "RUN_STREAM_FAILED",
+                        "error": "问答传输或运行记录保存失败，请重新提问",
+                    })
+                    yield SSE_DONE
 
             return StreamingResponse(
                 event_generator(),

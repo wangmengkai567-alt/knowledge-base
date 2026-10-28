@@ -15,6 +15,7 @@ const user = useUserStore()
 const { root, onMove } = usePagePointer()
 const mag = useMagnetic(0.16)
 const heroQuery = ref('')
+const allowWeb = ref(false)
 
 const hotSearches = ['微服务架构', 'OOM 排查', 'API 网关', '数据分析', '代码评审规范', 'RAG 检索']
 const displayName = computed(
@@ -27,7 +28,7 @@ onMounted(() => {
 
 function runSearch(q: string) {
   const text = q.trim()
-  if (text) router.push({ path: '/search', query: { q: text } })
+  if (text) router.push({ path: '/search', query: { q: text }, state: { allowWeb: allowWeb.value } })
 }
 
 function onHeroSearch() {
@@ -88,6 +89,10 @@ function onEdit() {
           ✦ 开始搜索
         </button>
       </div>
+      <label class="relative mt-3 flex items-center gap-2 text-xs text-white/80">
+        <input v-model="allowWeb" type="checkbox" />
+        允许联网补充资料（仅外发必要关键词）
+      </label>
       <div class="relative mt-3 flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-white/60">热门搜索</span>
         <button

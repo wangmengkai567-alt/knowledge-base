@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Literal
 from uuid import uuid4
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from internal.biz.materials import AnswerSource, WebSource
     from internal.biz.tool_types import ToolResult
     from internal.biz.tools import ToolScope
@@ -82,6 +84,7 @@ class AnswerRun:
     sources: list[AnswerSource | WebSource] = field(default_factory=list)
     tool_results: list[ToolResult] = field(default_factory=list)
     events: list[RunEvent] = field(default_factory=list)
+    on_event: Callable[[AnswerRun, RunEvent], None] | None = field(default=None, repr=False)
 
     def emit(self, kind: str, **data) -> None:
         self.events.append(
@@ -92,6 +95,9 @@ class AnswerRun:
                 data,
             )
         )
+
+        if self.on_event is not None:
+            self.on_event(self, self.events[-1])
 
     def finish(self, status: RunStatus, reason: str, error_code: str | None = None) -> None:
         if self.status != "running":

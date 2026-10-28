@@ -19,9 +19,7 @@ onMounted(() => {
       <main class="app-shell__content">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">
-            <keep-alive include="SearchResults">
-              <component :is="Component" />
-            </keep-alive>
+            <component :is="Component" />
           </transition>
         </router-view>
       </main>

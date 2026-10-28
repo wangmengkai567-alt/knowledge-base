@@ -60,6 +60,7 @@ env/
 
 # === 本地运行时数据 ===
 ai-service/data/*.db
+ai-service/data/answer-runs/
 ai-service/data/uploads/*
 !ai-service/data/uploads/.gitkeep
 

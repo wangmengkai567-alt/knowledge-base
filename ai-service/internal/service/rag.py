@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
+from contextlib import suppress
 from dataclasses import asdict
 from typing import TYPE_CHECKING
+
+import anyio
+import structlog
 
 from api.openapi.schemas.rag import (
     HitScoreDTO,
@@ -19,8 +24,10 @@ from internal.service.retrieval import retrieval_dto
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
+    from internal.biz.answer_run import AnswerRun, RunEvent
     from internal.biz.materials import AnswerSource
-    from internal.biz.rag import RAGBiz, RAGStreamEvent
+    from internal.biz.rag import RAGBiz
+    from internal.data.answer_runs import LocalAnswerRunStore
 
 
 def source_dto(source: AnswerSource | WebSource) -> RAGSourceDTO | RAGWebSourceDTO:
@@ -50,59 +57,110 @@ def source_dto(source: AnswerSource | WebSource) -> RAGSourceDTO | RAGWebSourceD
     )
 
 
+def response_dto(run: AnswerRun) -> RAGQueryResponse:
+    sources = [source_dto(source) for source in run.sources]
+    return RAGQueryResponse(
+        run_id=run.run_id, status=run.status, stop_reason=run.stop_reason,
+        error_code=run.error_code, usage=asdict(run.usage),
+        events=[asdict(event) for event in run.events], answer=run.answer, model=run.model,
+        sources=sources, source_count=len(sources),
+        retrieval_results=[retrieval_dto(hit) for hit in retrieval_results(run)],
+        input_measurement=run.input_measurement,
+        estimated_input_tokens=run.usage.estimated_input_tokens,
+        prompt_tokens=run.usage.prompt_tokens, completion_tokens=run.usage.completion_tokens,
+    )
+
+
 class RAGService:
-    def __init__(self, rag_biz: RAGBiz) -> None:
+    def __init__(self, rag_biz: RAGBiz, run_store: LocalAnswerRunStore) -> None:
         self._rag_biz = rag_biz
+        self._store = run_store
+        self._janitor: asyncio.Task | None = None
 
-    async def query(
-        self,
-        query: str,
-        knowledge_base_ids: list[int],
-        top_k: int = 5,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        *,
-        user_id: int,
-        allow_web: bool = False,
-        user_urls: tuple[str, ...] = (),
-    ) -> RAGQueryResponse:
-        result = await self._rag_biz.query(
-            query, knowledge_base_ids, top_k, temperature, max_tokens,
-            user_id=user_id, allow_web=allow_web, user_urls=user_urls,
-        )
-        sources = [source_dto(source) for source in result.sources]
-        return RAGQueryResponse(
-            run_id=result.run_id,
-            status=result.status,
-            stop_reason=result.stop_reason,
-            error_code=result.error_code,
-            usage=asdict(result.usage),
-            events=[asdict(event) for event in result.events],
-            answer=result.answer,
-            model=result.model,
-            sources=sources,
-            source_count=len(sources),
-            retrieval_results=[retrieval_dto(hit) for hit in retrieval_results(result)],
-            input_measurement=result.input_measurement,
-            estimated_input_tokens=result.usage.estimated_input_tokens,
-            prompt_tokens=result.usage.prompt_tokens,
-            completion_tokens=result.usage.completion_tokens,
-        )
+    async def start(self) -> None:
+        await asyncio.to_thread(self._store.cleanup)
+        self._janitor = asyncio.create_task(self._clean_periodically())
 
-    async def query_stream(
-        self,
-        query: str,
-        knowledge_base_ids: list[int],
-        top_k: int = 5,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        *,
-        user_id: int,
-        allow_web: bool = False,
-        user_urls: tuple[str, ...] = (),
-    ) -> AsyncIterator[RAGStreamEvent]:
-        async for event in self._rag_biz.query_stream(
-            query, knowledge_base_ids, top_k, temperature, max_tokens,
-            user_id=user_id, allow_web=allow_web, user_urls=user_urls,
-        ):
-            yield event
+    async def close(self) -> None:
+        if self._janitor is not None:
+            self._janitor.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._janitor
+
+    async def _clean_periodically(self) -> None:
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                await asyncio.to_thread(self._store.cleanup)
+            except OSError:
+                structlog.get_logger().exception("answer_run_cleanup_failed")
+
+    async def _execute(self, *, on_event=None, **kwargs) -> AnswerRun:
+        observed: AnswerRun | None = None
+
+        def observe(run: AnswerRun, event: RunEvent) -> None:
+            nonlocal observed
+            observed = run
+            if on_event is not None:
+                on_event(run, event)
+
+        # 屏蔽响应生成器的 AnyIO 取消域；断连时由生成器显式取消此任务，
+        # 再等待模型/工具清理和快照保存，避免留下后台运行。
+        with anyio.CancelScope(shield=True):
+            try:
+                return await self._rag_biz.query(**kwargs, on_event=observe)
+            finally:
+                if observed is not None:
+                    snapshot = {
+                        "version": 4, "query": kwargs["query"],
+                        "started_at": observed.started_at,
+                        "scope": asdict(observed.scope), "limits": asdict(observed.limits),
+                        "result": response_dto(observed).model_dump(),
+                        "tool_results": [
+                            {
+                                "call_id": result.call_id, "tool": result.name,
+                                "status": result.status,
+                                "errors": [asdict(error) for error in result.errors],
+                                "sources": [source_dto(source).model_dump() for source in result.sources],
+                            }
+                            for result in observed.tool_results
+                        ],
+                    }
+                    await asyncio.to_thread(
+                        self._store.save, observed.scope.user_id, observed.run_id, snapshot
+                    )
+
+    async def query(self, **kwargs) -> RAGQueryResponse:
+        return response_dto(await self._execute(**kwargs))
+
+    async def query_stream(self, **kwargs) -> AsyncIterator[dict]:
+        queue: asyncio.Queue[dict | None] = asyncio.Queue()
+
+        def emit(run: AnswerRun, event: RunEvent) -> None:
+            payload = {"type": "event", "version": 4, "run_id": run.run_id, **asdict(event)}
+            if event.kind == "sources_updated":
+                payload["data"] = {
+                    **event.data,
+                    "sources": [source_dto(source).model_dump() for source in run.sources],
+                    "retrieval_results": [retrieval_dto(hit).model_dump() for hit in retrieval_results(run)],
+                }
+            queue.put_nowait(payload)
+
+        task = asyncio.create_task(self._execute(**kwargs, on_event=emit))
+        task.add_done_callback(lambda _: queue.put_nowait(None))
+        try:
+            while (event := await queue.get()) is not None:
+                yield event
+            run = await task
+            yield {"type": "result", **response_dto(run).model_dump()}
+        finally:
+            with anyio.CancelScope(shield=True):
+                if not task.done():
+                    task.cancel()
+                # task.result() 的错误在正常路径向上传播；取消路径记录保存失败。
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                except Exception:
+                    structlog.get_logger().exception("answer_run_execution_failed")

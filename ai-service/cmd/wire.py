@@ -15,6 +15,7 @@ cmd/wire.py — 依赖注入编排
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import redis.asyncio as aioredis
 import structlog
@@ -33,6 +34,7 @@ from internal.biz.tool_model import ToolModel
 from internal.biz.tools import ReadOnlyToolExecutor
 from internal.conf.config import AppConfig, get_settings
 from internal.conf.logging import setup_logging
+from internal.data.answer_runs import LocalAnswerRunStore
 from internal.data.chunk.factory import create_chunk_repo
 from internal.data.chunker.factory import create_text_chunker
 from internal.data.database import create_engine, create_session_factory
@@ -300,7 +302,10 @@ def create_app() -> FastAPI:
         budget=tool_budget,
         default_rag_template=settings.prompt.default_rag_template,
     )
-    rag_service = RAGService(rag_biz=rag_biz)
+    rag_service = RAGService(
+        rag_biz=rag_biz,
+        run_store=LocalAnswerRunStore(Path(__file__).resolve().parents[1] / "data" / "answer-runs"),
+    )
 
     # ── Rate Limiter──
     use_redis_limiter = os.environ.get("AI_ENV") != "dev"
