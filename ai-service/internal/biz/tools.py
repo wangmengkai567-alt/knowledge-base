@@ -1,4 +1,4 @@
-"""首批只读工具的唯一执行入口；不包含问答循环或任意工具注册。"""
+"""首批只读工具的唯一执行入口；不开放任意工具注册。"""
 
 from __future__ import annotations
 
@@ -35,7 +35,8 @@ class KnowledgeSearchArguments(ToolArguments):
 
 class WebSearchArguments(ToolArguments):
     keywords: list[str] = Field(
-        min_length=1, max_length=8, description="仅必要公开关键词；禁止私有资料原文"
+        min_length=1, max_length=8,
+        description='字符串数组，例如 ["Tavily", "Search API"]；仅必要公开关键词，禁止私有资料原文',
     )
     max_results: int = Field(default=5, ge=1, le=5)
 
@@ -85,6 +86,7 @@ class ToolSession:
     cancelled: asyncio.Event = field(default_factory=asyncio.Event)
     # 由服务器根据本次搜索结果或用户明确提供的网址登记，不接受模型设置。
     readable_urls: dict[str, str] = field(default_factory=dict)
+    search_top_k: int = 10
 
 
 async def run_scoped(
@@ -140,6 +142,9 @@ class ReadOnlyToolExecutor:
         knowledge_base_ids: list[int],
         allow_web: bool,
         user_urls: tuple[str, ...] = (),
+        *,
+        cancelled: asyncio.Event | None = None,
+        deadline: float | None = None,
     ) -> ToolSession:
         if type(user_id) is not int or user_id <= 0 or type(allow_web) is not bool:
             raise ToolError("INVALID_SCOPE", "工具用户或联网范围无效")
@@ -152,6 +157,10 @@ class ReadOnlyToolExecutor:
         session = ToolSession(
             ToolScope(user_id, tuple(dict.fromkeys(knowledge_base_ids)), allow_web)
         )
+        if cancelled is not None:
+            session.cancelled = cancelled
+        if deadline is not None:
+            session.deadline = min(session.deadline, deadline)
 
         async def authorize() -> None:
             await self._authorize(session.scope)
@@ -167,6 +176,23 @@ class ReadOnlyToolExecutor:
             kb = await self._kb_repo.get_by_id(kid)
             if kb is None or kb.owner_id != scope.user_id:
                 raise ToolError("KNOWLEDGE_BASE_FORBIDDEN", "所选知识库不存在或无访问权限")
+
+    @staticmethod
+    def call_key(call: ToolCall) -> str:
+        """按实际查询内容识别重复；改变数量或参数排列不能绕过检查。"""
+        if call.name not in _ARGUMENTS or len(call.arguments) > 8192:
+            raise ToolError("INVALID_TOOL_ARGUMENTS", "工具名称或参数无效")
+        try:
+            args = _ARGUMENTS[call.name].model_validate_json(call.arguments)
+        except ValidationError as exc:
+            raise ToolError("INVALID_TOOL_ARGUMENTS", "工具参数不符合定义") from exc
+        if isinstance(args, KnowledgeSearchArguments):
+            value = " ".join(args.query.casefold().split())
+        elif isinstance(args, WebSearchArguments):
+            value = sorted({" ".join(word.casefold().split()) for word in args.keywords})
+        else:
+            value = sorted({normalize_public_url(url) for url in args.urls})
+        return json.dumps([call.name, value], ensure_ascii=False)
 
     def definitions(self, scope: ToolScope) -> list[dict]:
         names = ["knowledge_base_search"] if scope.knowledge_base_ids else []
@@ -242,7 +268,8 @@ class ReadOnlyToolExecutor:
             if not session.scope.knowledge_base_ids:
                 raise ToolError("KNOWLEDGE_BASE_FORBIDDEN", "本次提问未选择知识库")
             hits = await self._retrieval.retrieve_many(
-                arguments.query, session.scope.knowledge_base_ids, arguments.top_k
+                arguments.query, session.scope.knowledge_base_ids,
+                min(arguments.top_k, session.search_top_k),
             )
             prepared = await self._materials.prepare(
                 hits,

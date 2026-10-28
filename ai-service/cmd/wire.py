@@ -29,6 +29,7 @@ from internal.biz.knowledge_base import KnowledgeBaseBiz
 from internal.biz.materials import InputBudget
 from internal.biz.rag import RAGBiz
 from internal.biz.retrieval import RetrievalBiz
+from internal.biz.tool_model import ToolModel
 from internal.biz.tools import ReadOnlyToolExecutor
 from internal.conf.config import AppConfig, get_settings
 from internal.conf.logging import setup_logging
@@ -57,7 +58,6 @@ from internal.service.document import DocumentService
 from internal.service.knowledge_base import KnowledgeBaseService
 from internal.service.rag import RAGService
 from internal.service.retrieval import RetrievalService
-from internal.service.tools import ReadOnlyToolService
 from pkg.session import SessionManager
 
 logger = structlog.get_logger()
@@ -277,7 +277,7 @@ def create_app() -> FastAPI:
     )
     retrieval_service = RetrievalService(retrieval_biz=retrieval_biz)
 
-    # 第二阶段只提供单步工具能力；第三阶段再接入问答执行循环。
+    # 只读工具与有边界的问答循环共用模型、资料和授权范围。
     tool_budget = InputBudget(model=llm_provider.model_name)
     tool_executor = ReadOnlyToolExecutor(
         retrieval=retrieval_biz, kb_repo=kb_repo, chunk_repo=chunk_repo,
@@ -289,18 +289,16 @@ def create_app() -> FastAPI:
         budget=tool_budget, context_window=settings.rag.context_window,
         timeout=settings.tools.timeout,
     )
-    tool_service = ReadOnlyToolService(
+    tool_service = ToolModel(
         tool_executor, llm_provider, tool_budget, model_timeout=settings.llm.timeout
     )
 
     # ── RAG 链路 ──
     rag_biz = RAGBiz(
-        retrieval_biz=retrieval_biz,
-        llm_provider=llm_provider,
+        model=tool_service,
         prompt_manager=prompt_manager,
+        budget=tool_budget,
         default_rag_template=settings.prompt.default_rag_template,
-        chunk_repo=chunk_repo,
-        context_window=settings.rag.context_window,
     )
     rag_service = RAGService(rag_biz=rag_biz)
 

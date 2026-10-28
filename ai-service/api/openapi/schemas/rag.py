@@ -13,7 +13,9 @@ class RAGQueryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     query: str = Field(min_length=1, max_length=4000)
-    top_k: int = Field(default=5, ge=1, le=20)
+    allow_web: bool = Field(default=False, strict=True, description="用户明确开启后才允许联网")
+    user_urls: list[str] = Field(default_factory=list, max_length=3, description="用户明确提供的公开网址")
+    top_k: int = Field(default=5, ge=1, le=10)
     temperature: float | None = Field(default=None, ge=0.0, le=2.0)
     max_tokens: int | None = Field(default=None, ge=1, le=2048)
     knowledge_base_ids: list[Annotated[int, Field(gt=0)]] | None = Field(
@@ -56,10 +58,43 @@ class RAGSourceDTO(BaseModel):
     )
 
 
+class RAGWebSourceDTO(BaseModel):
+    citation_id: int
+    source_type: str
+    url: str
+    title: str
+    fetched_at: str
+    content: str
+    truncated: bool
+
+
+class RunUsageDTO(BaseModel):
+    model_calls: int
+    tool_calls: int
+    estimated_input_tokens: int
+    prompt_tokens: int
+    completion_tokens: int
+    charged_tokens: int
+    unreported_model_calls: int
+
+
+class RunEventDTO(BaseModel):
+    sequence: int
+    kind: str
+    elapsed_ms: int
+    data: dict
+
+
 class RAGQueryResponse(BaseModel):
+    run_id: str
+    status: str
+    stop_reason: str
+    error_code: str | None
+    usage: RunUsageDTO
+    events: list[RunEventDTO]
     answer: str
     model: str
-    sources: list[RAGSourceDTO]
+    sources: list[RAGSourceDTO | RAGWebSourceDTO]
     source_count: int
     retrieval_results: list[RetrievalResultDTO]
     input_measurement: str

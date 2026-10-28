@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from dataclasses import asdict
 from typing import AsyncGenerator
 
 import structlog
@@ -24,8 +25,9 @@ from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from sqlalchemy import inspect
+from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
-from sqlalchemy import inspect, text as sql_text
 
 from api.openapi.schemas.auth import (
     LoginRequest,
@@ -47,21 +49,21 @@ from api.openapi.schemas.knowledge_base import (
     KnowledgeBaseResponse,
     KnowledgeBaseUpdateRequest,
 )
-from api.openapi.schemas.retrieval import RetrievalRequest, RetrievalResponse
 from api.openapi.schemas.rag import RAGQueryRequest, RAGQueryResponse
+from api.openapi.schemas.retrieval import RetrievalRequest, RetrievalResponse
+from internal.biz.rag import RAG_EVENT_CHUNK, RAG_EVENT_SOURCES, RAG_EVENT_TERMINAL
 from internal.conf.config import ServerConfig, SessionConfig
 from internal.server.middleware.auth import AuthMiddleware
-from internal.server.middleware.security import SecurityHeadersMiddleware
-from internal.server.middleware.rate_limit import RateLimitMiddleware, RateLimitSettings
 from internal.server.middleware.metrics import MetricsMiddleware, metrics_endpoint
+from internal.server.middleware.rate_limit import RateLimitMiddleware, RateLimitSettings
+from internal.server.middleware.security import SecurityHeadersMiddleware
 from internal.service.auth import AuthService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
 from internal.service.knowledge_base import KnowledgeBaseService
-from internal.service.retrieval import RetrievalService, retrieval_dto
 from internal.service.rag import RAGService, source_dto
-from internal.biz.rag import RAG_EVENT_SOURCES, RAG_EVENT_CHUNK
-from internal.streaming.sse import format_sse_data, SSE_DONE
+from internal.service.retrieval import RetrievalService, retrieval_dto
+from internal.streaming.sse import SSE_DONE, format_sse_data
 from pkg.errors.base import APIError
 from pkg.errors.codes import ErrorCode
 from pkg.errors.fastapi import register_exception_handlers
@@ -579,6 +581,9 @@ class HTTPServer:
                 top_k=body.top_k,
                 temperature=body.temperature,
                 max_tokens=body.max_tokens,
+                user_id=request.state.user_id,
+                allow_web=body.allow_web,
+                user_urls=tuple(body.user_urls),
             )
 
         @router.post(
@@ -613,6 +618,9 @@ class HTTPServer:
                         top_k=body.top_k,
                         temperature=body.temperature,
                         max_tokens=body.max_tokens,
+                        user_id=request.state.user_id,
+                        allow_web=body.allow_web,
+                        user_urls=tuple(body.user_urls),
                     ):
                         if event.event_type == RAG_EVENT_SOURCES:
                             yield format_sse_data({
@@ -632,6 +640,15 @@ class HTTPServer:
                                 "finish_reason": event.chunk.finish_reason,
                                 "prompt_tokens": event.prompt_tokens,
                                 "completion_tokens": event.completion_tokens,
+                            })
+                        elif event.event_type == RAG_EVENT_TERMINAL and event.run:
+                            run = event.run
+                            yield format_sse_data({
+                                "type": "result" if run.status in ("completed", "insufficient") else "error",
+                                "run_id": run.run_id, "status": run.status,
+                                "stop_reason": run.stop_reason, "error_code": run.error_code,
+                                "error": run.error_code or run.stop_reason,
+                                "usage": asdict(run.usage),
                             })
                     yield SSE_DONE
                 except Exception as e:
