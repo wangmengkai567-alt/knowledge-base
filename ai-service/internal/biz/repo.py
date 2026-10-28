@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         RetrievedChunk,
         User,
     )
+    from internal.biz.tool_types import WebResult
 
 
 class UserRepo(ABC):
@@ -370,6 +371,24 @@ class LLMProvider(ABC):
         """
         ...
 
+    @property
+    def supports_native_tools(self) -> bool:
+        return False
+
+    async def generate_with_tools(
+        self,
+        messages: list[dict],
+        tools: list[dict],
+        *,
+        tool_choice: str = "auto",
+        temperature: float | None = None,
+        max_tokens: int = 2048,
+    ) -> ChatResult:
+        """一次原生工具决策；未实现的提供商明确拒绝，不模拟自然语言调用。"""
+        from pkg.errors.base import LLMError
+
+        raise LLMError(reason="TOOL_CALLING_UNSUPPORTED", message="当前模型未配置原生工具调用能力")
+
     @abstractmethod
     async def generate_stream(
         self,
@@ -490,4 +509,16 @@ class VectorStore(ABC):
         返回:
             (chunk_id, score) 列表，按相似度降序
         """
+        ...
+
+
+class WebProvider(ABC):
+    """网页搜索摘要和正文读取是两个明确的只读动作。"""
+
+    @abstractmethod
+    async def search(self, keywords: str, max_results: int) -> WebResult:
+        ...
+
+    @abstractmethod
+    async def read(self, urls: list[str]) -> WebResult:
         ...

@@ -17,6 +17,7 @@ from internal.biz.entity import RetrievalResult, RetrievedChunk, SourceScore
 from internal.biz.materials import select_materials
 from internal.biz.query_plan import QueryPlan, plan_query
 from internal.biz.rrf import reciprocal_rank_fusion
+from pkg.errors.base import RAGError
 
 logger = structlog.get_logger()
 
@@ -66,6 +67,27 @@ class RetrievalBiz:
         self._query_expand_enabled = query_expand_enabled
         self._max_query_variants = max(1, max_query_variants)
         self._rrf_k = rrf_k
+
+    async def retrieve_many(
+        self, query: str, knowledge_base_ids: list[int] | tuple[int, ...], top_k: int
+    ) -> list[RetrievalResult]:
+        """问答和只读工具共用跨库协调；任何分支失败都停止其余分支。"""
+        tasks = [asyncio.create_task(self.retrieve(
+            query=query, knowledge_base_id=kid, top_k=top_k,
+            apply_threshold=True, dedupe_by_document=False,
+        )) for kid in dict.fromkeys(knowledge_base_ids)]
+        try:
+            batches = await asyncio.gather(*tasks)
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        hits = [hit for batch in batches for hit in batch]
+        if len({(hit.score_type, hit.score_method) for hit in hits}) > 1:
+            raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
+        hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
+        return hits[:top_k]
 
     async def retrieve(
         self,

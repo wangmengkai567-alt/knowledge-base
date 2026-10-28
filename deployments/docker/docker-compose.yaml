@@ -30,6 +30,7 @@ services:
     environment:
       - AI_DATABASE__URL=postgresql+asyncpg://ai_kb:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/ai_kb
       - AI_REDIS__URL=redis://redis:6379/0
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
       - AI_LLM__API_KEY=${AI_LLM__API_KEY:-}
       - AI_LLM__BASE_URL=${AI_LLM__BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
       - AI_LLM__PROVIDER=${AI_LLM__PROVIDER:-zhipu}

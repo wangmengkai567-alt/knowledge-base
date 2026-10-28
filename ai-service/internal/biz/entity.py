@@ -20,6 +20,8 @@ from internal.biz.constants import (
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from internal.biz.tool_types import ToolCall
+
 
 @dataclass
 class User:
@@ -161,6 +163,15 @@ class ChatResult:
     prompt_tokens: int = 0    # Prompt 消耗 token 数
     completion_tokens: int = 0  # Completion 消耗 token 数
     total_tokens: int = 0     # 总消耗 token 数
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    finish_reason: str | None = None
+
+    def to_message(self) -> dict:
+        """保留原生调用编号、名称和参数，供对应 tool 结果接回模型。"""
+        message = {"role": "assistant", "content": self.content}
+        if self.tool_calls:
+            message["tool_calls"] = [call.to_dict() for call in self.tool_calls]
+        return message
 
 
 @dataclass

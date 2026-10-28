@@ -26,18 +26,20 @@ from internal.biz.chunk import ChunkBiz
 from internal.biz.document import DocumentBiz
 from internal.biz.embedding import EmbeddingBiz
 from internal.biz.knowledge_base import KnowledgeBaseBiz
-from internal.biz.retrieval import RetrievalBiz
+from internal.biz.materials import InputBudget
 from internal.biz.rag import RAGBiz
+from internal.biz.retrieval import RetrievalBiz
+from internal.biz.tools import ReadOnlyToolExecutor
 from internal.conf.config import AppConfig, get_settings
 from internal.conf.logging import setup_logging
 from internal.data.chunk.factory import create_chunk_repo
 from internal.data.chunker.factory import create_text_chunker
 from internal.data.database import create_engine, create_session_factory
 from internal.data.document.factory import create_document_repo
-from internal.data.embedding.factory import create_embedding_provider
 from internal.data.embedding.cache import CachedEmbeddingProvider
-from internal.data.knowledge_base.factory import create_knowledge_base_repo
+from internal.data.embedding.factory import create_embedding_provider
 from internal.data.keyword.factory import create_keyword_store
+from internal.data.knowledge_base.factory import create_knowledge_base_repo
 from internal.data.llm.factory import create_llm_provider
 from internal.data.parser.factory import create_document_parser
 from internal.data.reranker.factory import create_reranker
@@ -45,15 +47,17 @@ from internal.data.retriever.factory import create_retriever
 from internal.data.storage.factory import create_file_storage_repo
 from internal.data.user.factory import create_user_repo
 from internal.data.vector_store.factory import create_vector_store
+from internal.data.web.tavily import TavilyWeb
 from internal.prompt.manager import PromptManager
 from internal.server.http import HTTPServer
-from internal.server.middleware.rate_limit import create_rate_limiter, RateLimitSettings
+from internal.server.middleware.rate_limit import RateLimitSettings, create_rate_limiter
 from internal.service.auth import AuthService
-from internal.service.rag import RAGService
 from internal.service.chunk import ChunkService
 from internal.service.document import DocumentService
 from internal.service.knowledge_base import KnowledgeBaseService
+from internal.service.rag import RAGService
 from internal.service.retrieval import RetrievalService
+from internal.service.tools import ReadOnlyToolService
 from pkg.session import SessionManager
 
 logger = structlog.get_logger()
@@ -273,6 +277,22 @@ def create_app() -> FastAPI:
     )
     retrieval_service = RetrievalService(retrieval_biz=retrieval_biz)
 
+    # 第二阶段只提供单步工具能力；第三阶段再接入问答执行循环。
+    tool_budget = InputBudget(model=llm_provider.model_name)
+    tool_executor = ReadOnlyToolExecutor(
+        retrieval=retrieval_biz, kb_repo=kb_repo, chunk_repo=chunk_repo,
+        web=TavilyWeb(
+            api_key=settings.tavily.api_key, timeout=settings.tavily.timeout,
+            search_limit=settings.tavily.search_limit,
+            summary_chars=settings.tavily.summary_chars, page_chars=settings.tavily.page_chars,
+        ),
+        budget=tool_budget, context_window=settings.rag.context_window,
+        timeout=settings.tools.timeout,
+    )
+    tool_service = ReadOnlyToolService(
+        tool_executor, llm_provider, tool_budget, model_timeout=settings.llm.timeout
+    )
+
     # ── RAG 链路 ──
     rag_biz = RAGBiz(
         retrieval_biz=retrieval_biz,
@@ -326,7 +346,9 @@ def create_app() -> FastAPI:
         ensure_pgvector=(settings.vector_store.provider == "pgvector"),
         vector_dimension=settings.embedding.dimension,
     )
-    return http_server.create()
+    app = http_server.create()
+    app.state.read_only_tools = tool_service
+    return app
 
 
 # ── 模块级变量 ──

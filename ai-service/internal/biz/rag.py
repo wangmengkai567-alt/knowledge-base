@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
@@ -70,25 +69,7 @@ class RAGBiz:
         top_k: int,
         max_tokens: int | None,
     ) -> tuple[list[RetrievalResult], PreparedMaterials]:
-        batches = await asyncio.gather(
-            *(
-                self._retrieval_biz.retrieve(
-                    query=query,
-                    knowledge_base_id=kid,
-                    top_k=top_k,
-                    apply_threshold=True,
-                    dedupe_by_document=False,
-                )
-                for kid in dict.fromkeys(knowledge_base_ids)
-            )
-        )
-        hits = [hit for batch in batches for hit in batch]
-        # 相同配置产生的最终分才允许跨库排序；无分数条目保留，不补造数值。
-        kinds = {(hit.score_type, hit.score_method) for hit in hits}
-        if len(kinds) > 1:
-            raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
-        hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
-        hits = hits[:top_k]
+        hits = await self._retrieval_biz.retrieve_many(query, knowledge_base_ids, top_k)
         template = self._prompt_manager.get_template(self._template)
         prepared = await self._materials.prepare(
             hits,

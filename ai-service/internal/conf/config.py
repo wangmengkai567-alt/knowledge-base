@@ -484,6 +484,23 @@ class KeywordStoreConfig(BaseSettings):
 # 全局配置聚合根
 
 
+class ToolConfig(BaseSettings):
+    timeout: float = Field(default=30, gt=0, le=60, description="单次只读工具超时秒数")
+
+
+class TavilyConfig(BaseSettings):
+    """已选定网页供应商；密钥缺失只禁用网页工具，保留知识库问答。"""
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="TAVILY_", extra="ignore"
+    )
+    api_key: str = Field(default="", repr=False)
+    timeout: float = Field(default=20, gt=0, le=20)
+    search_limit: int = Field(default=5, ge=1, le=5)
+    summary_chars: int = Field(default=1200, ge=100, le=1200)
+    page_chars: int = Field(default=5000, ge=100, le=5000)
+
+
 class AppConfig(BaseSettings):
     """全局应用配置 — 所有子模型的聚合根。
 
@@ -512,6 +529,8 @@ class AppConfig(BaseSettings):
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
     vector_store: VectorStoreConfig = Field(default_factory=VectorStoreConfig)
     keyword_store: KeywordStoreConfig = Field(default_factory=KeywordStoreConfig)
+    tools: ToolConfig = Field(default_factory=ToolConfig)
+    tavily: TavilyConfig = Field(default_factory=TavilyConfig)
     prompt: PromptConfig = Field(default_factory=PromptConfig)
     log: LogConfig = Field(default_factory=LogConfig)
 

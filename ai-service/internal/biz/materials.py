@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from internal.biz.relevance import apply_relevance_gate
 from pkg.errors.base import RAGError
@@ -51,6 +51,17 @@ class AnswerSource:
         return "\n".join(segment.content for segment in self.segments)
 
 
+@dataclass
+class WebSource:
+    citation_id: int
+    url: str
+    title: str
+    fetched_at: str
+    content: str
+    source_type: Literal["web_search_summary", "web_page"]
+    truncated: bool = False
+
+
 @dataclass(frozen=True)
 class InputBudget:
     model: str
@@ -68,8 +79,8 @@ class InputBudget:
 
 @dataclass
 class PreparedMaterials:
-    messages: list[dict[str, str]]
-    sources: list[AnswerSource]
+    messages: list[dict]
+    sources: list[AnswerSource | WebSource]
     estimated_input_tokens: int
     output_tokens: int
     measurement: str
@@ -86,19 +97,33 @@ class MaterialProcessor:
     async def prepare(
         self,
         hits: list[RetrievalResult],
-        build_messages: Callable[[str], list[dict[str, str]]],
+        build_messages: Callable[[str], list[dict]],
         output_tokens: int,
         *,
         tools: list[dict] | None = None,
         history: list[dict] | None = None,
     ) -> PreparedMaterials:
+        return self.prepare_sources(
+            await self._merge(hits), build_messages, output_tokens, tools=tools, history=history
+        )
+
+    def prepare_sources(
+        self,
+        candidates: list[AnswerSource | WebSource],
+        build_messages: Callable[[str], list[dict]],
+        output_tokens: int,
+        *,
+        tools: list[dict] | None = None,
+        history: list[dict] | None = None,
+    ) -> PreparedMaterials:
+        """知识库和网页资料共用预算、实际文字裁剪与引用编号。"""
         budget = self._budget
         tools, history = tools or [], history or []
         if not 0 < output_tokens <= budget.output_limit:
             raise RAGError(reason="OUTPUT_BUDGET_EXCEEDED", message="回答预算必须在 1 到 2048 之间")
         limit = min(budget.input_limit, budget.context_capacity - output_tokens)
 
-        def measure(sources: list[AnswerSource]) -> tuple[list[dict[str, str]], int]:
+        def measure(sources: list[AnswerSource | WebSource]) -> tuple[list[dict], int]:
             messages = build_messages(render_materials(sources))
             return messages, budget.estimate(messages, tools, history)
 
@@ -106,22 +131,22 @@ class MaterialProcessor:
         if base_size >= limit:
             raise RAGError(reason="INPUT_BUDGET_EXCEEDED", message="问题及系统提示已超过输入预算")
 
-        sources: list[AnswerSource] = []
-        for candidate in await self._merge(hits):
-            candidate.citation_id = len(sources) + 1
+        sources: list[AnswerSource | WebSource] = []
+        for original in candidates:
+            candidate = replace(original, citation_id=len(sources) + 1)
             _, size = measure([*sources, candidate])
             if size <= limit:
                 sources.append(candidate)
                 continue
             # 对实际送模正文截断，同时裁剪分块映射；不登记未送模的分块。
             low, high = 0, len(candidate.content)
-            best: AnswerSource | None = None
+            best: AnswerSource | WebSource | None = None
             while low <= high:
                 middle = (low + high) // 2
                 clipped = clip_source(candidate, middle)
                 _, size = measure([*sources, clipped])
                 if size <= limit:
-                    best = clipped if clipped.segments else None
+                    best = clipped if clipped.content else None
                     low = middle + 1
                 else:
                     high = middle - 1
@@ -129,7 +154,7 @@ class MaterialProcessor:
                 sources.append(best)
             break
         messages, size = measure(sources)
-        if hits and not sources:
+        if candidates and not sources:
             raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message="输入预算不足以容纳资料")
         return PreparedMaterials(messages, sources, size, output_tokens, budget.measurement)
 
@@ -193,7 +218,9 @@ class MaterialProcessor:
         return [source for _, source in ranked]
 
 
-def clip_source(source: AnswerSource, length: int) -> AnswerSource:
+def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
+    if isinstance(source, WebSource):
+        return replace(source, content=source.content[:length], truncated=True)
     segments: list[MaterialSegment] = []
     remaining = length
     for segment in source.segments:
@@ -212,8 +239,13 @@ def clip_source(source: AnswerSource, length: int) -> AnswerSource:
     )
 
 
-def render_materials(sources: list[AnswerSource]) -> str:
+def render_materials(sources: list[AnswerSource | WebSource]) -> str:
     return "\n\n".join(
-        f"[来源 {source.citation_id}: {source.document_filename}]\n{source.content}"
+        (
+            f"[来源 {source.citation_id}: {source.document_filename}]\n{source.content}"
+            if isinstance(source, AnswerSource)
+            else f"[来源 {source.citation_id}: {source.title}; {source.source_type}; "
+            f"{source.url}; 获取时间 {source.fetched_at}]\n{source.content}"
+        )
         for source in sources
     )
