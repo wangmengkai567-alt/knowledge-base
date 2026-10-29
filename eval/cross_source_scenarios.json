@@ -1,0 +1,17 @@
+{
+  "description": "补充跨库验收；历史 F03 固定单库对照保留，另显式允许题目涉及的两个知识库。",
+  "items": [
+    {
+      "id": "CROSS01",
+      "kb_id": 3,
+      "knowledge_base_ids": [2, 3],
+      "query": "请比较知识库中《04.Docker.md》基础沙箱示例的内存限制，以及《04.agent_security.md》中的内存限制。它们是否为同一套数字？分别引用两份原文，不要把示例数字当成统一标准。",
+      "allow_web": false,
+      "answerable": true,
+      "must_contain": ["256", "512"],
+      "required_tools": ["knowledge_base_search"],
+      "required_source_types": ["knowledge_base"],
+      "required_source_files": ["04.Docker.md", "04.agent_security.md"]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "verified_at": "2026-10-29T12:54:03.972788+00:00",
+  "model": "qwen3.8-flash",
+  "capability": "JSON Object模式与原生工具调用联用",
+  "http_status": 200,
+  "finish_reason": "tool_calls",
+  "tool_name": "probe",
+  "prompt_tokens": 302,
+  "completion_tokens": 24,
+  "note": "通过现有供应商接口实际验证；未执行外部工具，未更换模型或供应商。"
+}

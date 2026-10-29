@@ -6,6 +6,9 @@
 # ──────────────────────────────────────────────
 
 FROM python:3.11-slim
+COPY --from=ghcr.io/astral-sh/uv:0.11.26 /uv /uvx /usr/local/bin/
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
 # 元数据
 LABEL maintainer="AI Knowledge Base Team"
@@ -17,20 +20,21 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuse
 
 WORKDIR /app
 
-# 系统依赖：build-essential 编译 Python C 扩展，libmupdf 给 PyMuPDF 用，curl 给 HEALTHCHECK 用
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libmupdf-dev \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
+# 官方 HTTPS 软件源；PyMuPDF 使用锁定的预编译轮子。
+# libgl1 / glib 是 RapidOCR 的 OpenCV 运行库；curl 用于健康检查。
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libgl1 libglib2.0-0 curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# 先复制依赖声明 + 源码，安装 Python 依赖
-COPY ai-service/ ./
-RUN pip install --no-cache-dir .
+# 依赖独立缓存；源码变化只重新安装本项目。
+COPY ai-service/pyproject.toml ai-service/uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --link-mode copy --locked --no-dev --no-install-project
+COPY --chown=appuser:appuser ai-service/ ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --link-mode copy --locked --no-dev --no-editable
 
 # 创建数据目录（挂载点）
-RUN mkdir -p /app/data/uploads && chown -R appuser:appuser /app
+RUN mkdir -p /app/data/uploads && chown appuser:appuser /app /app/data /app/data/uploads
 
 # 切换到非 root 用户
 USER appuser

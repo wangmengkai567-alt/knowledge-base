@@ -1,0 +1,492 @@
+{
+  "version": 6,
+  "checks": [
+    {
+      "item": "W03",
+      "citation_id": 1,
+      "kind": "knowledge_base",
+      "document_id": 133,
+      "version": "2026-10-10T03:04:20.880980Z",
+      "valid": true,
+      "failures": []
+    },
+    {
+      "item": "W04",
+      "citation_id": 1,
+      "kind": "web_search_summary",
+      "url": "https://www.most.gov.cn/xxgk/xinxifenlei/fdzdgknr/fgzc/gfxwj/gfxwj2018/201807/t20180704_140453.html",
+      "fetched_at": "2026-10-29T13:26:30.651135+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 2,
+      "kind": "web_search_summary",
+      "url": "https://ggzyfw.beijing.gov.cn/cmsbj/u/cms/cn.gov.bjggzyfw.www/202011/10094601yq46.pdf",
+      "fetched_at": "2026-10-29T13:26:30.651135+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 3,
+      "kind": "web_search_summary",
+      "url": "https://www.court.gov.cn/fabu/xiangqing/504221.html",
+      "fetched_at": "2026-10-29T13:26:30.651135+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 4,
+      "kind": "web_search_summary",
+      "url": "https://www.nsfc.gov.cn/csc/20345/20348/pdf/2022/202201-68-74.pdf",
+      "fetched_at": "2026-10-29T13:26:30.651135+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 5,
+      "kind": "web_search_summary",
+      "url": "https://www.cnipa.gov.cn/attach/0/%E4%B8%93%E5%88%A9%E5%AE%A1%E6%9F%A5%E6%8C%87%E5%8D%97.pdf",
+      "fetched_at": "2026-10-29T13:26:30.651135+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 6,
+      "kind": "web_search_summary",
+      "url": "http://opt.cas.cn/gb2019/jg/glbm/cwzcglc/zczd/202003/P020200320598950037335.pdf",
+      "fetched_at": "2026-10-29T13:26:38.726944+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 7,
+      "kind": "web_search_summary",
+      "url": "http://www.mof.gov.cn/zhengwuxinxi/zhengcefabu/201502/t20150227_1195516.htm",
+      "fetched_at": "2026-10-29T13:26:38.726944+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 8,
+      "kind": "web_search_summary",
+      "url": "https://www.most.gov.cn/xxgk/xinxifenlei/zc/gz/202507/t20250711_194108.html",
+      "fetched_at": "2026-10-29T13:26:38.726944+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 9,
+      "kind": "web_search_summary",
+      "url": "https://www.iatfglobaloversight.org/wp/wp-content/uploads/2024/10/Rules-6th-Q-A_31-July-2024_V1-Chinese.pdf",
+      "fetched_at": "2026-10-29T13:26:38.726944+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    },
+    {
+      "item": "W04",
+      "citation_id": 10,
+      "kind": "web_search_summary",
+      "url": "https://www.moj.gov.cn/pub/sfbgw/flfggz/flfggzbmgz/201703/t20170320_145970.html",
+      "fetched_at": "2026-10-29T13:26:38.726944+00:00",
+      "basis": "persisted fetch snapshot; never refetch changed web content"
+    }
+  ],
+  "all_kb_sources_match": true,
+  "documents": [
+    {
+      "knowledge_base_id": 3,
+      "document": {
+        "id": 133,
+        "knowledge_base_id": 3,
+        "filename": "04.Docker.md",
+        "file_size": 16915,
+        "mime_type": "text/markdown",
+        "status": 2,
+        "stages": {
+          "parse": {
+            "status": "completed",
+            "error": null,
+            "updated_at": "2026-10-28T13:04:52.542508+00:00"
+          },
+          "chunk": {
+            "status": "completed",
+            "error": null,
+            "updated_at": "2026-10-29T13:24:42.852442+00:00"
+          },
+          "vector": {
+            "status": "completed",
+            "error": null,
+            "updated_at": "2026-10-29T13:24:42.935782+00:00"
+          },
+          "keyword": {
+            "status": "completed",
+            "error": null,
+            "updated_at": "2026-10-29T13:24:43.029281+00:00"
+          }
+        },
+        "ingestion_status": "ready",
+        "updated_at": "2026-10-10T03:04:20.880980Z",
+        "parsed_content": "\n## 1. Docker 基础\n\n### 1.1 什么是 Docker？\n\nDocker 是一种容器化技术，可以将应用程序及其运行所需的依赖、配置和运行环境打包到容器中，使应用在不同环境下保持一致的运行方式。\n\n在 Agent 开发中，Docker 主要用于：\n\n- 环境隔离：隔离不同 Agent 项目的 Python、Node.js 等运行环境。\n    \n- 依赖管理：将 Agent 所需的 SDK、数据库驱动等依赖打包。\n    \n- 工具执行隔离：让 Agent 在受限容器中执行 Shell 命令、运行代码。\n    \n- 服务部署：将 Agent API、数据库、向量数据库等服务容器化。\n    \n- 多 Agent 协作：为不同 Agent 提供独立的运行环境。\n    \n\n### 1.2 Agent 为什么需要 Docker？\n\n普通 Agent 的基本执行流程：\n\n```\n用户 Query\n    ↓\nLLM（大语言模型）\n    ↓\nAgent 决策\n    ↓\nTool Calling（工具调用）\n    ↓\n执行工具\n    ↓\n返回结果给 LLM\n```\n\n当 Agent 需要执行 Shell 命令、运行 Python 代码、安装依赖或操作文件时，就会产生安全风险。\n\n例如，用户要求 Agent：\n\n```\nrm -rf /tmp/test\n```\n\n如果 Agent 直接在宿主机执行命令，就可能误删宿主机上的文件。\n\n使用 Docker 可以将工具执行放入独立容器，限制其文件访问、网络访问、资源使用和权限。\n\n```\nAgent 主进程\n    │\n    ├── 调用 LLM\n    │\n    ├── 生成执行计划\n    │\n    └── 调用 Shell Tool\n              │\n              ▼\n       Docker 容器\n       ├── 执行命令\n       ├── 访问受限文件\n       ├── 使用受限资源\n       └── 返回执行结果\n```\n\n核心理解：Docker 不负责 Agent 的推理，而是为 Agent 提供可控的运行环境。\n\n## 2. Docker 核心概念\n\n### 2.1 镜像、容器与 Dockerfile\n\n类型：表格\n表格编号：t1\n章节：2.1 镜像、容器与 Dockerfile\n表头：概念、含义、Agent 开发中的例子\n\n原始表格：\n| 概念 | 含义 | Agent 开发中的例子 |\n| --- | --- | --- |\n| Image（镜像） | 创建容器的模板 | Python Agent 的运行环境 |\n| Container（容器） | 镜像运行后的实例 | 正在执行代码的 Agent 沙箱 |\n| Dockerfile（镜像构建文件） | 定义如何构建镜像 | 安装 Python、复制代码、安装依赖 |\n| Registry（镜像仓库） | 存储和分发镜像 | Docker Hub、私有镜像仓库 |\n| Volume（数据卷） | 持久化存储数据 | 保存 Agent 的数据库文件 |\n| Network（网络） | 控制容器之间的通信 | Agent API 连接 PostgreSQL |\n\n类型：表格行\n表格编号：t1\n行号：1\n章节：2.1 镜像、容器与 Dockerfile\n概念：Image（镜像）\n含义：创建容器的模板\nAgent 开发中的例子：Python Agent 的运行环境\n\n类型：表格行\n表格编号：t1\n行号：2\n章节：2.1 镜像、容器与 Dockerfile\n概念：Container（容器）\n含义：镜像运行后的实例\nAgent 开发中的例子：正在执行代码的 Agent 沙箱\n\n类型：表格行\n表格编号：t1\n行号：3\n章节：2.1 镜像、容器与 Dockerfile\n概念：Dockerfile（镜像构建文件）\n含义：定义如何构建镜像\nAgent 开发中的例子：安装 Python、复制代码、安装依赖\n\n类型：表格行\n表格编号：t1\n行号：4\n章节：2.1 镜像、容器与 Dockerfile\n概念：Registry（镜像仓库）\n含义：存储和分发镜像\nAgent 开发中的例子：Docker Hub、私有镜像仓库\n\n类型：表格行\n表格编号：t1\n行号：5\n章节：2.1 镜像、容器与 Dockerfile\n概念：Volume（数据卷）\n含义：持久化存储数据\nAgent 开发中的例子：保存 Agent 的数据库文件\n\n类型：表格行\n表格编号：t1\n行号：6\n章节：2.1 镜像、容器与 Dockerfile\n概念：Network（网络）\n含义：控制容器之间的通信\nAgent 开发中的例子：Agent API 连接 PostgreSQL\n\n可以用一个简单的关系理解：\n\n```\nDockerfile\n    │ docker build\n    ▼\n  Image（镜像）\n    │ docker run\n    ▼\nContainer（容器）\n```\n\n### 2.2 Docker 与虚拟机的区别\n\n类型：表格\n表格编号：t2\n章节：2.2 Docker 与虚拟机的区别\n表头：对比维度、Docker 容器、虚拟机\n\n原始表格：\n| 对比维度 | Docker 容器 | 虚拟机 |\n| --- | --- | --- |\n| 隔离方式 | 操作系统级进程隔离 | 虚拟化硬件并运行独立操作系统 |\n| 启动速度 | 通常较快 | 通常较慢 |\n| 资源开销 | 通常较小 | 通常较大 |\n| 内核 | 与宿主机或底层容器运行环境共享内核 | 通常拥有独立内核 |\n| Agent 使用场景 | 日常部署、工具执行沙箱 | 需要更强隔离边界的场景 |\n\n类型：表格行\n表格编号：t2\n行号：1\n章节：2.2 Docker 与虚拟机的区别\n对比维度：隔离方式\nDocker 容器：操作系统级进程隔离\n虚拟机：虚拟化硬件并运行独立操作系统\n\n类型：表格行\n表格编号：t2\n行号：2\n章节：2.2 Docker 与虚拟机的区别\n对比维度：启动速度\nDocker 容器：通常较快\n虚拟机：通常较慢\n\n类型：表格行\n表格编号：t2\n行号：3\n章节：2.2 Docker 与虚拟机的区别\n对比维度：资源开销\nDocker 容器：通常较小\n虚拟机：通常较大\n\n类型：表格行\n表格编号：t2\n行号：4\n章节：2.2 Docker 与虚拟机的区别\n对比维度：内核\nDocker 容器：与宿主机或底层容器运行环境共享内核\n虚拟机：通常拥有独立内核\n\n类型：表格行\n表格编号：t2\n行号：5\n章节：2.2 Docker 与虚拟机的区别\n对比维度：Agent 使用场景\nDocker 容器：日常部署、工具执行沙箱\n虚拟机：需要更强隔离边界的场景\n\n注意：Docker 容器不等于完整的虚拟机，也不天然具备绝对安全性。 对不可信代码，仍需要权限限制、资源限制和额外的安全隔离。\n\n## 3. 必须掌握的 Docker 命令\n\n### 3.1 镜像管理\n\n```\n# 查看本地镜像\ndocker images\n\n# 拉取镜像\ndocker pull python:3.12-slim\n\n# 构建镜像\ndocker build -t my-agent:latest .\n\n# 删除镜像\ndocker rmi my-agent:latest\n```\n\n### 3.2 容器管理\n\n```\n# 启动容器\ndocker run -d --name agent-api -p 8000:8000 my-agent:latest\n\n# 查看运行中的容器\ndocker ps\n\n# 查看所有容器，包括已停止的\ndocker ps -a\n\n# 查看容器日志\ndocker logs agent-api\n\n# 实时查看日志\ndocker logs -f agent-api\n\n# 进入运行中的容器\ndocker exec -it agent-api /bin/sh\n\n# 停止容器\ndocker stop agent-api\n\n# 启动已停止的容器\ndocker start agent-api\n\n# 删除容器\ndocker rm agent-api\n```\n\n### 3.3 端口映射\n\n```\ndocker run -p 8000:8000 my-agent:latest\n```\n\n格式：\n\n```\n-p 宿主机端口:容器端口\n```\n\n例如：\n\n```\nWindows 宿主机\n    │\n    │ localhost:8000\n    ▼\nDocker 容器\n    │\n    │ 8000\n    ▼\nFastAPI Agent 服务\n```\n\n前提是容器内的服务监听 `0.0.0.0:8000`，而不是仅监听 `127.0.0.1:8000`。\n\n### 3.4 文件挂载\n\n```\ndocker run -it \\\n  -v ./workspace:/workspace \\\n  python:3.12-slim \\\n  /bin/sh\n```\n\n其中：\n\n- `./workspace`：宿主机上的目录。\n    \n- `/workspace`：容器内部的目录。\n    \n- `-v`：将宿主机目录挂载到容器中。\n    \n\n重要：挂载目录不等于隔离目录。 如果容器具有挂载目录的写权限，容器内的进程也可能修改宿主机对应文件。\n\n对于 Agent 执行环境，应该只挂载必要的目录，并尽量限制写入范围。\n\n## 4. Agent 开发中的 Dockerfile\n\n### 4.1 FastAPI Agent 服务\n\n假设项目结构如下：\n\n```\nagent-project/\n├── app/\n│   └── main.py\n├── requirements.txt\n└── Dockerfile\n```\n\n`requirements.txt`：\n\n```\nfastapi\nuvicorn[standard]\n```\n\n`app/main.py`：\n\n```\nfrom fastapi import FastAPIapp = FastAPI()@app.get(\"/\")async def root():    return {\"message\": \"Agent service is running\"}\n```\n\n`Dockerfile`：\n\n```\nFROM python:3.12-slim\n\nWORKDIR /app\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nCOPY requirements.txt .\n\nRUN pip install --no-cache-dir -r requirements.txt\n\nCOPY app ./app\n\nEXPOSE 8000\n\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n构建与运行：\n\n```\ndocker build -t my-agent:latest .\n\ndocker run -d \\\n  --name my-agent \\\n  -p 8000:8000 \\\n  my-agent:latest\n```\n\n访问：\n\n```\nhttp://localhost:8000\n```\n\n### 4.2 Dockerfile 常用指令\n\n类型：表格\n表格编号：t3\n章节：4.2 Dockerfile 常用指令\n表头：指令、作用\n\n原始表格：\n| 指令 | 作用 |\n| --- | --- |\n| `FROM` | 指定基础镜像 |\n| `WORKDIR` | 设置工作目录 |\n| `COPY` | 复制文件到镜像 |\n| `RUN` | 构建镜像时执行命令 |\n| `ENV` | 设置环境变量 |\n| `EXPOSE` | 声明容器使用的端口 |\n| `CMD` | 指定默认启动命令 |\n| `ENTRYPOINT` | 指定容器的主要执行程序 |\n| `USER` | 指定运行进程的用户 |\n\n类型：表格行\n表格编号：t3\n行号：1\n章节：4.2 Dockerfile 常用指令\n指令：`FROM`\n作用：指定基础镜像\n\n类型：表格行\n表格编号：t3\n行号：2\n章节：4.2 Dockerfile 常用指令\n指令：`WORKDIR`\n作用：设置工作目录\n\n类型：表格行\n表格编号：t3\n行号：3\n章节：4.2 Dockerfile 常用指令\n指令：`COPY`\n作用：复制文件到镜像\n\n类型：表格行\n表格编号：t3\n行号：4\n章节：4.2 Dockerfile 常用指令\n指令：`RUN`\n作用：构建镜像时执行命令\n\n类型：表格行\n表格编号：t3\n行号：5\n章节：4.2 Dockerfile 常用指令\n指令：`ENV`\n作用：设置环境变量\n\n类型：表格行\n表格编号：t3\n行号：6\n章节：4.2 Dockerfile 常用指令\n指令：`EXPOSE`\n作用：声明容器使用的端口\n\n类型：表格行\n表格编号：t3\n行号：7\n章节：4.2 Dockerfile 常用指令\n指令：`CMD`\n作用：指定默认启动命令\n\n类型：表格行\n表格编号：t3\n行号：8\n章节：4.2 Dockerfile 常用指令\n指令：`ENTRYPOINT`\n作用：指定容器的主要执行程序\n\n类型：表格行\n表格编号：t3\n行号：9\n章节：4.2 Dockerfile 常用指令\n指令：`USER`\n作用：指定运行进程的用户\n\n### 4.3 为什么要使用分层构建？\n\n例如：\n\n```\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app ./app\n```\n\n将依赖文件与业务代码分开复制，可以利用 Docker 的构建缓存。\n\n当你只修改 `app/main.py` 时，如果依赖文件未改变，Docker 通常可以复用依赖安装层，避免重复安装全部依赖。\n\n## 5. Agent 开发中的环境变量与密钥\n\nAgent 通常需要配置：\n\n- `LLM_API_KEY`：大模型 API 密钥。\n    \n- `LLM_BASE_URL`：模型服务地址。\n    \n- `DATABASE_URL`：数据库连接地址。\n    \n- `REDIS_URL`：Redis 连接地址。\n    \n\n不要将真实密钥写入 Dockerfile 或提交到 Git 仓库。\n\n推荐通过环境变量注入：\n\n```\ndocker run -d \\\n  --name my-agent \\\n  -p 8000:8000 \\\n  -e LLM_API_KEY=\"your-api-key\" \\\n  my-agent:latest\n```\n\nPython 读取：\n\n```\nimport osapi_key = os.environ[\"LLM_API_KEY\"]\n```\n\n如果使用 `.env` 文件：\n\n```\ndocker run --env-file .env my-agent:latest\n```\n\n`.env` 示例：\n\n```\nLLM_API_KEY=your-api-key\nLLM_BASE_URL=https://example.com/v1\n```\n\n将 `.env` 添加到 `.gitignore`。\n\n注意：`-e` 和 `--env-file` 只是配置注入方式，不是完整的密钥管理系统。生产环境应根据实际需求使用 Secret 管理机制，并限制谁能够读取容器配置。\n\n## 6. Docker Compose：运行多个 Agent 依赖服务\n\n### 6.1 什么是 Docker Compose？\n\nDocker Compose 是用于定义和管理多个容器的工具。\n\n例如，一个 Agent 项目可能包含：\n\n```\nAgent 应用\n    ├── FastAPI\n    ├── PostgreSQL\n    ├── Redis\n    └── 向量数据库\n```\n\n如果分别使用多个 `docker run` 命令，管理起来比较麻烦。Compose 可以使用一个配置文件定义这些服务。\n\n### 6.2 示例配置\n\n`compose.yaml`：\n\n```\nservices:\n  agent:\n    build: .\n    ports:\n      - \"8000:8000\"\n    environment:\n      DATABASE_URL: postgresql://agent:change-me@postgres:5432/agentdb\n      REDIS_URL: redis://redis:6379/0\n    depends_on:\n      - postgres\n      - redis\n\n  postgres:\n    image: postgres:16\n    environment:\n      POSTGRES_USER: agent\n      POSTGRES_PASSWORD: change-me\n      POSTGRES_DB: agentdb\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n\n  redis:\n    image: redis:7-alpine\n\nvolumes:\n  postgres_data:\n```\n\n这是学习用的示例，实际使用时应将密码改为安全配置，并添加健康检查和必要的访问控制。\n\n这里有两个需要理解的概念：\n\n服务名就是容器网络中的访问地址。\n\nAgent 容器访问 PostgreSQL 时，应该使用：\n\n```\npostgres:5432\n```\n\n而不是：\n\n```\nlocalhost:5432\n```\n\n因为在 Agent 容器内部，`localhost` 指向 Agent 自己的容器。\n\n`depends_on` 不保证服务已经可以正常处理请求。\n\n它主要控制启动顺序。需要等待数据库真正就绪时，可以配置 `healthcheck`，并根据健康状态控制依赖服务的启动。\n\n### 6.3 Compose 常用命令\n\n```\n# 启动所有服务\ndocker compose up -d\n\n# 构建镜像并启动\ndocker compose up -d --build\n\n# 查看服务状态\ndocker compose ps\n\n# 查看日志\ndocker compose logs -f\n\n# 停止并移除容器、网络\ndocker compose down\n\n# 同时删除 Compose 管理的数据卷（谨慎使用）\ndocker compose down -v\n```\n\n`docker compose down -v` 可能删除数据库持久化数据，不要在需要保留数据时使用。\n\n## 7. Docker 在 Agent 中最重要的用途：Sandbox（沙箱）\n\n### 7.1 什么是 Sandbox？\n\nSandbox（沙箱）是一种受限制的程序执行环境，目的是让程序在可控的边界内运行，降低其影响外部系统的风险。\n\nAgent 的沙箱可以用于：\n\n- 执行 Shell 命令。\n    \n- 执行 Python 或其他语言代码。\n    \n- 操作临时文件。\n    \n- 运行自动生成的脚本。\n    \n- 安装必要的临时依赖。\n    \n- 执行测试或构建任务。\n    \n\n### 7.2 为什么 Agent 需要沙箱？\n\n假设用户要求：\n\n> 帮我编写一个 Python 脚本，读取 CSV 文件并计算平均值。\n\nAgent 生成代码后，需要实际运行才能获得结果。\n\n不使用沙箱：\n\n```\nAgent\n  ↓\n生成 Python 代码\n  ↓\n在宿主机直接执行\n  ↓\n可能访问宿主机文件或执行危险操作\n```\n\n使用沙箱：\n\n```\nAgent\n  ↓\n生成 Python 代码\n  ↓\n创建受限执行容器\n  ↓\n写入任务文件\n  ↓\n运行代码\n  ↓\n收集 stdout / stderr / exit code\n  ↓\n清理临时容器\n```\n\n### 7.3 创建一个基础执行沙箱\n\n下面的命令用于创建一个权限受限的 Python 容器：\n\n```\ndocker run --rm -i \\\n  --network none \\\n  --memory 256m \\\n  --cpus 1 \\\n  --pids-limit 64 \\\n  --read-only \\\n  --tmpfs /tmp:rw,noexec,nosuid,size=64m \\\n  --cap-drop ALL \\\n  --security-opt no-new-privileges \\\n  --user 65534:65534 \\\n  python:3.12-slim \\\n  python -c \"print(1 + 1)\"\n```\n\n参数说明：\n\n类型：表格\n表格编号：t4\n表头：参数、作用\n\n原始表格：\n| 参数 | 作用 |\n| --- | --- |\n| `--rm` | 容器退出后自动删除 |\n| `-i` | 保持标准输入打开 |\n| `--network none` | 禁用容器网络 |\n| `--memory 256m` | 限制内存 |\n| `--cpus 1` | 限制 CPU 使用量 |\n| `--pids-limit 64` | 限制进程数量 |\n| `--read-only` | 将容器根文件系统设为只读 |\n| `--tmpfs` | 提供临时内存文件系统 |\n| `--cap-drop ALL` | 删除 Linux capabilities（内核能力） |\n| `--security-opt no-new-privileges` | 禁止进程通过执行程序获得新的特权 |\n| `--user 65534:65534` | 使用非 root 用户运行 |\n\n类型：表格行\n表格编号：t4\n行号：1\n参数：`--rm`\n作用：容器退出后自动删除\n\n类型：表格行\n表格编号：t4\n行号：2\n参数：`-i`\n作用：保持标准输入打开\n\n类型：表格行\n表格编号：t4\n行号：3\n参数：`--network none`\n作用：禁用容器网络\n\n类型：表格行\n表格编号：t4\n行号：4\n参数：`--memory 256m`\n作用：限制内存\n\n类型：表格行\n表格编号：t4\n行号：5\n参数：`--cpus 1`\n作用：限制 CPU 使用量\n\n类型：表格行\n表格编号：t4\n行号：6\n参数：`--pids-limit 64`\n作用：限制进程数量\n\n类型：表格行\n表格编号：t4\n行号：7\n参数：`--read-only`\n作用：将容器根文件系统设为只读\n\n类型：表格行\n表格编号：t4\n行号：8\n参数：`--tmpfs`\n作用：提供临时内存文件系统\n\n类型：表格行\n表格编号：t4\n行号：9\n参数：`--cap-drop ALL`\n作用：删除 Linux capabilities（内核能力）\n\n类型：表格行\n表格编号：t4\n行号：10\n参数：`--security-opt no-new-privileges`\n作用：禁止进程通过执行程序获得新的特权\n\n类型：表格行\n表格编号：t4\n行号：11\n参数：`--user 65534:65534`\n作用：使用非 root 用户运行\n\n这条命令只是基础加固示例，不是对抗恶意代码的完整安全方案。实际部署还应考虑容器运行时漏洞、系统调用限制、宿主机隔离、超时控制和资源耗尽风险。\n\n### 7.4 Agent 沙箱需要限制哪些能力？\n\n类型：表格\n表格编号：t5\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n表头：安全边界、控制目标、Docker 中的相关机制\n\n原始表格：\n| 安全边界 | 控制目标 | Docker 中的相关机制 |\n| --- | --- | --- |\n| 文件系统 | 限制文件读取与修改 | 只读根文件系统、受控挂载 |\n| 网络 | 限制外部访问 | `--network none`、网络策略 |\n| CPU | 防止无限计算 | `--cpus` |\n| 内存 | 防止内存耗尽 | `--memory` |\n| 进程 | 防止创建大量子进程 | `--pids-limit` |\n| 用户权限 | 避免 root 权限 | `--user`、删除 capabilities |\n| 生命周期 | 防止容器无限运行 | 超时终止、`--rm` |\n| 凭证 | 避免泄露密钥 | 不向执行容器注入 LLM API Key |\n\n类型：表格行\n表格编号：t5\n行号：1\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：文件系统\n控制目标：限制文件读取与修改\nDocker 中的相关机制：只读根文件系统、受控挂载\n\n类型：表格行\n表格编号：t5\n行号：2\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：网络\n控制目标：限制外部访问\nDocker 中的相关机制：`--network none`、网络策略\n\n类型：表格行\n表格编号：t5\n行号：3\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：CPU\n控制目标：防止无限计算\nDocker 中的相关机制：`--cpus`\n\n类型：表格行\n表格编号：t5\n行号：4\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：内存\n控制目标：防止内存耗尽\nDocker 中的相关机制：`--memory`\n\n类型：表格行\n表格编号：t5\n行号：5\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：进程\n控制目标：防止创建大量子进程\nDocker 中的相关机制：`--pids-limit`\n\n类型：表格行\n表格编号：t5\n行号：6\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：用户权限\n控制目标：避免 root 权限\nDocker 中的相关机制：`--user`、删除 capabilities\n\n类型：表格行\n表格编号：t5\n行号：7\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：生命周期\n控制目标：防止容器无限运行\nDocker 中的相关机制：超时终止、`--rm`\n\n类型：表格行\n表格编号：t5\n行号：8\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：凭证\n控制目标：避免泄露密钥\nDocker 中的相关机制：不向执行容器注入 LLM API Key\n\n尤其需要注意：不要把 Docker Socket（Docker 守护进程套接字）直接挂载给不可信 Agent。 例如挂载 `/var/run/docker.sock`，可能使容器获得控制宿主机 Docker 的能力。\n\n### 7.5 生产级沙箱还需要什么？\n\n仅有 Docker 并不意味着可以安全地执行所有不可信代码。对于高风险执行场景，还需要根据威胁模型考虑：\n\n- 容器逃逸防护与内核隔离。\n    \n- seccomp（系统调用过滤）及 AppArmor、SELinux 等安全机制。\n    \n- 网络出口控制和云元数据访问防护。\n    \n- 文件系统配额、执行超时、日志大小限制。\n    \n- 临时凭证与最小权限。\n    \n- 更强隔离的运行时，例如 gVisor、Kata Containers，或专门的远程沙箱服务。\n    \n\n## 8. Docker 与 Agent Harness 的关系\n\nHarness（运行框架或执行框架）负责组织 Agent 的执行过程，例如上下文管理、工具调度、执行循环、权限检查和错误处理。\n\nDocker 可以成为 Harness 底层的执行基础设施。\n\n```\nAgent Harness\n│\n├── Context Manager（上下文管理器）\n├── Agent Loop（智能体执行循环）\n├── Tool Router（工具路由器）\n├── Permission Checker（权限检查器）\n├── Execution Manager（执行管理器）\n│      │\n│      └── Docker Sandbox\n│             ├── Shell 命令\n│             ├── Python 代码\n│             └── 文件操作\n│\n└── Result Handler（结果处理器）\n```\n\n各组件职责：\n\n类型：表格\n表格编号：t6\n表头：组件、作用\n\n原始表格：\n| 组件 | 作用 |\n| --- | --- |\n| Harness | 管理整个 Agent 执行过程 |\n| Tool Router | 决定调用哪个工具 |\n| Permission Checker | 判断操作是否被允许 |\n| Execution Manager | 创建、管理和销毁执行环境 |\n| Docker Sandbox | 提供受限的实际执行环境 |\n| Result Handler | 收集执行结果并返回 Agent |\n\n类型：表格行\n表格编号：t6\n行号：1\n组件：Harness\n作用：管理整个 Agent 执行过程\n\n类型：表格行\n表格编号：t6\n行号：2\n组件：Tool Router\n作用：决定调用哪个工具\n\n类型：表格行\n表格编号：t6\n行号：3\n组件：Permission Checker\n作用：判断操作是否被允许\n\n类型：表格行\n表格编号：t6\n行号：4\n组件：Execution Manager\n作用：创建、管理和销毁执行环境\n\n类型：表格行\n表格编号：t6\n行号：5\n组件：Docker Sandbox\n作用：提供受限的实际执行环境\n\n类型：表格行\n表格编号：t6\n行号：6\n组件：Result Handler\n作用：收集执行结果并返回 Agent\n\n例如，当 Agent 决定调用 `run_python` 工具时：\n\n1. Harness 接收工具调用请求。\n    \n2. 权限检查器验证操作是否允许。\n    \n3. 执行管理器准备代码与输入文件。\n    \n4. Docker 容器执行代码。\n    \n5. 执行管理器收集标准输出、错误输出和退出码。\n    \n6. Harness 将执行结果交给 LLM，决定是否继续下一轮。\n    \n\n需要注意：Docker 不会自动实现上述 Harness 逻辑。你仍然需要编写工具调度、权限校验、超时处理和结果反馈代码。\n\n## 9. Agent 开发中的常见问题\n\n### 9.1 为什么容器里访问不到宿主机的 localhost？\n\n在容器中：\n\n```\nlocalhost = 当前容器自身\n```\n\n而不是宿主机，也不是其他容器。\n\n在 Docker Compose 中，容器间通信优先使用服务名，例如：\n\n```\npostgres:5432\nredis:6379\n```\n\n如果 Agent 容器需要访问宿主机服务，具体地址取决于操作系统和 Docker 环境。例如 Docker Desktop 通常支持 `host.docker.internal`，但 Linux 环境可能需要额外配置。\n\n### 9.2 为什么修改代码后容器里的代码没有变化？\n\n如果代码通过 `COPY` 写入镜像，修改宿主机文件不会自动更新已经构建好的镜像。\n\n重新构建并启动：\n\n```\ndocker compose up -d --build\n```\n\n开发阶段也可以使用目录挂载实现热更新，但执行不可信代码的沙箱不应该随意挂载整个项目目录。\n\n### 9.3 为什么容器退出了？\n\n查看容器状态：\n\n```\ndocker ps -a\n```\n\n查看退出日志：\n\n```\ndocker logs <container_name>\n```\n\n查看退出码：\n\n```\ndocker inspect <container_name>\n```\n\n常见原因包括启动命令错误、依赖缺失、环境变量未设置、端口配置错误或程序主动退出。\n\n### 9.4 为什么容器内安装了依赖，重建后却没了？\n\n容器的可写层不是可靠的持久化存储。容器被删除后，其中的临时修改通常也会丢失。\n\n- 应用依赖：写入 Dockerfile 并重新构建镜像。\n    \n- 数据库数据：使用 Volume（数据卷）。\n    \n- 临时任务文件：使用临时目录或受控挂载。\n    \n- Agent 记忆：根据需求存储在数据库或其他持久化存储中。\n    \n\n## 10. 推荐学习顺序\n\n第一阶段：Docker 基础\n\n镜像、容器、Dockerfile、常用命令、端口映射、文件挂载。\n\n第二阶段：Agent 服务容器化\n\n将 FastAPI Agent 项目打包成镜像，管理环境变量和依赖。\n\n第三阶段：多服务编排\n\n使用 Docker Compose 连接 Agent、PostgreSQL、Redis 和向量数据库。\n\n第四阶段：Agent 沙箱\n\n使用 Python subprocess 调用 Docker，限制权限、文件、网络、资源与执行时间。\n\n第五阶段：Harness 集成\n\n将容器执行封装为工具，接入 Agent Loop，实现执行、反馈、重试和清理。\n",
+        "error_message": null,
+        "chunk_count": 39,
+        "embedding_pending_count": 0,
+        "embedding_failed_count": 0,
+        "embedding_completed_count": 39,
+        "created_at": "2026-10-10T03:04:20.782914Z"
+      },
+      "chunks": [
+        {
+          "id": 3227,
+          "document_id": 133,
+          "position": 0,
+          "content": "## 1. Docker 基础\n\n### 1.1 什么是 Docker？\n\nDocker 是一种容器化技术，可以将应用程序及其运行所需的依赖、配置和运行环境打包到容器中，使应用在不同环境下保持一致的运行方式。\n\n在 Agent 开发中，Docker 主要用于：\n\n- 环境隔离：隔离不同 Agent 项目的 Python、Node.js 等运行环境。\n    \n- 依赖管理：将 Agent 所需的 SDK、数据库驱动等依赖打包。\n    \n- 工具执行隔离：让 Agent 在受限容器中执行 Shell 命令、运行代码。\n    \n- 服务部署：将 Agent API、数据库、向量数据库等服务容器化。\n    \n- 多 Agent 协作：为不同 Agent 提供独立的运行环境。\n    \n\n### 1.2 Agent 为什么需要 Docker？\n\n普通 Agent 的基本执行流程：",
+          "token_count": 253,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3228,
+          "document_id": 133,
+          "position": 1,
+          "content": "行环境。###1.2Agent为什么需要Docker？普通Agent的基本执行流程：```\n用户 Query\n    ↓\nLLM（大语言模型）\n    ↓\nAgent 决策\n    ↓\nTool Calling（工具调用）\n    ↓\n执行工具\n    ↓\n返回结果给 LLM\n```\n\n当 Agent 需要执行 Shell 命令、运行 Python 代码、安装依赖或操作文件时，就会产生安全风险。\n\n例如，用户要求 Agent：\n\n```\nrm -rf /tmp/test\n```\n\n如果 Agent 直接在宿主机执行命令，就可能误删宿主机上的文件。\n\n使用 Docker 可以将工具执行放入独立容器，限制其文件访问、网络访问、资源使用和权限。\n\n```\nAgent 主进程\n    │\n    ├── 调用 LLM\n    │\n    ├── 生成执行计划\n    │\n    └── 调用 Shell Tool\n              │\n              ▼\n       Docker 容器\n       ├── 执行命令\n       ├── 访问受限文件\n       ├── 使用受限资源\n       └── 返回执行结果\n```",
+          "token_count": 283,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3229,
+          "document_id": 133,
+          "position": 2,
+          "content": "命令├──访问受限文件├──使用受限资源└──返回执行结果```核心理解：Docker 不负责 Agent 的推理，而是为 Agent 提供可控的运行环境。\n\n## 2. Docker 核心概念\n\n### 2.1 镜像、容器与 Dockerfile\n\n类型：表格\n表格编号：t1\n章节：2.1 镜像、容器与 Dockerfile\n表头：概念、含义、Agent 开发中的例子",
+          "token_count": 131,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3230,
+          "document_id": 133,
+          "position": 3,
+          "content": "章节：2.1镜像、容器与Dockerfile表头：概念、含义、Agent开发中的例子原始表格：\n| 概念 | 含义 | Agent 开发中的例子 |\n| --- | --- | --- |\n| Image（镜像） | 创建容器的模板 | Python Agent 的运行环境 |\n| Container（容器） | 镜像运行后的实例 | 正在执行代码的 Agent 沙箱 |\n| Dockerfile（镜像构建文件） | 定义如何构建镜像 | 安装 Python、复制代码、安装依赖 |\n| Registry（镜像仓库） | 存储和分发镜像 | Docker Hub、私有镜像仓库 |\n| Volume（数据卷） | 持久化存储数据 | 保存 Agent 的数据库文件 |\n| Network（网络） | 控制容器之间的通信 | Agent API 连接 PostgreSQL |",
+          "token_count": 243,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3231,
+          "document_id": 133,
+          "position": 4,
+          "content": "据库文件||Network（网络）|控制容器之间的通信|AgentAPI连接PostgreSQL|类型：表格行\n表格编号：t1\n行号：1\n章节：2.1 镜像、容器与 Dockerfile\n概念：Image（镜像）\n含义：创建容器的模板\nAgent 开发中的例子：Python Agent 的运行环境\n\n类型：表格行\n表格编号：t1\n行号：2\n章节：2.1 镜像、容器与 Dockerfile\n概念：Container（容器）\n含义：镜像运行后的实例\nAgent 开发中的例子：正在执行代码的 Agent 沙箱\n\n类型：表格行\n表格编号：t1\n行号：3\n章节：2.1 镜像、容器与 Dockerfile\n概念：Dockerfile（镜像构建文件）\n含义：定义如何构建镜像\nAgent 开发中的例子：安装 Python、复制代码、安装依赖",
+          "token_count": 250,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3232,
+          "document_id": 133,
+          "position": 5,
+          "content": "：定义如何构建镜像Agent开发中的例子：安装Python、复制代码、安装依赖类型：表格行\n表格编号：t1\n行号：4\n章节：2.1 镜像、容器与 Dockerfile\n概念：Registry（镜像仓库）\n含义：存储和分发镜像\nAgent 开发中的例子：Docker Hub、私有镜像仓库\n\n类型：表格行\n表格编号：t1\n行号：5\n章节：2.1 镜像、容器与 Dockerfile\n概念：Volume（数据卷）\n含义：持久化存储数据\nAgent 开发中的例子：保存 Agent 的数据库文件\n\n类型：表格行\n表格编号：t1\n行号：6\n章节：2.1 镜像、容器与 Dockerfile\n概念：Network（网络）\n含义：控制容器之间的通信\nAgent 开发中的例子：Agent API 连接 PostgreSQL\n\n可以用一个简单的关系理解：\n\n```\nDockerfile\n    │ docker build\n    ▼\n  Image（镜像）\n    │ docker run\n    ▼\nContainer（容器）\n```",
+          "token_count": 288,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3233,
+          "document_id": 133,
+          "position": 6,
+          "content": "``Dockerfile│dockerbuild▼Image（镜像）│dockerrun▼Container（容器）```### 2.2 Docker 与虚拟机的区别\n\n类型：表格\n表格编号：t2\n章节：2.2 Docker 与虚拟机的区别\n表头：对比维度、Docker 容器、虚拟机\n\n原始表格：\n| 对比维度 | Docker 容器 | 虚拟机 |\n| --- | --- | --- |\n| 隔离方式 | 操作系统级进程隔离 | 虚拟化硬件并运行独立操作系统 |\n| 启动速度 | 通常较快 | 通常较慢 |\n| 资源开销 | 通常较小 | 通常较大 |\n| 内核 | 与宿主机或底层容器运行环境共享内核 | 通常拥有独立内核 |\n| Agent 使用场景 | 日常部署、工具执行沙箱 | 需要更强隔离边界的场景 |",
+          "token_count": 247,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3234,
+          "document_id": 133,
+          "position": 7,
+          "content": "|Agent使用场景|日常部署、工具执行沙箱|需要更强隔离边界的场景|类型：表格行\n表格编号：t2\n行号：1\n章节：2.2 Docker 与虚拟机的区别\n对比维度：隔离方式\nDocker 容器：操作系统级进程隔离\n虚拟机：虚拟化硬件并运行独立操作系统\n\n类型：表格行\n表格编号：t2\n行号：2\n章节：2.2 Docker 与虚拟机的区别\n对比维度：启动速度\nDocker 容器：通常较快\n虚拟机：通常较慢\n\n类型：表格行\n表格编号：t2\n行号：3\n章节：2.2 Docker 与虚拟机的区别\n对比维度：资源开销\nDocker 容器：通常较小\n虚拟机：通常较大",
+          "token_count": 218,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3235,
+          "document_id": 133,
+          "position": 8,
+          "content": "虚拟机的区别对比维度：资源开销Docker容器：通常较小虚拟机：通常较大类型：表格行\n表格编号：t2\n行号：4\n章节：2.2 Docker 与虚拟机的区别\n对比维度：内核\nDocker 容器：与宿主机或底层容器运行环境共享内核\n虚拟机：通常拥有独立内核\n\n类型：表格行\n表格编号：t2\n行号：5\n章节：2.2 Docker 与虚拟机的区别\n对比维度：Agent 使用场景\nDocker 容器：日常部署、工具执行沙箱\n虚拟机：需要更强隔离边界的场景\n\n注意：Docker 容器不等于完整的虚拟机，也不天然具备绝对安全性。 对不可信代码，仍需要权限限制、资源限制和额外的安全隔离。\n\n## 3. 必须掌握的 Docker 命令\n\n### 3.1 镜像管理\n\n```\n# 查看本地镜像\ndocker images\n\n# 拉取镜像\ndocker pull python:3.12-slim",
+          "token_count": 287,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3236,
+          "document_id": 133,
+          "position": 9,
+          "content": "管理```#查看本地镜像dockerimages#拉取镜像dockerpullpython:3.12-slim# 构建镜像\ndocker build -t my-agent:latest .\n\n# 删除镜像\ndocker rmi my-agent:latest\n```\n\n### 3.2 容器管理\n\n```\n# 启动容器\ndocker run -d --name agent-api -p 8000:8000 my-agent:latest\n\n# 查看运行中的容器\ndocker ps\n\n# 查看所有容器，包括已停止的\ndocker ps -a\n\n# 查看容器日志\ndocker logs agent-api\n\n# 实时查看日志\ndocker logs -f agent-api\n\n# 进入运行中的容器\ndocker exec -it agent-api /bin/sh\n\n# 停止容器\ndocker stop agent-api\n\n# 启动已停止的容器\ndocker start agent-api\n\n# 删除容器\ndocker rm agent-api\n```\n\n### 3.3 端口映射\n\n```\ndocker run -p 8000:8000 my-agent:latest\n```\n\n格式：",
+          "token_count": 270,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3237,
+          "document_id": 133,
+          "position": 10,
+          "content": "#3.3端口映射```dockerrun-p8000:8000my-agent:latest```格式：```\n-p 宿主机端口:容器端口\n```\n\n例如：\n\n```\nWindows 宿主机\n    │\n    │ localhost:8000\n    ▼\nDocker 容器\n    │\n    │ 8000\n    ▼\nFastAPI Agent 服务\n```\n\n前提是容器内的服务监听 `0.0.0.0:8000`，而不是仅监听 `127.0.0.1:8000`。\n\n### 3.4 文件挂载\n\n```\ndocker run -it \\\n  -v ./workspace:/workspace \\\n  python:3.12-slim \\\n  /bin/sh\n```\n\n其中：\n\n- `./workspace`：宿主机上的目录。\n    \n- `/workspace`：容器内部的目录。\n    \n- `-v`：将宿主机目录挂载到容器中。\n    \n\n重要：挂载目录不等于隔离目录。 如果容器具有挂载目录的写权限，容器内的进程也可能修改宿主机对应文件。",
+          "token_count": 279,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3238,
+          "document_id": 133,
+          "position": 11,
+          "content": "容器具有挂载目录的写权限，容器内的进程也可能修改宿主机对应文件。对于 Agent 执行环境，应该只挂载必要的目录，并尽量限制写入范围。\n\n## 4. Agent 开发中的 Dockerfile\n\n### 4.1 FastAPI Agent 服务\n\n假设项目结构如下：\n\n```\nagent-project/\n├── app/\n│   └── main.py\n├── requirements.txt\n└── Dockerfile\n```\n\n`requirements.txt`：\n\n```\nfastapi\nuvicorn[standard]\n```\n\n`app/main.py`：\n\n```\nfrom fastapi import FastAPIapp = FastAPI()@app.get(\"/\")async def root():    return {\"message\": \"Agent service is running\"}\n```\n\n`Dockerfile`：\n\n```\nFROM python:3.12-slim\n\nWORKDIR /app\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nCOPY requirements.txt .\n\nRUN pip install --no-cache-dir -r requirements.txt\n\nCOPY app ./app",
+          "token_count": 286,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3239,
+          "document_id": 133,
+          "position": 12,
+          "content": "1COPYrequirements.txt.RUNpipinstall--no-cache-dir-rrequirements.txtCOPYapp./appEXPOSE 8000\n\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n构建与运行：\n\n```\ndocker build -t my-agent:latest .\n\ndocker run -d \\\n  --name my-agent \\\n  -p 8000:8000 \\\n  my-agent:latest\n```\n\n访问：\n\n```\nhttp://localhost:8000\n```\n\n### 4.2 Dockerfile 常用指令\n\n类型：表格\n表格编号：t3\n章节：4.2 Dockerfile 常用指令\n表头：指令、作用",
+          "token_count": 195,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3240,
+          "document_id": 133,
+          "position": 13,
+          "content": "类型：表格表格编号：t3章节：4.2Dockerfile常用指令表头：指令、作用原始表格：\n| 指令 | 作用 |\n| --- | --- |\n| `FROM` | 指定基础镜像 |\n| `WORKDIR` | 设置工作目录 |\n| `COPY` | 复制文件到镜像 |\n| `RUN` | 构建镜像时执行命令 |\n| `ENV` | 设置环境变量 |\n| `EXPOSE` | 声明容器使用的端口 |\n| `CMD` | 指定默认启动命令 |\n| `ENTRYPOINT` | 指定容器的主要执行程序 |\n| `USER` | 指定运行进程的用户 |\n\n类型：表格行\n表格编号：t3\n行号：1\n章节：4.2 Dockerfile 常用指令\n指令：`FROM`\n作用：指定基础镜像\n\n类型：表格行\n表格编号：t3\n行号：2\n章节：4.2 Dockerfile 常用指令\n指令：`WORKDIR`\n作用：设置工作目录",
+          "token_count": 270,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3241,
+          "document_id": 133,
+          "position": 14,
+          "content": "号：2章节：4.2Dockerfile常用指令指令：`WORKDIR`作用：设置工作目录类型：表格行\n表格编号：t3\n行号：3\n章节：4.2 Dockerfile 常用指令\n指令：`COPY`\n作用：复制文件到镜像\n\n类型：表格行\n表格编号：t3\n行号：4\n章节：4.2 Dockerfile 常用指令\n指令：`RUN`\n作用：构建镜像时执行命令\n\n类型：表格行\n表格编号：t3\n行号：5\n章节：4.2 Dockerfile 常用指令\n指令：`ENV`\n作用：设置环境变量\n\n类型：表格行\n表格编号：t3\n行号：6\n章节：4.2 Dockerfile 常用指令\n指令：`EXPOSE`\n作用：声明容器使用的端口\n\n类型：表格行\n表格编号：t3\n行号：7\n章节：4.2 Dockerfile 常用指令\n指令：`CMD`\n作用：指定默认启动命令",
+          "token_count": 261,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3242,
+          "document_id": 133,
+          "position": 15,
+          "content": "：7章节：4.2Dockerfile常用指令指令：`CMD`作用：指定默认启动命令类型：表格行\n表格编号：t3\n行号：8\n章节：4.2 Dockerfile 常用指令\n指令：`ENTRYPOINT`\n作用：指定容器的主要执行程序\n\n类型：表格行\n表格编号：t3\n行号：9\n章节：4.2 Dockerfile 常用指令\n指令：`USER`\n作用：指定运行进程的用户\n\n### 4.3 为什么要使用分层构建？\n\n例如：\n\n```\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app ./app\n```\n\n将依赖文件与业务代码分开复制，可以利用 Docker 的构建缓存。\n\n当你只修改 `app/main.py` 时，如果依赖文件未改变，Docker 通常可以复用依赖安装层，避免重复安装全部依赖。\n\n## 5. Agent 开发中的环境变量与密钥",
+          "token_count": 279,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3243,
+          "document_id": 133,
+          "position": 16,
+          "content": "安装层，避免重复安装全部依赖。##5.Agent开发中的环境变量与密钥Agent 通常需要配置：\n\n- `LLM_API_KEY`：大模型 API 密钥。\n    \n- `LLM_BASE_URL`：模型服务地址。\n    \n- `DATABASE_URL`：数据库连接地址。\n    \n- `REDIS_URL`：Redis 连接地址。\n    \n\n不要将真实密钥写入 Dockerfile 或提交到 Git 仓库。\n\n推荐通过环境变量注入：\n\n```\ndocker run -d \\\n  --name my-agent \\\n  -p 8000:8000 \\\n  -e LLM_API_KEY=\"your-api-key\" \\\n  my-agent:latest\n```\n\nPython 读取：\n\n```\nimport osapi_key = os.environ[\"LLM_API_KEY\"]\n```\n\n如果使用 `.env` 文件：\n\n```\ndocker run --env-file .env my-agent:latest\n```\n\n`.env` 示例：",
+          "token_count": 256,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3244,
+          "document_id": 133,
+          "position": 17,
+          "content": "件：```dockerrun--env-file.envmy-agent:latest````.env`示例：```\nLLM_API_KEY=your-api-key\nLLM_BASE_URL=https://example.com/v1\n```\n\n将 `.env` 添加到 `.gitignore`。\n\n注意：`-e` 和 `--env-file` 只是配置注入方式，不是完整的密钥管理系统。生产环境应根据实际需求使用 Secret 管理机制，并限制谁能够读取容器配置。\n\n## 6. Docker Compose：运行多个 Agent 依赖服务\n\n### 6.1 什么是 Docker Compose？\n\nDocker Compose 是用于定义和管理多个容器的工具。\n\n例如，一个 Agent 项目可能包含：\n\n```\nAgent 应用\n    ├── FastAPI\n    ├── PostgreSQL\n    ├── Redis\n    └── 向量数据库\n```",
+          "token_count": 251,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3245,
+          "document_id": 133,
+          "position": 18,
+          "content": "`Agent应用├──FastAPI├──PostgreSQL├──Redis└──向量数据库```如果分别使用多个 `docker run` 命令，管理起来比较麻烦。Compose 可以使用一个配置文件定义这些服务。\n\n### 6.2 示例配置\n\n`compose.yaml`：\n\n```\nservices:\n  agent:\n    build: .\n    ports:\n      - \"8000:8000\"\n    environment:\n      DATABASE_URL: postgresql://agent:change-me@postgres:5432/agentdb\n      REDIS_URL: redis://redis:6379/0\n    depends_on:\n      - postgres\n      - redis\n\n  postgres:\n    image: postgres:16\n    environment:\n      POSTGRES_USER: agent\n      POSTGRES_PASSWORD: change-me\n      POSTGRES_DB: agentdb\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n\n  redis:\n    image: redis:7-alpine\n\nvolumes:\n  postgres_data:\n```",
+          "token_count": 253,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3246,
+          "document_id": 133,
+          "position": 19,
+          "content": "/lib/postgresql/dataredis:image:redis:7-alpinevolumes:postgres_data:```这是学习用的示例，实际使用时应将密码改为安全配置，并添加健康检查和必要的访问控制。\n\n这里有两个需要理解的概念：\n\n服务名就是容器网络中的访问地址。\n\nAgent 容器访问 PostgreSQL 时，应该使用：\n\n```\npostgres:5432\n```\n\n而不是：\n\n```\nlocalhost:5432\n```\n\n因为在 Agent 容器内部，`localhost` 指向 Agent 自己的容器。\n\n`depends_on` 不保证服务已经可以正常处理请求。\n\n它主要控制启动顺序。需要等待数据库真正就绪时，可以配置 `healthcheck`，并根据健康状态控制依赖服务的启动。\n\n### 6.3 Compose 常用命令\n\n```\n# 启动所有服务\ndocker compose up -d\n\n# 构建镜像并启动\ndocker compose up -d --build",
+          "token_count": 288,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3247,
+          "document_id": 133,
+          "position": 20,
+          "content": "启动所有服务dockercomposeup-d#构建镜像并启动dockercomposeup-d--build# 查看服务状态\ndocker compose ps\n\n# 查看日志\ndocker compose logs -f\n\n# 停止并移除容器、网络\ndocker compose down\n\n# 同时删除 Compose 管理的数据卷（谨慎使用）\ndocker compose down -v\n```\n\n`docker compose down -v` 可能删除数据库持久化数据，不要在需要保留数据时使用。\n\n## 7. Docker 在 Agent 中最重要的用途：Sandbox（沙箱）\n\n### 7.1 什么是 Sandbox？\n\nSandbox（沙箱）是一种受限制的程序执行环境，目的是让程序在可控的边界内运行，降低其影响外部系统的风险。\n\nAgent 的沙箱可以用于：",
+          "token_count": 228,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3248,
+          "document_id": 133,
+          "position": 21,
+          "content": "可控的边界内运行，降低其影响外部系统的风险。Agent的沙箱可以用于：- 执行 Shell 命令。\n    \n- 执行 Python 或其他语言代码。\n    \n- 操作临时文件。\n    \n- 运行自动生成的脚本。\n    \n- 安装必要的临时依赖。\n    \n- 执行测试或构建任务。\n    \n\n### 7.2 为什么 Agent 需要沙箱？\n\n假设用户要求：\n\n> 帮我编写一个 Python 脚本，读取 CSV 文件并计算平均值。\n\nAgent 生成代码后，需要实际运行才能获得结果。\n\n不使用沙箱：\n\n```\nAgent\n  ↓\n生成 Python 代码\n  ↓\n在宿主机直接执行\n  ↓\n可能访问宿主机文件或执行危险操作\n```\n\n使用沙箱：\n\n```\nAgent\n  ↓\n生成 Python 代码\n  ↓\n创建受限执行容器\n  ↓\n写入任务文件\n  ↓\n运行代码\n  ↓\n收集 stdout / stderr / exit code\n  ↓\n清理临时容器\n```\n\n### 7.3 创建一个基础执行沙箱",
+          "token_count": 284,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3249,
+          "document_id": 133,
+          "position": 22,
+          "content": "/stderr/exitcode↓清理临时容器```###7.3创建一个基础执行沙箱下面的命令用于创建一个权限受限的 Python 容器：\n\n```\ndocker run --rm -i \\\n  --network none \\\n  --memory 256m \\\n  --cpus 1 \\\n  --pids-limit 64 \\\n  --read-only \\\n  --tmpfs /tmp:rw,noexec,nosuid,size=64m \\\n  --cap-drop ALL \\\n  --security-opt no-new-privileges \\\n  --user 65534:65534 \\\n  python:3.12-slim \\\n  python -c \"print(1 + 1)\"\n```\n\n参数说明：\n\n类型：表格\n表格编号：t4\n表头：参数、作用",
+          "token_count": 194,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3250,
+          "document_id": 133,
+          "position": 23,
+          "content": "1+1)\"```参数说明：类型：表格表格编号：t4表头：参数、作用原始表格：\n| 参数 | 作用 |\n| --- | --- |\n| `--rm` | 容器退出后自动删除 |\n| `-i` | 保持标准输入打开 |\n| `--network none` | 禁用容器网络 |\n| `--memory 256m` | 限制内存 |\n| `--cpus 1` | 限制 CPU 使用量 |\n| `--pids-limit 64` | 限制进程数量 |\n| `--read-only` | 将容器根文件系统设为只读 |\n| `--tmpfs` | 提供临时内存文件系统 |\n| `--cap-drop ALL` | 删除 Linux capabilities（内核能力） |\n| `--security-opt no-new-privileges` | 禁止进程通过执行程序获得新的特权 |\n| `--user 65534:65534` | 使用非 root 用户运行 |",
+          "token_count": 268,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3251,
+          "document_id": 133,
+          "position": 24,
+          "content": "执行程序获得新的特权||`--user65534:65534`|使用非root用户运行|类型：表格行\n表格编号：t4\n行号：1\n参数：`--rm`\n作用：容器退出后自动删除\n\n类型：表格行\n表格编号：t4\n行号：2\n参数：`-i`\n作用：保持标准输入打开\n\n类型：表格行\n表格编号：t4\n行号：3\n参数：`--network none`\n作用：禁用容器网络\n\n类型：表格行\n表格编号：t4\n行号：4\n参数：`--memory 256m`\n作用：限制内存\n\n类型：表格行\n表格编号：t4\n行号：5\n参数：`--cpus 1`\n作用：限制 CPU 使用量\n\n类型：表格行\n表格编号：t4\n行号：6\n参数：`--pids-limit 64`\n作用：限制进程数量\n\n类型：表格行\n表格编号：t4\n行号：7\n参数：`--read-only`\n作用：将容器根文件系统设为只读",
+          "token_count": 282,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3252,
+          "document_id": 133,
+          "position": 25,
+          "content": "号：t4行号：7参数：`--read-only`作用：将容器根文件系统设为只读类型：表格行\n表格编号：t4\n行号：8\n参数：`--tmpfs`\n作用：提供临时内存文件系统\n\n类型：表格行\n表格编号：t4\n行号：9\n参数：`--cap-drop ALL`\n作用：删除 Linux capabilities（内核能力）\n\n类型：表格行\n表格编号：t4\n行号：10\n参数：`--security-opt no-new-privileges`\n作用：禁止进程通过执行程序获得新的特权\n\n类型：表格行\n表格编号：t4\n行号：11\n参数：`--user 65534:65534`\n作用：使用非 root 用户运行\n\n这条命令只是基础加固示例，不是对抗恶意代码的完整安全方案。实际部署还应考虑容器运行时漏洞、系统调用限制、宿主机隔离、超时控制和资源耗尽风险。",
+          "token_count": 276,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3253,
+          "document_id": 133,
+          "position": 26,
+          "content": "器运行时漏洞、系统调用限制、宿主机隔离、超时控制和资源耗尽风险。### 7.4 Agent 沙箱需要限制哪些能力？\n\n类型：表格\n表格编号：t5\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n表头：安全边界、控制目标、Docker 中的相关机制",
+          "token_count": 113,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3254,
+          "document_id": 133,
+          "position": 27,
+          "content": "表格标题：表格编号：t4表头：安全边界、控制目标、Docker中的相关机制原始表格：\n| 安全边界 | 控制目标 | Docker 中的相关机制 |\n| --- | --- | --- |\n| 文件系统 | 限制文件读取与修改 | 只读根文件系统、受控挂载 |\n| 网络 | 限制外部访问 | `--network none`、网络策略 |\n| CPU | 防止无限计算 | `--cpus` |\n| 内存 | 防止内存耗尽 | `--memory` |\n| 进程 | 防止创建大量子进程 | `--pids-limit` |\n| 用户权限 | 避免 root 权限 | `--user`、删除 capabilities |\n| 生命周期 | 防止容器无限运行 | 超时终止、`--rm` |\n| 凭证 | 避免泄露密钥 | 不向执行容器注入 LLM API Key |",
+          "token_count": 253,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3255,
+          "document_id": 133,
+          "position": 28,
+          "content": "终止、`--rm`||凭证|避免泄露密钥|不向执行容器注入LLMAPIKey|类型：表格行\n表格编号：t5\n行号：1\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：文件系统\n控制目标：限制文件读取与修改\nDocker 中的相关机制：只读根文件系统、受控挂载\n\n类型：表格行\n表格编号：t5\n行号：2\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：网络\n控制目标：限制外部访问\nDocker 中的相关机制：`--network none`、网络策略\n\n类型：表格行\n表格编号：t5\n行号：3\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：CPU\n控制目标：防止无限计算\nDocker 中的相关机制：`--cpus`",
+          "token_count": 284,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3256,
+          "document_id": 133,
+          "position": 29,
+          "content": "t4安全边界：CPU控制目标：防止无限计算Docker中的相关机制：`--cpus`类型：表格行\n表格编号：t5\n行号：4\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：内存\n控制目标：防止内存耗尽\nDocker 中的相关机制：`--memory`\n\n类型：表格行\n表格编号：t5\n行号：5\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：进程\n控制目标：防止创建大量子进程\nDocker 中的相关机制：`--pids-limit`\n\n类型：表格行\n表格编号：t5\n行号：6\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：用户权限\n控制目标：避免 root 权限\nDocker 中的相关机制：`--user`、删除 capabilities",
+          "token_count": 280,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3257,
+          "document_id": 133,
+          "position": 30,
+          "content": "权限控制目标：避免root权限Docker中的相关机制：`--user`、删除capabilities类型：表格行\n表格编号：t5\n行号：7\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：生命周期\n控制目标：防止容器无限运行\nDocker 中的相关机制：超时终止、`--rm`\n\n类型：表格行\n表格编号：t5\n行号：8\n章节：7.4 Agent 沙箱需要限制哪些能力？\n表格标题：表格编号：t4\n安全边界：凭证\n控制目标：避免泄露密钥\nDocker 中的相关机制：不向执行容器注入 LLM API Key\n\n尤其需要注意：不要把 Docker Socket（Docker 守护进程套接字）直接挂载给不可信 Agent。 例如挂载 `/var/run/docker.sock`，可能使容器获得控制宿主机 Docker 的能力。",
+          "token_count": 273,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3258,
+          "document_id": 133,
+          "position": 31,
+          "content": "挂载`/var/run/docker.sock`，可能使容器获得控制宿主机Docker的能力。### 7.5 生产级沙箱还需要什么？\n\n仅有 Docker 并不意味着可以安全地执行所有不可信代码。对于高风险执行场景，还需要根据威胁模型考虑：\n\n- 容器逃逸防护与内核隔离。\n    \n- seccomp（系统调用过滤）及 AppArmor、SELinux 等安全机制。\n    \n- 网络出口控制和云元数据访问防护。\n    \n- 文件系统配额、执行超时、日志大小限制。\n    \n- 临时凭证与最小权限。\n    \n- 更强隔离的运行时，例如 gVisor、Kata Containers，或专门的远程沙箱服务。\n    \n\n## 8. Docker 与 Agent Harness 的关系\n\nHarness（运行框架或执行框架）负责组织 Agent 的执行过程，例如上下文管理、工具调度、执行循环、权限检查和错误处理。",
+          "token_count": 277,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3259,
+          "document_id": 133,
+          "position": 32,
+          "content": "行过程，例如上下文管理、工具调度、执行循环、权限检查和错误处理。Docker 可以成为 Harness 底层的执行基础设施。\n\n```\nAgent Harness\n│\n├── Context Manager（上下文管理器）\n├── Agent Loop（智能体执行循环）\n├── Tool Router（工具路由器）\n├── Permission Checker（权限检查器）\n├── Execution Manager（执行管理器）\n│      │\n│      └── Docker Sandbox\n│             ├── Shell 命令\n│             ├── Python 代码\n│             └── 文件操作\n│\n└── Result Handler（结果处理器）\n```\n\n各组件职责：\n\n类型：表格\n表格编号：t6\n表头：组件、作用",
+          "token_count": 208,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3260,
+          "document_id": 133,
+          "position": 33,
+          "content": "处理器）```各组件职责：类型：表格表格编号：t6表头：组件、作用原始表格：\n| 组件 | 作用 |\n| --- | --- |\n| Harness | 管理整个 Agent 执行过程 |\n| Tool Router | 决定调用哪个工具 |\n| Permission Checker | 判断操作是否被允许 |\n| Execution Manager | 创建、管理和销毁执行环境 |\n| Docker Sandbox | 提供受限的实际执行环境 |\n| Result Handler | 收集执行结果并返回 Agent |\n\n类型：表格行\n表格编号：t6\n行号：1\n组件：Harness\n作用：管理整个 Agent 执行过程\n\n类型：表格行\n表格编号：t6\n行号：2\n组件：Tool Router\n作用：决定调用哪个工具\n\n类型：表格行\n表格编号：t6\n行号：3\n组件：Permission Checker\n作用：判断操作是否被允许",
+          "token_count": 258,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3261,
+          "document_id": 133,
+          "position": 34,
+          "content": "格行表格编号：t6行号：3组件：PermissionChecker作用：判断操作是否被允许类型：表格行\n表格编号：t6\n行号：4\n组件：Execution Manager\n作用：创建、管理和销毁执行环境\n\n类型：表格行\n表格编号：t6\n行号：5\n组件：Docker Sandbox\n作用：提供受限的实际执行环境\n\n类型：表格行\n表格编号：t6\n行号：6\n组件：Result Handler\n作用：收集执行结果并返回 Agent\n\n例如，当 Agent 决定调用 `run_python` 工具时：\n\n1. Harness 接收工具调用请求。\n    \n2. 权限检查器验证操作是否允许。\n    \n3. 执行管理器准备代码与输入文件。\n    \n4. Docker 容器执行代码。\n    \n5. 执行管理器收集标准输出、错误输出和退出码。\n    \n6. Harness 将执行结果交给 LLM，决定是否继续下一轮。",
+          "token_count": 268,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3262,
+          "document_id": 133,
+          "position": 35,
+          "content": "错误输出和退出码。6.Harness将执行结果交给LLM，决定是否继续下一轮。需要注意：Docker 不会自动实现上述 Harness 逻辑。你仍然需要编写工具调度、权限校验、超时处理和结果反馈代码。\n\n## 9. Agent 开发中的常见问题\n\n### 9.1 为什么容器里访问不到宿主机的 localhost？\n\n在容器中：\n\n```\nlocalhost = 当前容器自身\n```\n\n而不是宿主机，也不是其他容器。\n\n在 Docker Compose 中，容器间通信优先使用服务名，例如：\n\n```\npostgres:5432\nredis:6379\n```\n\n如果 Agent 容器需要访问宿主机服务，具体地址取决于操作系统和 Docker 环境。例如 Docker Desktop 通常支持 `host.docker.internal`，但 Linux 环境可能需要额外配置。\n\n### 9.2 为什么修改代码后容器里的代码没有变化？",
+          "token_count": 284,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3263,
+          "document_id": 133,
+          "position": 36,
+          "content": "需要额外配置。###9.2为什么修改代码后容器里的代码没有变化？如果代码通过 `COPY` 写入镜像，修改宿主机文件不会自动更新已经构建好的镜像。\n\n重新构建并启动：\n\n```\ndocker compose up -d --build\n```\n\n开发阶段也可以使用目录挂载实现热更新，但执行不可信代码的沙箱不应该随意挂载整个项目目录。\n\n### 9.3 为什么容器退出了？\n\n查看容器状态：\n\n```\ndocker ps -a\n```\n\n查看退出日志：\n\n```\ndocker logs <container_name>\n```\n\n查看退出码：\n\n```\ndocker inspect <container_name>\n```\n\n常见原因包括启动命令错误、依赖缺失、环境变量未设置、端口配置错误或程序主动退出。\n\n### 9.4 为什么容器内安装了依赖，重建后却没了？",
+          "token_count": 281,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3264,
+          "document_id": 133,
+          "position": 37,
+          "content": "程序主动退出。###9.4为什么容器内安装了依赖，重建后却没了？容器的可写层不是可靠的持久化存储。容器被删除后，其中的临时修改通常也会丢失。\n\n- 应用依赖：写入 Dockerfile 并重新构建镜像。\n    \n- 数据库数据：使用 Volume（数据卷）。\n    \n- 临时任务文件：使用临时目录或受控挂载。\n    \n- Agent 记忆：根据需求存储在数据库或其他持久化存储中。\n    \n\n## 10. 推荐学习顺序\n\n第一阶段：Docker 基础\n\n镜像、容器、Dockerfile、常用命令、端口映射、文件挂载。\n\n第二阶段：Agent 服务容器化\n\n将 FastAPI Agent 项目打包成镜像，管理环境变量和依赖。\n\n第三阶段：多服务编排\n\n使用 Docker Compose 连接 Agent、PostgreSQL、Redis 和向量数据库。\n\n第四阶段：Agent 沙箱",
+          "token_count": 274,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        },
+        {
+          "id": 3265,
+          "document_id": 133,
+          "position": 38,
+          "content": "用DockerCompose连接Agent、PostgreSQL、Redis和向量数据库。第四阶段：Agent沙箱使用 Python subprocess 调用 Docker，限制权限、文件、网络、资源与执行时间。\n\n第五阶段：Harness 集成\n\n将容器执行封装为工具，接入 Agent Loop，实现执行、反馈、重试和清理。",
+          "token_count": 103,
+          "embedding_status": 1,
+          "created_at": "2026-10-10T03:04:20.997812Z"
+        }
+      ]
+    }
+  ]
+}

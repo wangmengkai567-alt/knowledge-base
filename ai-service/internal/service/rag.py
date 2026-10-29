@@ -113,6 +113,7 @@ class RAGService:
                 if observed is not None:
                     snapshot = {
                         "version": 4, "query": kwargs["query"],
+                        "final_response": observed.final_response,
                         "started_at": observed.started_at,
                         "scope": asdict(observed.scope), "limits": asdict(observed.limits),
                         "result": response_dto(observed).model_dump(),

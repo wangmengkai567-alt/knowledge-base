@@ -1,0 +1,373 @@
+{
+  "version": "0.4",
+  "created": "2026-10-10",
+  "corpus_root": "D:\\My_workspace\\knowleage-database\\wangmengkai",
+  "knowledge_base_id": null,
+  "empty_files_do_not_use_as_answerable": [
+    "LeetCode.md",
+    "harness.md",
+    "RAG.md",
+    "Agent.md",
+    "AI 应用开发.md",
+    "后端开发.md",
+    "计算机基础.md",
+    "question.md"
+  ],
+  "notes": "answerable=true 表示资料里有答案；false 期望整句「我不知道」。评测脚本按 relevant_filenames / kb_hint 自动解析知识库，不读顶层 knowledge_base_id。must_contain 不得是题干里已有的词。",
+  "items": [
+    {
+      "id": "A05",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Linux 里 stdin、stdout、stderr 的文件描述符编号分别是多少？",
+      "answerable": true,
+      "relevant_filenames": [
+        "01.shell-bash.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "0 是 stdin，1 是 stdout，2 是 stderr。",
+      "must_contain": [
+        "0",
+        "1",
+        "2"
+      ],
+      "hallucination_traps": [
+        "1 stdin"
+      ],
+      "keyword_aliases": {
+        "0": [
+          "零号",
+          "编号为零",
+          "０"
+        ],
+        "1": [
+          "一号",
+          "编号为一",
+          "１"
+        ],
+        "2": [
+          "二号",
+          "编号为二",
+          "２"
+        ]
+      }
+    },
+    {
+      "id": "A07",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "PowerShell 里查看当前目录、列出文件分别是哪条命令？Bash 里对应什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "02.powershell.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "PowerShell：Get-Location、Get-ChildItem。Bash：pwd、ls。",
+      "must_contain": [
+        "Get-Location"
+      ],
+      "hallucination_traps": [
+        "PowerShell 也用 pwd 作为正式命令名"
+      ],
+      "keyword_aliases": {
+        "Get-Location": []
+      }
+    },
+    {
+      "id": "A19",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Handoff 和 Supervisor，谁来决定把任务交给另一个 Agent？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md",
+        "10.Multi-Agent.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "Handoff 是当前 Agent 主动把控制权交给另一个 Agent；Supervisor 模式下 Agent 本身不负责最终调度结构，由中心监督者调度。",
+      "must_contain": [
+        "控制权"
+      ],
+      "hallucination_traps": [
+        "Handoff 必须经过 Supervisor"
+      ],
+      "keyword_aliases": {
+        "控制权": [
+          "执行权",
+          "调度权",
+          "当前 Agent 决定把任务交给",
+          "当前 Agent 自主决定",
+          "当前 Agent 主动交接",
+          "当前执行者自行决定",
+          "当前正在处理任务的 Agent 自主决定",
+          "当前智能体自主决定"
+        ]
+      }
+    },
+    {
+      "id": "A22",
+      "category": "agent",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "固定流程、独立子任务、按问题类型选 Agent，分别该用哪种编排？",
+      "answerable": true,
+      "relevant_filenames": [
+        "09.编排方式.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "固定流程用 Sequential；独立任务用 Parallel；根据问题类型选择 Agent 用 Router。",
+      "must_contain": [
+        "Sequential",
+        "Parallel",
+        "Router"
+      ],
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Sequential": [
+          "顺序编排",
+          "串行编排",
+          "顺序执行",
+          "串行流程"
+        ],
+        "Parallel": [
+          "并行编排",
+          "并发编排",
+          "并行执行",
+          "并发执行"
+        ],
+        "Router": [
+          "路由编排",
+          "路由器",
+          "路由模式",
+          "按问题类型路由"
+        ]
+      }
+    },
+    {
+      "id": "B04",
+      "category": "python",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Python 里 list 和 tuple 有什么区别？",
+      "answerable": true,
+      "relevant_filenames": [
+        "01.python.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "list 可修改，tuple 不可修改。",
+      "must_contain": [
+        "不可"
+      ],
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "不可": [
+          "不能修改",
+          "无法修改",
+          "不允许修改",
+          "immutable",
+          "只读序列"
+        ]
+      }
+    },
+    {
+      "id": "B11",
+      "category": "docker",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Docker Compose 的 depends_on 能保证数据库已经可以处理请求吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "04.Docker.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不能。它主要控制启动顺序。要等数据库真正就绪，需要 healthcheck，并按健康状态控制依赖启动。",
+      "must_contain": [
+        "healthcheck"
+      ],
+      "hallucination_traps": [
+        "depends_on 等于已经 ready"
+      ],
+      "keyword_aliases": {
+        "healthcheck": [
+          "健康检查",
+          "健康检测",
+          "就绪检查",
+          "health check",
+          "service_healthy"
+        ]
+      }
+    },
+    {
+      "id": "B20",
+      "category": "asyncio",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "asyncio.Semaphore 限制的是 QPS 滑动窗口吗？它实际限制什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "08.异步编程.md"
+      ],
+      "kb_hint": "AI 应用开发",
+      "gold_answer": "不是。它限制的是同时进行中的调用数，不是 QPS 滑动窗口。更细的令牌桶可以放在网关。",
+      "must_contain": [
+        "同时"
+      ],
+      "hallucination_traps": [
+        "Semaphore 就是令牌桶",
+        "Semaphore 就是 QPS"
+      ],
+      "keyword_aliases": {
+        "同时": [
+          "并发数",
+          "并发量",
+          "并行数",
+          "在途请求数",
+          "并发上限",
+          "concurrency"
+        ]
+      }
+    },
+    {
+      "id": "E02",
+      "category": "go",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "Go 里 rune 是什么？",
+      "answerable": true,
+      "relevant_filenames": [
+        "go.md"
+      ],
+      "kb_hint": "后端开发",
+      "gold_answer": "rune 是 int32 的别名，表示 Unicode 码点；一个汉字一个 rune。",
+      "must_contain": [
+        "int32"
+      ],
+      "hallucination_traps": [
+        "rune 是 uint8"
+      ],
+      "keyword_aliases": {
+        "int32": [
+          "32 位有符号整数",
+          "有符号 32 位整数",
+          "32-bit signed integer",
+          "signed 32-bit integer"
+        ]
+      }
+    },
+    {
+      "id": "F01",
+      "category": "comparison",
+      "eval_focus": [
+        "generation"
+      ],
+      "query": "sandbox、agent_security、agent-harness 三处举例的 CPU 和内存限制是同一套数字吗？",
+      "answerable": true,
+      "relevant_filenames": [
+        "03.sandbox.md",
+        "04.agent_security.md",
+        "07.agent-harness.md"
+      ],
+      "kb_hint": "Agent",
+      "gold_answer": "不一样，都是示例。sandbox 举例 2 核 / 2GB / 30 秒；security 举例 1 核 / 512MB / 30 秒；harness 举例 2 核 / 4GB / 10 分钟。不能合成一套标准配置。",
+      "must_contain": [
+        "不一样"
+      ],
+      "hallucination_traps": [
+        "统一说成 2GB 或 512MB"
+      ],
+      "keyword_aliases": {
+        "不一样": [
+          "并不完全相同",
+          "不完全一致",
+          "不完全相同",
+          "并不相同",
+          "各不相同",
+          "不同的示例配置",
+          "存在差异",
+          "不能统一为一套",
+          "不是统一标准"
+        ]
+      }
+    },
+    {
+      "id": "F02",
+      "category": "harness",
+      "eval_focus": [
+        "recall",
+        "generation"
+      ],
+      "query": "DeepSeek Harness（dsh）里 Turn 和 Step 分别指什么？模型看见的历史必须从哪来？",
+      "answerable": true,
+      "relevant_filenames": [
+        "dsh-工作原理.md"
+      ],
+      "kb_hint": "Harness",
+      "gold_answer": "Turn 是一次用户任务；Step 是一次模型请求加上它触发的工具。历史必须先写入 Session 日志再投影，不能在内存里偷偷拼 prompt。",
+      "must_contain": [
+        "Session"
+      ],
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Session": [
+          "会话日志",
+          "会话记录",
+          "会话持久日志",
+          "会话事件日志"
+        ]
+      }
+    },
+    {
+      "id": "G01",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "Docker 的 overlay2 存储驱动具体怎么工作？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": [
+        "用通用 Docker 常识编 overlay2"
+      ]
+    },
+    {
+      "id": "G02",
+      "category": "unanswerable",
+      "eval_focus": [
+        "refusal"
+      ],
+      "query": "红黑树插入时的三种旋转要怎么画？",
+      "answerable": false,
+      "relevant_filenames": [],
+      "kb_hint": "",
+      "gold_answer": "我不知道",
+      "must_contain": [
+        "我不知道"
+      ],
+      "hallucination_traps": []
+    }
+  ]
+}

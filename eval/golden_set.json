@@ -34,7 +34,16 @@
       ],
       "hallucination_traps": [
         "把 sandbox 说成 Docker 的别名且资料未写死"
-      ]
+      ],
+      "keyword_aliases": {
+        "隔离": [
+          "隔绝宿主环境",
+          "独立受限环境",
+          "隔开宿主系统",
+          "isolated environment",
+          "isolation"
+        ]
+      }
     },
     {
       "id": "A02",
@@ -56,7 +65,10 @@
       "hallucination_traps": [
         "/home",
         "C:\\"
-      ]
+      ],
+      "keyword_aliases": {
+        "/workspace": []
+      }
     },
     {
       "id": "A03",
@@ -75,7 +87,16 @@
       "must_contain": [
         "解释器"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "解释器": [
+          "命令解释程序",
+          "命令解析器",
+          "解释命令",
+          "解析并执行命令",
+          "command interpreter"
+        ]
+      }
     },
     {
       "id": "A04",
@@ -96,7 +117,16 @@
       ],
       "hallucination_traps": [
         "有 stderr 就是失败"
-      ]
+      ],
+      "keyword_aliases": {
+        "exit code": [
+          "退出码",
+          "退出状态码",
+          "返回码",
+          "exit status",
+          "return code"
+        ]
+      }
     },
     {
       "id": "A05",
@@ -119,7 +149,24 @@
       ],
       "hallucination_traps": [
         "1 stdin"
-      ]
+      ],
+      "keyword_aliases": {
+        "0": [
+          "零号",
+          "编号为零",
+          "０"
+        ],
+        "1": [
+          "一号",
+          "编号为一",
+          "１"
+        ],
+        "2": [
+          "二号",
+          "编号为二",
+          "２"
+        ]
+      }
     },
     {
       "id": "A06",
@@ -140,7 +187,17 @@
       ],
       "hallucination_traps": [
         "SIGKILL 可以捕获"
-      ]
+      ],
+      "keyword_aliases": {
+        "忽略": [
+          "不能被捕获",
+          "无法被捕获",
+          "不可捕获",
+          "不能捕获",
+          "无法捕获",
+          "cannot be caught"
+        ]
+      }
     },
     {
       "id": "A07",
@@ -161,7 +218,10 @@
       ],
       "hallucination_traps": [
         "PowerShell 也用 pwd 作为正式命令名"
-      ]
+      ],
+      "keyword_aliases": {
+        "Get-Location": []
+      }
     },
     {
       "id": "A08",
@@ -180,7 +240,14 @@
       "must_contain": [
         "对象"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "对象": [
+          "object",
+          "结构化的.NET数据",
+          "结构化的类型数据"
+        ]
+      }
     },
     {
       "id": "A09",
@@ -199,7 +266,16 @@
       "must_contain": [
         "最小权限"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "最小权限": [
+          "least privilege",
+          "仅授予完成任务所需的权限",
+          "只授予完成任务必需的权限",
+          "权限最小化",
+          "最小必要权限"
+        ]
+      }
     },
     {
       "id": "A10",
@@ -218,7 +294,17 @@
       "must_contain": [
         "外部"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "外部": [
+          "第三方内容",
+          "不可信来源",
+          "不受信任的数据",
+          "网页中的恶意指令",
+          "文档中的恶意指令",
+          "external content"
+        ]
+      }
     },
     {
       "id": "A11",
@@ -237,7 +323,16 @@
       "must_contain": [
         "git push"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "git push": [
+          "推送代码到远程仓库",
+          "推送到远程仓库",
+          "推送至远程仓库",
+          "向远程仓库推送",
+          "代码推送"
+        ]
+      }
     },
     {
       "id": "A12",
@@ -257,7 +352,25 @@
         "哪里",
         "允许"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "哪里": [
+          "执行环境",
+          "执行位置",
+          "执行边界",
+          "在哪执行",
+          "在哪里运行",
+          "运行范围"
+        ],
+        "允许": [
+          "权限边界",
+          "授权范围",
+          "能做什么",
+          "可以做什么",
+          "可执行的操作",
+          "安全策略"
+        ]
+      }
     },
     {
       "id": "A13",
@@ -276,7 +389,18 @@
       "must_contain": [
         "看到"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "看到": [
+          "给模型什么信息",
+          "模型的输入信息",
+          "为模型提供信息",
+          "模型可见",
+          "组织模型所需的信息",
+          "更新当前任务所需的信息",
+          "提供给模型的上下文"
+        ]
+      }
     },
     {
       "id": "A14",
@@ -298,7 +422,18 @@
       ],
       "hallucination_traps": [
         "Memory 就是 RAG"
-      ]
+      ],
+      "keyword_aliases": {
+        "跨": [
+          "长期记忆",
+          "持久记忆",
+          "持久化记忆",
+          "长期保存",
+          "过去的交互",
+          "历史交互",
+          "long-term memory"
+        ]
+      }
     },
     {
       "id": "A15",
@@ -319,7 +454,16 @@
       ],
       "hallucination_traps": [
         "Harness 就是 LangChain"
-      ]
+      ],
+      "keyword_aliases": {
+        "运行时": [
+          "runtime",
+          "运行与控制层",
+          "运行控制层",
+          "实际运行与控制环境",
+          "运行控制环境"
+        ]
+      }
     },
     {
       "id": "A16",
@@ -338,7 +482,16 @@
       "must_contain": [
         "Trace"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Trace": [
+          "链路追踪",
+          "调用链追踪",
+          "执行轨迹",
+          "分布式追踪",
+          "调用链跟踪"
+        ]
+      }
     },
     {
       "id": "A17",
@@ -357,7 +510,17 @@
       "must_contain": [
         "终止"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "终止": [
+          "结束条件",
+          "停止条件",
+          "何时结束",
+          "什么时候结束",
+          "退出条件",
+          "termination"
+        ]
+      }
     },
     {
       "id": "A18",
@@ -378,7 +541,17 @@
       ],
       "hallucination_traps": [
         "Router 会一直调度到底"
-      ]
+      ],
+      "keyword_aliases": {
+        "下一步": [
+          "持续调度",
+          "反复调度",
+          "循环决策",
+          "循环调度",
+          "持续决定后续动作",
+          "持续决定接下来做什么"
+        ]
+      }
     },
     {
       "id": "A19",
@@ -400,7 +573,19 @@
       ],
       "hallucination_traps": [
         "Handoff 必须经过 Supervisor"
-      ]
+      ],
+      "keyword_aliases": {
+        "控制权": [
+          "执行权",
+          "调度权",
+          "当前 Agent 决定把任务交给",
+          "当前 Agent 自主决定",
+          "当前 Agent 主动交接",
+          "当前执行者自行决定",
+          "当前正在处理任务的 Agent 自主决定",
+          "当前智能体自主决定"
+        ]
+      }
     },
     {
       "id": "A20",
@@ -419,7 +604,16 @@
       "must_contain": [
         "Token"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Token": [
+          "词元消耗",
+          "词元成本",
+          "模型调用费用",
+          "模型调用成本",
+          "模型用量成本"
+        ]
+      }
     },
     {
       "id": "A21",
@@ -438,7 +632,17 @@
       "must_contain": [
         "循环"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "循环": [
+          "迭代",
+          "回到 Coder",
+          "返回 Coder",
+          "失败后回到编码",
+          "重复执行",
+          "loop"
+        ]
+      }
     },
     {
       "id": "A22",
@@ -459,7 +663,27 @@
         "Parallel",
         "Router"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Sequential": [
+          "顺序编排",
+          "串行编排",
+          "顺序执行",
+          "串行流程"
+        ],
+        "Parallel": [
+          "并行编排",
+          "并发编排",
+          "并行执行",
+          "并发执行"
+        ],
+        "Router": [
+          "路由编排",
+          "路由器",
+          "路由模式",
+          "按问题类型路由"
+        ]
+      }
     },
     {
       "id": "A23",
@@ -480,7 +704,17 @@
       ],
       "hallucination_traps": [
         "Agent 路径也必须写死"
-      ]
+      ],
+      "keyword_aliases": {
+        "开发者": [
+          "开发人员",
+          "程序员",
+          "程序预定义",
+          "预先编写的代码",
+          "人为预定义",
+          "developer"
+        ]
+      }
     },
     {
       "id": "A24",
@@ -499,7 +733,16 @@
       "must_contain": [
         "Handoff"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Handoff": [
+          "任务交接",
+          "智能体交接",
+          "自主交接",
+          "控制权移交",
+          "控制权交接"
+        ]
+      }
     },
     {
       "id": "A25",
@@ -518,7 +761,17 @@
       "must_contain": [
         "timeout"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "timeout": [
+          "超时",
+          "时间上限",
+          "时长上限",
+          "最长执行时间",
+          "时间预算",
+          "时间限制"
+        ]
+      }
     },
     {
       "id": "A26",
@@ -539,7 +792,17 @@
       ],
       "hallucination_traps": [
         "堆几个 Agent 就是 Multi-Agent"
-      ]
+      ],
+      "keyword_aliases": {
+        "调度": [
+          "安排执行",
+          "执行安排",
+          "分配任务",
+          "任务分配",
+          "schedule",
+          "scheduling"
+        ]
+      }
     },
     {
       "id": "A27",
@@ -561,7 +824,22 @@
       ],
       "hallucination_traps": [
         "五大组件是输入输出训练推理部署"
-      ]
+      ],
+      "keyword_aliases": {
+        "感知": [
+          "perception",
+          "输入感知",
+          "环境感知",
+          "接收外部输入"
+        ],
+        "反思": [
+          "reflection",
+          "自我评估",
+          "复盘评估",
+          "自我评价",
+          "复盘修正"
+        ]
+      }
     },
     {
       "id": "A28",
@@ -583,7 +861,21 @@
       ],
       "hallucination_traps": [
         "CoT 可以调用外部工具"
-      ]
+      ],
+      "keyword_aliases": {
+        "Observation": [
+          "观察结果",
+          "观测",
+          "工具返回结果",
+          "观察反馈",
+          "行动反馈"
+        ],
+        "工具": [
+          "tool",
+          "外部执行能力",
+          "执行外部动作"
+        ]
+      }
     },
     {
       "id": "B01",
@@ -606,7 +898,27 @@
       ],
       "hallucination_traps": [
         "Git 等于备份"
-      ]
+      ],
+      "keyword_aliases": {
+        "git add": [
+          "加入暂存区",
+          "放入暂存区",
+          "添加到暂存区",
+          "暂存修改"
+        ],
+        "git commit": [
+          "提交到本地仓库",
+          "提交至本地仓库",
+          "本地提交",
+          "创建提交记录"
+        ],
+        "git push": [
+          "推送到远程",
+          "推送至远程",
+          "推送到 GitHub",
+          "向远程仓库推送"
+        ]
+      }
     },
     {
       "id": "B02",
@@ -626,7 +938,20 @@
         "历史",
         "远程"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "历史": [
+          "版本记录",
+          "提交记录",
+          "commit history",
+          "以往的提交"
+        ],
+        "远程": [
+          "remote",
+          "origin",
+          "上游仓库"
+        ]
+      }
     },
     {
       "id": "B03",
@@ -646,7 +971,11 @@
         "/etc",
         "/var"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "/etc": [],
+        "/var": []
+      }
     },
     {
       "id": "B04",
@@ -665,7 +994,16 @@
       "must_contain": [
         "不可"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "不可": [
+          "不能修改",
+          "无法修改",
+          "不允许修改",
+          "immutable",
+          "只读序列"
+        ]
+      }
     },
     {
       "id": "B05",
@@ -684,7 +1022,17 @@
       "must_contain": [
         "不修改"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "不修改": [
+          "不改动",
+          "无需修改",
+          "无需改动",
+          "不改变原函数",
+          "保留原函数代码",
+          "保持原函数不变"
+        ]
+      }
     },
     {
       "id": "B06",
@@ -704,7 +1052,20 @@
         "校验",
         "依赖注入"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "校验": [
+          "验证",
+          "validation",
+          "类型检查",
+          "数据合法性检查"
+        ],
+        "依赖注入": [
+          "dependency injection",
+          "注入依赖",
+          "依赖项注入"
+        ]
+      }
     },
     {
       "id": "B07",
@@ -723,7 +1084,17 @@
       "must_contain": [
         "规则"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "规则": [
+          "映射关系",
+          "函数关系",
+          "学习出模型",
+          "训练出模型",
+          "学习得到模型",
+          "rule"
+        ]
+      }
     },
     {
       "id": "B08",
@@ -744,7 +1115,10 @@
       ],
       "hallucination_traps": [
         "flask run"
-      ]
+      ],
+      "keyword_aliases": {
+        "uvicorn": []
+      }
     },
     {
       "id": "B09",
@@ -765,7 +1139,15 @@
       ],
       "hallucination_traps": [
         "容器是镜像的模板"
-      ]
+      ],
+      "keyword_aliases": {
+        "docker build": [
+          "构建镜像",
+          "构建为镜像",
+          "构建成镜像",
+          "build image"
+        ]
+      }
     },
     {
       "id": "B10",
@@ -786,7 +1168,15 @@
       ],
       "hallucination_traps": [
         "容器 localhost 就是宿主机"
-      ]
+      ],
+      "keyword_aliases": {
+        "postgres:5432": [
+          "postgres 服务的 5432 端口",
+          "postgres 服务名和 5432 端口",
+          "服务名 postgres，端口 5432",
+          "服务名 postgres:端口 5432"
+        ]
+      }
     },
     {
       "id": "B11",
@@ -807,7 +1197,16 @@
       ],
       "hallucination_traps": [
         "depends_on 等于已经 ready"
-      ]
+      ],
+      "keyword_aliases": {
+        "healthcheck": [
+          "健康检查",
+          "健康检测",
+          "就绪检查",
+          "health check",
+          "service_healthy"
+        ]
+      }
     },
     {
       "id": "B12",
@@ -826,7 +1225,15 @@
       "must_contain": [
         "docker.sock"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "docker.sock": [
+          "Docker 守护进程套接字",
+          "Docker daemon socket",
+          "Docker 的 Unix socket",
+          "Docker 引擎套接字"
+        ]
+      }
     },
     {
       "id": "B13",
@@ -845,7 +1252,16 @@
       "must_contain": [
         "缓存"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "缓存": [
+          "cache",
+          "复用依赖层",
+          "复用依赖安装层",
+          "重用依赖层",
+          "避免重新安装依赖"
+        ]
+      }
     },
     {
       "id": "B14",
@@ -864,7 +1280,15 @@
       "must_contain": [
         "O(1)"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "O(1)": [
+          "O（1）",
+          "常数时间",
+          "常量时间",
+          "constant time"
+        ]
+      }
     },
     {
       "id": "B15",
@@ -884,7 +1308,19 @@
         "LIFO",
         "FIFO"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "LIFO": [
+          "后进先出",
+          "后入先出",
+          "last in first out"
+        ],
+        "FIFO": [
+          "先进先出",
+          "先入先出",
+          "first in first out"
+        ]
+      }
     },
     {
       "id": "B16",
@@ -906,7 +1342,19 @@
       ],
       "hallucination_traps": [
         "HNSW 就是 LangGraph"
-      ]
+      ],
+      "keyword_aliases": {
+        "近似": [
+          "ANN",
+          "approximate nearest neighbor",
+          "近邻近似搜索"
+        ],
+        "索引": [
+          "index",
+          "indexing",
+          "检索加速结构"
+        ]
+      }
     },
     {
       "id": "B17",
@@ -927,7 +1375,17 @@
       ],
       "hallucination_traps": [
         "asyncio 会让单次 LLM 从 3 秒变成 0.3 秒"
-      ]
+      ],
+      "keyword_aliases": {
+        "重叠": [
+          "并发等待",
+          "等待时间交叠",
+          "交叠等待",
+          "等待期间执行其他任务",
+          "同时等待",
+          "IO overlap"
+        ]
+      }
     },
     {
       "id": "B18",
@@ -946,7 +1404,14 @@
       "must_contain": [
         "事件循环"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "事件循环": [
+          "event loop",
+          "event_loop",
+          "异步事件调度循环"
+        ]
+      }
     },
     {
       "id": "B19",
@@ -965,7 +1430,15 @@
       "must_contain": [
         "return_exceptions"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "return_exceptions": [
+          "return exceptions",
+          "返回异常而非抛出",
+          "将异常作为结果返回",
+          "把异常当作结果返回"
+        ]
+      }
     },
     {
       "id": "B20",
@@ -987,7 +1460,17 @@
       "hallucination_traps": [
         "Semaphore 就是令牌桶",
         "Semaphore 就是 QPS"
-      ]
+      ],
+      "keyword_aliases": {
+        "同时": [
+          "并发数",
+          "并发量",
+          "并行数",
+          "在途请求数",
+          "并发上限",
+          "concurrency"
+        ]
+      }
     },
     {
       "id": "B21",
@@ -1006,7 +1489,17 @@
       "must_contain": [
         "never awaited"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "never awaited": [
+          "未被等待",
+          "没有被 await",
+          "没有 await",
+          "未 await",
+          "未等待协程",
+          "协程未被等待"
+        ]
+      }
     },
     {
       "id": "C01",
@@ -1025,7 +1518,16 @@
       "must_contain": [
         "分块"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "分块": [
+          "切块",
+          "切分文本",
+          "文本切分",
+          "chunking",
+          "分段切分"
+        ]
+      }
     },
     {
       "id": "C02",
@@ -1046,7 +1548,15 @@
       ],
       "hallucination_traps": [
         "直接加权平均"
-      ]
+      ],
+      "keyword_aliases": {
+        "RRF": [
+          "Reciprocal Rank Fusion",
+          "倒数排名融合",
+          "倒数秩融合",
+          "排名倒数融合"
+        ]
+      }
     },
     {
       "id": "C03",
@@ -1066,7 +1576,22 @@
         "私有",
         "微调"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "私有": [
+          "内部资料",
+          "企业内部文档",
+          "专有知识",
+          "本地知识库",
+          "private"
+        ],
+        "微调": [
+          "SFT",
+          "fine-tuning",
+          "fine tuning",
+          "finetuning"
+        ]
+      }
     },
     {
       "id": "C04",
@@ -1085,7 +1610,17 @@
       "must_contain": [
         "不知道"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "不知道": [
+          "无法回答",
+          "不能确定答案",
+          "资料不足",
+          "没有足够依据",
+          "缺乏依据",
+          "拒绝作答"
+        ]
+      }
     },
     {
       "id": "C05",
@@ -1104,7 +1639,14 @@
       "must_contain": [
         "ANN"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "ANN": [
+          "近似最近邻",
+          "近似近邻",
+          "approximate nearest neighbor"
+        ]
+      }
     },
     {
       "id": "C06",
@@ -1124,7 +1666,22 @@
         "片段",
         "向量"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "片段": [
+          "分块",
+          "切块",
+          "文档块",
+          "文本块",
+          "chunks"
+        ],
+        "向量": [
+          "embedding",
+          "嵌入表示",
+          "嵌入索引",
+          "vector"
+        ]
+      }
     },
     {
       "id": "C07",
@@ -1146,7 +1703,22 @@
       ],
       "hallucination_traps": [
         "SFT 完全不会幻觉"
-      ]
+      ],
+      "keyword_aliases": {
+        "动态": [
+          "实时更新",
+          "随时更新",
+          "及时更新",
+          "按需更新",
+          "无需重训即可更新"
+        ],
+        "黑盒": [
+          "不透明",
+          "可解释性低",
+          "难以追溯",
+          "black box"
+        ]
+      }
     },
     {
       "id": "C08",
@@ -1165,7 +1737,17 @@
       "must_contain": [
         "多查询"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "多查询": [
+          "多个查询",
+          "多路查询",
+          "多种查询",
+          "查询变体",
+          "multi-query",
+          "multi query"
+        ]
+      }
     },
     {
       "id": "C09",
@@ -1185,7 +1767,21 @@
         "逻辑性",
         "指令"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "逻辑性": [
+          "逻辑幻觉",
+          "推理幻觉",
+          "逻辑错误",
+          "推理错误"
+        ],
+        "指令": [
+          "instruction",
+          "任务要求偏离",
+          "未遵循要求",
+          "不遵循要求"
+        ]
+      }
     },
     {
       "id": "C10",
@@ -1205,7 +1801,21 @@
         "维度",
         "混杂"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "维度": [
+          "维数",
+          "dimensionality",
+          "dimension"
+        ],
+        "混杂": [
+          "混合多个主题",
+          "多个主题混在一起",
+          "主题混合",
+          "主题不单一",
+          "语义混合"
+        ]
+      }
     },
     {
       "id": "D01",
@@ -1227,7 +1837,17 @@
       ],
       "hallucination_traps": [
         "一致性只靠隔离级别"
-      ]
+      ],
+      "keyword_aliases": {
+        "Undo": [
+          "回滚日志",
+          "撤销日志"
+        ],
+        "Redo": [
+          "重做日志",
+          "重写日志"
+        ]
+      }
     },
     {
       "id": "D02",
@@ -1249,7 +1869,21 @@
       ],
       "hallucination_traps": [
         "默认 Read Committed"
-      ]
+      ],
+      "keyword_aliases": {
+        "Repeatable": [
+          "可重复读",
+          "RR 隔离级别",
+          "隔离级别 RR"
+        ],
+        "未提交": [
+          "尚未 commit",
+          "没有 commit",
+          "尚未完成提交",
+          "还未完成提交",
+          "uncommitted"
+        ]
+      }
     },
     {
       "id": "D03",
@@ -1270,7 +1904,17 @@
       ],
       "hallucination_traps": [
         "8.0 仍默认开查询缓存"
-      ]
+      ],
+      "keyword_aliases": {
+        "删除": [
+          "移除",
+          "移除了查询缓存",
+          "不再支持查询缓存",
+          "已取消查询缓存",
+          "已废除查询缓存",
+          "removed"
+        ]
+      }
     },
     {
       "id": "D04",
@@ -1290,7 +1934,18 @@
         "20",
         "8"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "20": [
+          "二十",
+          "２０"
+        ],
+        "8": [
+          "八字节",
+          "八个字节",
+          "８"
+        ]
+      }
     },
     {
       "id": "D05",
@@ -1309,7 +1964,16 @@
       "must_contain": [
         "SYN"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "SYN": [
+          "同步报文",
+          "同步请求报文",
+          "连接建立请求",
+          "旧的连接请求",
+          "过期连接请求"
+        ]
+      }
     },
     {
       "id": "D06",
@@ -1331,7 +1995,23 @@
       ],
       "hallucination_traps": [
         "被动关闭方 TIME_WAIT"
-      ]
+      ],
+      "keyword_aliases": {
+        "主动": [
+          "发起关闭",
+          "首先关闭",
+          "先发 FIN",
+          "先发送 FIN",
+          "active close"
+        ],
+        "2MSL": [
+          "2 倍 MSL",
+          "两个 MSL",
+          "两倍 MSL",
+          "两倍最大报文生存时间",
+          "两倍最大报文寿命"
+        ]
+      }
     },
     {
       "id": "D07",
@@ -1351,7 +2031,23 @@
         "独立",
         "共享"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "独立": [
+          "相互隔离",
+          "各自的地址空间",
+          "不同的地址空间",
+          "隔离地址空间",
+          "独享地址空间"
+        ],
+        "共享": [
+          "共用",
+          "共处同一地址空间",
+          "同一个地址空间",
+          "共用一个地址空间",
+          "shared"
+        ]
+      }
     },
     {
       "id": "D08",
@@ -1371,7 +2067,21 @@
         "拷贝",
         "锁"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "拷贝": [
+          "复制",
+          "copy",
+          "数据搬运"
+        ],
+        "锁": [
+          "信号量",
+          "semaphore",
+          "mutex",
+          "同步原语",
+          "同步机制"
+        ]
+      }
     },
     {
       "id": "D09",
@@ -1392,7 +2102,16 @@
       ],
       "hallucination_traps": [
         "InnoDB 用红黑树当主键索引"
-      ]
+      ],
+      "keyword_aliases": {
+        "磁盘": [
+          "外存",
+          "页 IO",
+          "页 I/O",
+          "disk",
+          "存储页读取"
+        ]
+      }
     },
     {
       "id": "D10",
@@ -1412,7 +2131,21 @@
         "回表",
         "覆盖"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "回表": [
+          "二次查找聚簇索引",
+          "再查聚簇索引",
+          "返回聚簇索引获取整行",
+          "table lookup"
+        ],
+        "覆盖": [
+          "Using index",
+          "covering index",
+          "索引包含全部查询列",
+          "索引包含所有查询列"
+        ]
+      }
     },
     {
       "id": "D11",
@@ -1432,7 +2165,20 @@
         "红黑树",
         "虚拟运行"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "红黑树": [
+          "red-black tree",
+          "red black tree",
+          "rbtree",
+          "RB 树"
+        ],
+        "虚拟运行": [
+          "vruntime",
+          "virtual runtime",
+          "虚拟执行时间"
+        ]
+      }
     },
     {
       "id": "D12",
@@ -1452,7 +2198,20 @@
         "字节流",
         "数据报"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "字节流": [
+          "字节序列流",
+          "byte stream",
+          "流式字节传输"
+        ],
+        "数据报": [
+          "datagram",
+          "报文为单位",
+          "报文边界",
+          "面向报文"
+        ]
+      }
     },
     {
       "id": "E01",
@@ -1474,7 +2233,20 @@
       ],
       "hallucination_traps": [
         "nil map 可以写入"
-      ]
+      ],
+      "keyword_aliases": {
+        "底层数组": [
+          "底层的 array",
+          "底层存储数组",
+          "backing array",
+          "底层的连续数组"
+        ],
+        "panic": [
+          "运行时恐慌",
+          "运行时崩溃",
+          "运行时错误"
+        ]
+      }
     },
     {
       "id": "E02",
@@ -1495,7 +2267,15 @@
       ],
       "hallucination_traps": [
         "rune 是 uint8"
-      ]
+      ],
+      "keyword_aliases": {
+        "int32": [
+          "32 位有符号整数",
+          "有符号 32 位整数",
+          "32-bit signed integer",
+          "signed 32-bit integer"
+        ]
+      }
     },
     {
       "id": "E03",
@@ -1517,7 +2297,19 @@
       ],
       "hallucination_traps": [
         "RPC 等于 HTTP/2"
-      ]
+      ],
+      "keyword_aliases": {
+        "HTTP/2": [
+          "HTTP2",
+          "HTTP 2.0",
+          "HTTP/2.0"
+        ],
+        "Protobuf": [
+          "Protocol Buffers",
+          "Protocol Buffer",
+          "协议缓冲区"
+        ]
+      }
     },
     {
       "id": "E04",
@@ -1540,7 +2332,29 @@
       ],
       "hallucination_traps": [
         "Base64 是加密"
-      ]
+      ],
+      "keyword_aliases": {
+        "可逆": [
+          "能够解密还原",
+          "可以解密恢复",
+          "可解密",
+          "能解密",
+          "reversible"
+        ],
+        "指纹": [
+          "摘要",
+          "digest",
+          "fingerprint"
+        ],
+        "不是加密": [
+          "并非加密",
+          "不属于加密",
+          "不算加密",
+          "仅是编码",
+          "只是编码",
+          "并不提供加密"
+        ]
+      }
     },
     {
       "id": "E05",
@@ -1561,7 +2375,15 @@
       ],
       "hallucination_traps": [
         "MD5 加盐就够"
-      ]
+      ],
+      "keyword_aliases": {
+        "bcrypt": [
+          "Argon2",
+          "带盐慢哈希",
+          "加盐的慢哈希",
+          "自适应密码哈希"
+        ]
+      }
     },
     {
       "id": "E06",
@@ -1583,7 +2405,20 @@
       ],
       "hallucination_traps": [
         "校招项目必须微服务"
-      ]
+      ],
+      "keyword_aliases": {
+        "单体": [
+          "monolith",
+          "monolithic",
+          "单一应用架构"
+        ],
+        "MVP": [
+          "最小可行产品",
+          "minimum viable product",
+          "最小可用产品",
+          "最小化可行产品"
+        ]
+      }
     },
     {
       "id": "E07",
@@ -1606,7 +2441,25 @@
       ],
       "hallucination_traps": [
         "库存判断放在 Repository"
-      ]
+      ],
+      "keyword_aliases": {
+        "HTTP": [
+          "网络请求和响应",
+          "Web 请求",
+          "接口请求与响应"
+        ],
+        "业务": [
+          "business logic",
+          "领域逻辑",
+          "商业规则"
+        ],
+        "数据库": [
+          "数据持久化",
+          "持久化存储",
+          "database",
+          "数据存取"
+        ]
+      }
     },
     {
       "id": "E08",
@@ -1628,7 +2481,16 @@
       ],
       "hallucination_traps": [
         "DDD 就是按表拆模块"
-      ]
+      ],
+      "keyword_aliases": {
+        "实体": [
+          "entity",
+          "entities"
+        ],
+        "聚合": [
+          "aggregate"
+        ]
+      }
     },
     {
       "id": "E09",
@@ -1647,7 +2509,15 @@
       "must_contain": [
         "适配器"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "适配器": [
+          "adapter",
+          "adapters",
+          "端口适配",
+          "接口适配层"
+        ]
+      }
     },
     {
       "id": "E10",
@@ -1667,7 +2537,23 @@
         "外层",
         "内层"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "外层": [
+          "外部层",
+          "外围层",
+          "外圈",
+          "outer layer",
+          "外部技术层"
+        ],
+        "内层": [
+          "内部层",
+          "核心层",
+          "内圈",
+          "inner layer",
+          "业务核心"
+        ]
+      }
     },
     {
       "id": "E11",
@@ -1688,7 +2574,15 @@
       ],
       "hallucination_traps": [
         "所有项目都要 CQRS"
-      ]
+      ],
+      "keyword_aliases": {
+        "不同模型": [
+          "读写模型分离",
+          "读模型和写模型分开",
+          "读写各自的模型",
+          "不同的读写模型"
+        ]
+      }
     },
     {
       "id": "E12",
@@ -1708,7 +2602,20 @@
         "策略",
         "创建"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "策略": [
+          "strategy",
+          "可互换算法模式"
+        ],
+        "创建": [
+          "实例化",
+          "构造对象",
+          "构建对象",
+          "对象生成",
+          "creation"
+        ]
+      }
     },
     {
       "id": "E13",
@@ -1727,7 +2634,14 @@
       "must_contain": [
         "责任链"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "责任链": [
+          "职责链",
+          "Chain of Responsibility",
+          "处理器链"
+        ]
+      }
     },
     {
       "id": "E14",
@@ -1749,7 +2663,20 @@
       ],
       "hallucination_traps": [
         "Nginx 是装饰器"
-      ]
+      ],
+      "keyword_aliases": {
+        "代理": [
+          "proxy",
+          "委托转发"
+        ],
+        "不修改": [
+          "不改动",
+          "无需修改",
+          "无需改动",
+          "不改变原对象代码",
+          "保持原对象代码不变"
+        ]
+      }
     },
     {
       "id": "E15",
@@ -1771,7 +2698,20 @@
       ],
       "hallucination_traps": [
         "Kafka 就是观察者模式"
-      ]
+      ],
+      "keyword_aliases": {
+        "扩展": [
+          "延伸",
+          "推广",
+          "拓展",
+          "extension"
+        ],
+        "分布式": [
+          "distributed",
+          "跨进程",
+          "跨服务"
+        ]
+      }
     },
     {
       "id": "E16",
@@ -1790,7 +2730,10 @@
       "must_contain": [
         "gRPC"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "gRPC": []
+      }
     },
     {
       "id": "F01",
@@ -1812,7 +2755,20 @@
       ],
       "hallucination_traps": [
         "统一说成 2GB 或 512MB"
-      ]
+      ],
+      "keyword_aliases": {
+        "不一样": [
+          "并不完全相同",
+          "不完全一致",
+          "不完全相同",
+          "并不相同",
+          "各不相同",
+          "不同的示例配置",
+          "存在差异",
+          "不能统一为一套",
+          "不是统一标准"
+        ]
+      }
     },
     {
       "id": "F02",
@@ -1831,7 +2787,15 @@
       "must_contain": [
         "Session"
       ],
-      "hallucination_traps": []
+      "hallucination_traps": [],
+      "keyword_aliases": {
+        "Session": [
+          "会话日志",
+          "会话记录",
+          "会话持久日志",
+          "会话事件日志"
+        ]
+      }
     },
     {
       "id": "F03",
@@ -1852,7 +2816,13 @@
       ],
       "hallucination_traps": [
         "统一答成 512MB"
-      ]
+      ],
+      "keyword_aliases": {
+        "256": [
+          "二百五十六",
+          "２５６"
+        ]
+      }
     },
     {
       "id": "G01",

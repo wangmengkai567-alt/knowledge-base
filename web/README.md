@@ -35,7 +35,7 @@ npm run typecheck
 - 成功：直接返回资源 JSON（如文档对象、检索 `results`），**没有** `{ code, data }` 信封。
 - 失败：`{ code, reason, message }`；Axios 拦截器按 `code` 或 HTTP 状态提示。
 - 鉴权：`Authorization: Bearer <access_token>`。
-- 流式 RAG：`POST /api/v1/knowledge/bases/{id}/rag/query/stream`，用 `fetch` 解析 SSE（不能用 EventSource）。无相关资料时正文为「我不知道」；生成失败为「模型回答失败」。
+- 流式 RAG：`POST /api/v1/knowledge/bases/{id}/rag/query/stream`，用 `fetch` 解析 SSE（不能用 EventSource）。协议版本 4，实时展示过程事件，引用检查后一次发布最终回答；使用 status、stop_reason、error_code 区分资料不足、失败、超时、预算用尽和取消。用户开启联网后才允许网页工具。
 
 不要使用已废弃路径 `GET /api/v1/kbs`。知识库是：
 
@@ -52,7 +52,7 @@ npm run typecheck
 | `/home` | 提问入口 |
 | `/search` | 上方为根据资料生成的回答，下方为参考资料（可点进文档） |
 | `/knowledge` | 知识库卡片；删除会级联后端文档 |
-| `/knowledge/:kbId/documents` | 上传（pdf/md/txt，含进度）、列表、重解析/重嵌入、轮询状态 |
+| `/knowledge/:kbId/documents` | 上传（pdf/md/txt，含进度）、列表、重解析/失败阶段重试、轮询状态 |
 | `/knowledge/:kbId/documents/:docId` | 预览与分块 |
 | `/history` | 检索历史（浏览器本地） |
 | `/favorites` | 收藏（浏览器本地） |

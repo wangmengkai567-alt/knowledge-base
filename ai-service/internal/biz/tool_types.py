@@ -55,22 +55,13 @@ class ToolResult:
     def to_message(self) -> dict:
         sources = []
         for source in self.sources:
-            value = asdict(source)
-            value["content"] = source.content
-            # KB 来源不重复发送命中正文；实际文字仅来自裁剪后的 segments。
-            if "retrieval_hits" in value:
-                value["retrieval_hits"] = [
-                    {
-                        "chunk_id": hit.chunk_id,
-                        "score": hit.score,
-                        "score_type": hit.score_type,
-                        "score_method": hit.score_method,
-                        "scores": [asdict(score) for score in hit.scores],
-                    }
-                    for hit in source.retrieval_hits
-                ]
-                for segment in value["segments"]:
-                    del segment["content"]
+            value = {"citation_id": source.citation_id, "source_type": source.source_type,
+                     "content": source.content, "truncated": source.truncated}
+            if source.source_type == "knowledge_base":
+                value.update(document_filename=source.document_filename,
+                             document_updated_at=source.document_updated_at)
+            else:
+                value.update(url=source.url, title=source.title, fetched_at=source.fetched_at)
             sources.append(value)
         return {
             "role": "tool",
@@ -84,5 +75,6 @@ class ToolResult:
                     "errors": [asdict(error) for error in self.errors],
                 },
                 ensure_ascii=False,
+                separators=(",", ":"),
             ),
         }

@@ -5,7 +5,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from faithfulness import (
-    neighbor_evidence,
     novel_numbers,
     split_claims,
     term_covered,
@@ -69,24 +68,6 @@ class FaithfulnessTest(unittest.TestCase):
         evidence = "Git 是版本控制工具，用来记录每一次修改。"
         answer = "今天下午深圳会下一场很大的雷阵雨，出门记得带伞。"
         self.assertTrue(unsupported_sentences(answer, evidence))
-
-    def test_neighbor_window_includes_adjacent_chunks(self):
-        results = [
-            {"chunk_id": 2, "document_id": 7, "position": 1, "content": "hit"},
-        ]
-        chunks = {
-            7: [
-                {"id": 1, "position": 0, "content": "left"},
-                {"id": 2, "position": 1, "content": "hit"},
-                {"id": 3, "position": 2, "content": "right"},
-                {"id": 4, "position": 3, "content": "far"},
-            ]
-        }
-        text = neighbor_evidence(results, chunks, window=1)
-        self.assertIn("left", text)
-        self.assertIn("hit", text)
-        self.assertIn("right", text)
-        self.assertNotIn("far", text)
 
     def test_keyword_folding(self):
         self.assertTrue(term_covered("SFT 更像一个黑匣子", "黑盒"))

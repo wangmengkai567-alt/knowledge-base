@@ -1,160 +1,248 @@
-"""RAG must not reply 我不知道 once retrieval already returned evidence.
-
-Uses synthetic notes only — not the golden eval questions.
-"""
+"""Run the real bounded loop and ToolModel with deterministic tool/model responses."""
 from __future__ import annotations
 
+import asyncio
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from internal.biz.entity import ChatChunk, ChatResult, RetrievalResult
+from internal.biz.answer_run import RunLimits
+from internal.biz.entity import ChatResult
+from internal.biz.materials import AnswerSource, InputBudget, MaterialSegment, WebSource
 from internal.biz.rag import RAGBiz
+from internal.biz.tool_model import ToolModel
+from internal.biz.tool_types import ToolCall, ToolFailure, ToolResult
+from internal.biz.tools import ReadOnlyToolExecutor, ToolScope, ToolSession
+from internal.data.answer_runs import LocalAnswerRunStore
 from internal.prompt.base import PromptTemplate
-from pkg.errors.base import APIError
-from pkg.errors.codes import ErrorCode
+from internal.service.rag import RAGService
+from pkg.errors.base import LLMError
 
 
-def _source() -> RetrievalResult:
-    return RetrievalResult(
-        chunk_id=11,
-        score=0.91,
-        chunk_content="组件启动顺序是：先加载配置，再连接存储，最后对外提供服务。",
-        chunk_position=0,
-        document_id=3,
-        document_filename="runtime-notes.md",
-        knowledge_base_id=1,
-    )
+class Prompts:
+    def get_template(self, name):
+        return PromptTemplate(name, "JSON answer using sources", "{{ query }}", ["query"])
 
 
-class _StubPrompts:
-    def get_template(self, name: str) -> PromptTemplate:
-        return PromptTemplate(
-            name=name,
-            system_prompt="资料：{{ context }}",
-            user_template="{{ query }}",
-            variables=["query", "context"],
-        )
+def final(answer="资料不足", status="insufficient"):
+    return ChatResult(content=json.dumps({"status": status, "answer": answer}, ensure_ascii=False),
+                      model="qwen3.8-flash", prompt_tokens=20, completion_tokens=10,
+                      total_tokens=30, finish_reason="stop")
 
 
-class _StubRetrieval:
-    _min_relevance = 0.5
-
-    def __init__(self, sources: list[RetrievalResult]) -> None:
-        self._sources = sources
-
-    async def retrieve(self, **kwargs):
-        return list(self._sources)
-
-    async def load_by_ids(self, chunk_ids, allowed_kb_ids=None):
-        return list(self._sources)
+def action(call_id="c1", query="topic"):
+    return ChatResult(content="", model="qwen3.8-flash", prompt_tokens=20, completion_tokens=10,
+                      total_tokens=30, tool_calls=[ToolCall(call_id, "knowledge_base_search", json.dumps({"query": query}))],
+                      finish_reason="tool_calls")
 
 
-class _ScriptedLLM:
-    def __init__(self, replies: list[str]) -> None:
-        self._replies = list(replies)
-        self.calls: list[list[dict[str, str]]] = []
+class LLM:
+    supports_native_tools = True
 
-    @property
-    def model_name(self) -> str:
-        return "scripted"
+    def __init__(self, responses):
+        self.responses = iter(responses)
+        self.calls = []
+        self.waiting = asyncio.Event()
+        self.closed = False
 
-    async def generate(self, messages, temperature=None, max_tokens=None) -> ChatResult:
-        self.calls.append(messages)
-        text = self._replies.pop(0) if self._replies else "我不知道"
-        return ChatResult(content=text, model=self.model_name)
-
-    async def generate_stream(self, messages, temperature=None, max_tokens=None):
-        result = await self.generate(messages, temperature=temperature, max_tokens=max_tokens)
-        yield ChatChunk(delta=result.content, model=result.model, finish_reason="stop")
-
-
-class _FailingLLM(_ScriptedLLM):
-    def __init__(self, status: int) -> None:
-        super().__init__([])
-        self._status = status
-
-    async def generate(self, messages, temperature=None, max_tokens=None) -> ChatResult:
-        self.calls.append(messages)
-        raise APIError(
-            code=ErrorCode.LLM_ERROR,
-            reason="LLM_ERROR",
-            message=f'LLM API returned {self._status}: {{"error":{{"message":"Free quota exhausted."}}}}',
-        )
+    async def generate_with_tools(self, messages, tools, **kwargs):
+        self.calls.append((messages, kwargs))
+        value = next(self.responses)
+        if value == "wait":
+            self.waiting.set()
+            try:
+                await asyncio.Event().wait()
+            finally:
+                self.closed = True
+        if isinstance(value, Exception):
+            raise value
+        return value
 
 
-def _biz(sources: list[RetrievalResult], replies: list[str]) -> tuple[RAGBiz, _ScriptedLLM]:
-    llm = _ScriptedLLM(replies)
-    biz = RAGBiz(
-        retrieval_biz=_StubRetrieval(sources),
-        llm_provider=llm,
-        prompt_manager=_StubPrompts(),
-    )
-    return biz, llm
+class Executor:
+    call_key = staticmethod(ReadOnlyToolExecutor.call_key)
+
+    def __init__(self, results):
+        self.results = iter(results)
+        self.calls = []
+
+    async def create_session(self, user_id, knowledge_base_ids, allow_web, user_urls, **kwargs):
+        return ToolSession(ToolScope(user_id, tuple(knowledge_base_ids), allow_web),
+                           **{key: value for key, value in kwargs.items() if value is not None})
+
+    def definitions(self, scope):
+        return [{"type": "function", "function": {"name": "knowledge_base_search", "parameters": {"type": "object"}}}]
+
+    async def execute(self, call, session):
+        self.calls.append(call)
+        return next(self.results)
 
 
-class RAGGroundedAnswerTests(unittest.IsolatedAsyncioTestCase):
-    async def test_empty_sources_still_refuse_without_llm(self):
-        biz, llm = _biz([], ["不应被调用"])
-        result = await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
-        self.assertEqual(result.answer, "我不知道")
-        self.assertEqual(llm.calls, [])
+def setup(responses, results=(), limits=None, timeout=30):
+    llm, executor = LLM(responses), Executor(results)
+    budget = InputBudget("qwen3.8-flash")
+    biz = RAGBiz(ToolModel(executor, llm, budget, model_timeout=timeout), Prompts(), budget, limits=limits)
+    return biz, llm, executor
 
-    async def test_nonempty_sources_retry_when_model_refuses(self):
-        biz, llm = _biz([_source()], ["我不知道", "先加载配置，再连接存储。"])
-        result = await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
-        self.assertNotEqual(result.answer.strip(), "我不知道")
-        self.assertIn("加载配置", result.answer)
+
+def source():
+    return WebSource(0, "https://example.com/", "runtime", "2026-10-29T00:00:00Z",
+                     "组件先加载配置，再连接存储。", "web_page")
+
+
+class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
+    async def query(self, biz, **kwargs):
+        return await biz.query(query="启动顺序？", knowledge_base_ids=[1], user_id=1, **kwargs)
+
+    async def test_tool_selection_uses_supported_auto_mode(self):
+        biz, llm, _ = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "empty")])
+        await self.query(biz)
+        self.assertEqual(llm.calls[0][1]["tool_choice"], "auto")
+        self.assertEqual(sum(m["role"] == "system" for m in llm.calls[0][0]), 1)
+        self.assertEqual(llm.calls[1][1]["tool_choice"], "auto")
+
+    def test_kb_tool_context_omits_internal_index_metadata(self):
+        material = AnswerSource(1, 3, "note.md", 1, [MaterialSegment(11, 0, 0, 5, "abcde")], [])
+        payload = json.loads(ToolResult("c1", "knowledge_base_search", "success", [material]).to_message()["content"])
+        self.assertEqual(payload["sources"][0]["content"], material.content)
+        self.assertNotIn("segments", payload["sources"][0])
+        self.assertNotIn("retrieval_hits", payload["sources"][0])
+
+    async def test_model_receives_explicit_current_web_permission(self):
+        biz, llm, _ = setup([final()])
+        await self.query(biz)
+        self.assertIn("本次禁止联网", llm.calls[0][0][0]["content"])
+
+    async def test_nonempty_material_can_still_be_insufficient_without_forced_retry(self):
+        biz, llm, _ = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "success", [source()])])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "insufficient")
         self.assertEqual(len(llm.calls), 2)
+        self.assertEqual(run.sources[0].citation_id, 1)
 
-    async def test_nonempty_sources_never_surface_refusal_after_retry(self):
-        biz, llm = _biz([_source()], ["我不知道", "我不知道。"])
-        result = await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
-        self.assertFalse((result.answer or "").strip().startswith("我不知道"))
-        self.assertEqual(result.answer, "模型回答失败")
-        self.assertEqual(len(llm.calls), 2)
+    async def test_empty_result_is_insufficient_not_tool_failure(self):
+        biz, _, _ = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "empty")])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "insufficient")
+        self.assertEqual(run.sources, [])
 
-    async def test_low_score_sources_refuse_without_llm(self):
-        weak = RetrievalResult(
-            chunk_id=21,
-            score=0.01,
-            chunk_content="退款只走原支付渠道，到账时间以渠道为准。",
-            chunk_position=0,
-            document_id=8,
-            document_filename="refund.md",
-            knowledge_base_id=1,
-        )
-        biz, llm = _biz([weak], ["不应被调用"])
-        result = await biz.query(query="盆栽怎么修剪才不会枯？", knowledge_base_id=1)
-        self.assertEqual(result.answer, "我不知道")
+    async def test_valid_citation_matches_actual_sent_material(self):
+        biz, llm, _ = setup([action(), final("先加载配置。[来源 1]", "answered")],
+                            [ToolResult("c1", "knowledge_base_search", "success", [source()])])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "completed")
+        sent = json.loads(next(m for m in llm.calls[1][0] if m["role"] == "tool")["content"])
+        self.assertEqual(sent["sources"][0]["content"], run.sources[0].content)
+        self.assertEqual(sent["sources"][0]["citation_id"], run.sources[0].citation_id)
+
+    async def test_materials_leave_room_for_followup_tool_history(self):
+        large = source()
+        large.content = "甲" * 4200
+        biz, llm, executor = setup([action(), final()],
+                                  [ToolResult("c1", "knowledge_base_search", "success", [large])])
+        await self.query(biz)
+        budget = InputBudget("qwen3.8-flash")
+        sent = llm.calls[1][0]
+        measured = budget.estimate(sent, executor.definitions(None), [])
+        self.assertLessEqual(measured, budget.input_limit - budget.output_limit)
+
+    async def test_conflicting_versions_keep_separate_sources(self):
+        old = source()
+        current = WebSource(0, old.url, old.title, "2026-10-29T01:00:00Z", "组件先连接存储，再加载配置。", "web_page")
+        biz, _, _ = setup([action(), action("c2", "different evidence"),
+                           final("两个时间的资料顺序不同。[来源 1][来源 2]", "answered")],
+                          [ToolResult("c1", "knowledge_base_search", "success", [old]),
+                           ToolResult("c2", "knowledge_base_search", "success", [current])])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "completed")
+        self.assertEqual([s.citation_id for s in run.sources], [1, 2])
+        self.assertNotEqual(run.sources[0].content, run.sources[1].content)
+        self.assertNotEqual(run.sources[0].fetched_at, run.sources[1].fetched_at)
+
+    async def test_invalid_citation_never_published(self):
+        biz, _, _ = setup([final("编造结论。[来源 99]", "answered")])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "invalid_answer")
+        self.assertEqual(run.answer, "")
+        self.assertNotIn("answer_validated", [event.kind for event in run.events])
+
+    async def test_tool_failure_stops_without_another_model_or_tool(self):
+        result = ToolResult("c1", "knowledge_base_search", "error", errors=[ToolFailure("TOOL_DEPENDENCY_FAILED", "offline")])
+        biz, llm, executor = setup([action()], [result])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "tool_failed")
+        self.assertEqual((len(llm.calls), len(executor.calls)), (1, 1))
+
+    async def test_repeat_query_with_different_call_id_is_not_executed_again(self):
+        biz, _, executor = setup([action(), action("c2", " TOPIC "), final()],
+                                  [ToolResult("c1", "knowledge_base_search", "empty")])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "repeated_call")
+        self.assertEqual(len(executor.calls), 1)
+
+    async def test_last_model_call_cannot_start_new_tools(self):
+        biz, llm, executor = setup([final()], limits=RunLimits(model_calls=1))
+        run = await self.query(biz)
+        self.assertEqual(run.usage.model_calls, 1)
+        self.assertEqual(llm.calls[0][1]["tool_choice"], "none")
+        self.assertEqual(executor.calls, [])
+        self.assertEqual(run.status, "budget_exhausted")
+
+    async def test_tool_limit_reserves_final_answer_and_stops_tools(self):
+        biz, _, executor = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "empty")],
+                                  limits=RunLimits(tool_calls=1))
+        run = await self.query(biz)
+        self.assertEqual(run.status, "budget_exhausted")
+        self.assertEqual(run.stop_reason, "tool_call_limit")
+        self.assertEqual(len(executor.calls), 1)
+
+    async def test_input_over_budget_does_not_start_model(self):
+        biz, llm, executor = setup([])
+        run = await biz.query(query="甲" * 16000, knowledge_base_ids=[1], user_id=1)
+        self.assertEqual(run.status, "budget_exhausted")
         self.assertEqual(llm.calls, [])
-        self.assertEqual(result.sources, [])
+        self.assertEqual(executor.calls, [])
 
-    async def test_llm_access_denied_raises_instead_of_masking(self):
-        llm = _FailingLLM(403)
-        biz = RAGBiz(retrieval_biz=_StubRetrieval([_source()]), llm_provider=llm, prompt_manager=_StubPrompts())
-        with self.assertRaises(APIError) as ctx:
-            await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
-        self.assertIn("returned 403", str(ctx.exception))
+    async def test_model_failure_is_explicit(self):
+        biz, llm, _ = setup([LLMError(reason="LLM_DEPENDENCY_ERROR", message="offline")])
+        run = await self.query(biz)
+        self.assertEqual(run.status, "model_failed")
+        self.assertEqual(run.answer, "")
         self.assertEqual(len(llm.calls), 1)
 
-    async def test_llm_server_error_still_masked(self):
-        llm = _FailingLLM(500)
-        biz = RAGBiz(retrieval_biz=_StubRetrieval([_source()]), llm_provider=llm, prompt_manager=_StubPrompts())
-        result = await biz.query(query="启动顺序是什么？", knowledge_base_id=1)
-        self.assertEqual(result.answer, "模型回答失败")
+    async def test_timeout_closes_waiting_model_and_stops(self):
+        biz, llm, executor = setup(["wait"], timeout=0.01)
+        run = await self.query(biz)
+        self.assertEqual(run.status, "timeout")
+        self.assertTrue(llm.closed)
+        self.assertEqual(executor.calls, [])
 
-    async def test_stream_nonempty_sources_does_not_emit_refusal(self):
-        biz, llm = _biz([_source()], ["我不知道", "先加载配置，再连接存储。"])
-        events = [event async for event in biz.query_stream(query="启动顺序是什么？", knowledge_base_id=1)]
-        text = "".join(
-            (event.chunk.delta if event.chunk else "") for event in events if event.event_type == "chunk"
-        )
-        self.assertNotEqual(text.strip(), "我不知道")
-        self.assertIn("加载配置", text)
-        self.assertEqual(len(llm.calls), 2)
+    async def test_cancel_signal_closes_model_and_records_terminal(self):
+        biz, llm, executor = setup(["wait"])
+        cancelled = asyncio.Event()
+        task = asyncio.create_task(self.query(biz, cancelled=cancelled))
+        await llm.waiting.wait()
+        cancelled.set()
+        run = await task
+        self.assertEqual(run.status, "cancelled")
+        self.assertEqual(run.events[-1].kind, "run_finished")
+        self.assertTrue(llm.closed)
+        self.assertEqual(executor.calls, [])
+
+    async def test_sse_and_saved_result_are_the_same_run(self):
+        biz, _, _ = setup([final()])
+        with tempfile.TemporaryDirectory() as folder:
+            service = RAGService(biz, LocalAnswerRunStore(Path(folder)))
+            events = [e async for e in service.query_stream(query="q", knowledge_base_ids=[1], user_id=1)]
+            result = events[-1]
+            saved = json.loads(next(Path(folder).glob("user-1/*.json")).read_text(encoding="utf-8"))
+            self.assertEqual(saved["result"], {k: v for k, v in result.items() if k != "type"})
+            self.assertTrue(all(e["run_id"] == result["run_id"] for e in events))
+            self.assertEqual([e["sequence"] for e in events[:-1]], list(range(1, len(events))))
 
 
 if __name__ == "__main__":

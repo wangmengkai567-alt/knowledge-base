@@ -1,0 +1,35 @@
+{
+  "rescore_base_url": "http://127.0.0.1:1",
+  "checks": [
+    {
+      "file": "phase-6-golden-results.json",
+      "rows": 100,
+      "all_run_snapshots_unchanged": true,
+      "rescore_successful": true
+    },
+    {
+      "file": "phase-6-final-golden-results.json",
+      "rows": 100,
+      "all_run_snapshots_unchanged": true,
+      "rescore_successful": true
+    },
+    {
+      "file": "phase-6-web-results.json",
+      "rows": 4,
+      "all_run_snapshots_unchanged": true,
+      "rescore_successful": true
+    },
+    {
+      "file": "phase-6-final-web-results.json",
+      "rows": 4,
+      "all_run_snapshots_unchanged": true,
+      "rescore_successful": true
+    },
+    {
+      "file": "phase-6-cross-source-results.json",
+      "rows": 1,
+      "all_run_snapshots_unchanged": true,
+      "rescore_successful": true
+    }
+  ]
+}

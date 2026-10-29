@@ -1,30 +1,30 @@
 """Run golden_set.json against a live ai-service. Writes eval/last_run.json."""
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import re
 import sys
 import time
 import urllib.error
 import urllib.request
-from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from faithfulness import neighbor_evidence, term_covered, unsupported_sentences
+from faithfulness import unsupported_sentences
+from keyword_scoring import keyword_matches, keywords_ok
+from run_metrics import score_run, summarize_runs
 
 ROOT = Path(__file__).resolve().parent
 GOLDEN = ROOT / "golden_set.json"
-OUT = ROOT / "last_run.json"
+OUT = ROOT / "phase-6-golden-results.json"
 LOCK = ROOT / ".run_eval.lock"
 BASE = os.environ.get("EVAL_BASE_URL", "http://127.0.0.1:8084")
 EMAIL = os.environ.get("EVAL_EMAIL", "admin@company.com")
 PASSWORD = os.environ.get("EVAL_PASSWORD", "Admin@1234")
 SLEEP_S = float(os.environ.get("EVAL_SLEEP_S", "3.0"))
-REFUSAL_RE = re.compile(r"^我不知道[。.!！]?$")
 
 
 _PID_WIDTH = 15
@@ -54,26 +54,21 @@ def acquire_run_lock(path: Path = LOCK) -> int:
         raise SystemExit(
             f"another run_eval.py (pid {holder}) is still running; "
             f"stop it before starting a new run (lock: {path})"
-        )
+        ) from None
     os.lseek(fd, 1, os.SEEK_SET)
     os.write(fd, f"{os.getpid():<{_PID_WIDTH}}".encode("ascii"))
     return fd
-
-
-def _is_rate_limited(code: int, payload: bytes) -> bool:
-    if code == 429:
-        return True
-    text = payload.decode("utf-8", errors="replace")
-    return code == 500 and ("429" in text or "RATE" in text.upper()) and (
-        "EMBEDDING" in text.upper() or "429" in text
-    )
 
 
 def is_quota_denied(err: object) -> bool:
     """True when the upstream model returns 403 / Unpurchased / access denied."""
     text = str(err).upper()
     return (
-        "HTTP 403" in text
+        "LLM_AUTHORIZATION_FAILED" in text
+        or "LLM_RATE_LIMITED" in text
+        or "HTTP 403" in text
+        or "HTTP 401" in text
+        or "HTTP 429" in text
         or "RETURNED 403" in text
         or "RETURNED 401" in text
         or "ACCESSDENIED" in text
@@ -89,26 +84,13 @@ def http_json(method: str, path: str, token: str | None = None, body: dict | Non
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
-    for attempt in range(8):
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                raw = resp.read().decode("utf-8")
-                return json.loads(raw) if raw else {}
-        except urllib.error.HTTPError as e:
-            payload = e.read()
-            if _is_rate_limited(e.code, payload) and attempt < 7:
-                wait = min(90, 8 * (2 ** attempt))
-                print(f"  rate-limit, retry in {wait}s", flush=True)
-                time.sleep(wait)
-                req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
-                continue
-            raise RuntimeError(f"{method} {path} -> {e.code} {payload[:400]!r}") from e
-        except TimeoutError:
-            if attempt < 7:
-                time.sleep(2)
-                req = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
-                continue
-            raise
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8")
+            return json.loads(raw) if raw else {}
+    except urllib.error.HTTPError as exc:
+        payload = exc.read()
+        raise RuntimeError(f"{method} {path} -> {exc.code} {payload[:400]!r}") from exc
 
 
 def login() -> str:
@@ -139,219 +121,217 @@ def first_hit_rank(results: list[dict], relevant: list[str]) -> int | None:
     return None
 
 
-def is_refusal(answer: str) -> bool:
-    return bool(REFUSAL_RE.match((answer or "").strip()))
+def resolve_kb(item: dict, kbs: list[dict], baseline: dict[str, dict]) -> int:
+    # 历史题目固定为历史运行的同一知识库范围；新场景显式指定范围。
+    kid = item.get("kb_id") if "kb_id" in item else baseline.get(item["id"], {}).get("kb_id")
+    if kid not in {kb["id"] for kb in kbs}:
+        raise ValueError(f"{item['id']}: expected knowledge base {kid} is unavailable")
+    return kid
 
 
-def context_window() -> int:
-    """Match ai-service rag.context_window unless EVAL_CONTEXT_WINDOW is set."""
-    raw = os.environ.get("EVAL_CONTEXT_WINDOW")
-    if raw is not None and raw.strip() != "":
-        return max(0, int(raw))
-    cfg = ROOT.parent / "ai-service" / "configs" / "config.yaml"
-    try:
-        lines = cfg.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return 1
-    in_rag = False
-    for line in lines:
-        if line.startswith("rag:"):
-            in_rag = True
-            continue
-        if in_rag and line and not line.startswith(" "):
-            break
-        if in_rag:
-            match = re.match(r"\s+context_window:\s*(\d+)", line)
-            if match:
-                return int(match.group(1))
-    return 1
+def write_results(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pending = path.with_suffix(".pending")
+    pending.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    pending.replace(path)
 
 
-def resolve_kb(item: dict, kbs: list[dict], file_to_kbs: dict[str, list[int]]) -> tuple[int | None, str]:
+def score_record(record: dict, item: dict) -> dict:
+    record = dict(record)
+    results = record.get("retrieval", {}).get("results", [])
     relevant = item.get("relevant_filenames") or []
-    for fn in relevant:
-        ids = file_to_kbs.get(filename_key(fn), [])
-        if ids:
-            return ids[0], "filename"
-    hint = (item.get("kb_hint") or "").strip()
-    if hint:
-        for kb in kbs:
-            if hint.lower() in kb["name"].lower() or kb["name"].lower() in hint.lower():
-                return kb["id"], "hint"
-    for kb in kbs:
-        if kb.get("chunk_count"):
-            return kb["id"], "fallback_nonempty"
-    return (kbs[0]["id"] if kbs else None), "fallback_first"
+    rank = first_hit_rank(results, relevant)
+    record.update(
+        hit_at_5=(rank is not None and rank <= 5) if relevant else None,
+        hit_at_10=(rank is not None and rank <= 10) if relevant else None,
+        mrr=(1 / rank if rank else 0.0) if relevant else None,
+    )
+    if "run_snapshot" not in record:
+        if "error" in record:
+            return record
+        raise ValueError("saved row has no actual run snapshot; legacy results cannot be rescored")
+    snapshot = record["run_snapshot"]
+    rag = snapshot["result"]
+    answer = rag["answer"]
+    outcomes = [event["data"]["outcome"] for event in rag["events"] if event["kind"] == "answer_validated"]
+    if answer and len(outcomes) != 1:
+        raise ValueError("published answer has no unique validation outcome")
+    refused = outcomes == ["insufficient"]
+    # 与历史启发式规则相同，但证据仅为本次实际送模内容，不另扩邻块。
+    evidence = "\n".join(source["content"] for source in rag["sources"])
+    matches = keyword_matches(answer, item)
+    traps = [t for t in item.get("hallucination_traps", []) if t and t in answer]
+    answered = bool(answer) and not refused
+    unsupported = unsupported_sentences(answer, evidence) if answered else []
+    record.update(
+        answer=answer, answerable=item["answerable"], refused=refused,
+        must_contain_ok=keywords_ok(matches), keyword_matches=matches,
+        source_files=[s.get("document_filename") for s in rag["sources"]],
+        trap_hit=traps, missed_recall=bool(item["answerable"] and refused),
+        refusal_correct=bool(not item["answerable"] and rag["status"] == "insufficient"),
+        unsupported_sentences=unsupported, answered=answered,
+        hallucinated=bool(answered and (traps or unsupported or not item["answerable"])),
+        **score_run(snapshot, item),
+    )
+    if rag["status"] not in ("completed", "insufficient"):
+        record["error"] = f"{rag['status']}: {rag['stop_reason']} ({rag['error_code']})"
+    return record
+
+
+def score_keyword_baseline(baseline: dict, items: list[dict]) -> dict:
+    """Apply the current keyword rubric to saved historical answers, without inventing evidence."""
+    previous = {row["id"]: row for row in baseline["rows"]}
+    if len(previous) != len(baseline["rows"]) or set(previous) != {item["id"] for item in items}:
+        raise ValueError("baseline must contain every question exactly once")
+    scores = []
+    for item in items:
+        row = previous[item["id"]]
+        if row["query"] != item["query"]:
+            raise ValueError(f"{item['id']}: baseline query differs from current question")
+        if item["answerable"]:
+            matched = keywords_ok(keyword_matches(row.get("answer", ""), item))
+            scores.append(float(matched is True and not row.get("error")))
+    return {**baseline["summary"], "answer_correctness": _avg(scores)}
+
+
+def summary(rows: list[dict], baseline: dict, expected: int) -> dict:
+    recall = [r for r in rows if r.get("hit_at_10") is not None]
+    answered = [r for r in rows if r.get("answered")]
+    # 运行失败保留在质量分母中，不通过排除错误提高正确率。
+    answerable = [r for r in rows if r.get("answerable")]
+    unanswerable = [r for r in rows if r.get("answerable") is False]
+    gen = [r for r in answerable if r.get("must_contain_ok") is not None or r.get("error")]
+    result = {
+        "ran_at": datetime.now(UTC).isoformat(),
+        "n_items": len(rows), "expected_items": expected,
+        "n_errors": sum(bool(r.get("error")) for r in rows),
+        "hit_at_5": _avg([float(r["hit_at_5"]) for r in recall]),
+        "hit_at_10": _avg([float(r["hit_at_10"]) for r in recall]),
+        "mrr": _avg([r["mrr"] for r in recall]),
+        "answer_correctness": _avg([float(bool(r.get("must_contain_ok")) and not r.get("error")) for r in gen]),
+        "hallucination_rate": _avg([float(r["hallucinated"]) for r in answered]),
+        "n_answered": len(answered),
+        "refusal_accuracy": _avg([float(bool(r.get("refusal_correct"))) for r in unanswerable]),
+        "missed_recall_rate": _avg([float(bool(r.get("missed_recall"))) for r in answerable]),
+        "hallucination_judge": "historical_heuristic_actual_model_materials",
+        **summarize_runs(rows),
+    }
+    gates = {}
+    for metric in ("answer_correctness", "refusal_accuracy", "hit_at_5", "hit_at_10", "mrr"):
+        target = baseline.get(metric)
+        if target is not None:
+            gates[metric] = result[metric] is not None and result[metric] >= target
+    target = baseline.get("hallucination_rate")
+    if target is not None:
+        gates["heuristic_hallucination_rate"] = result["hallucination_rate"] is not None and result["hallucination_rate"] <= target
+    gates.update(
+        complete=len(rows) == expected,
+        no_errors=not result["n_errors"],
+        valid_evidence=all(r.get("evidence_valid") is True for r in rows),
+        within_budget=all(r.get("budget_valid") is True for r in rows),
+        valid_citations=all(r.get("citations_valid") is True for r in rows),
+        ordered_events=all(r.get("sequence_valid") is True for r in rows),
+        no_repeat_execution=not result["repeated_executions"],
+        expected_tools=all(r.get("tool_selection_ok") is True for r in rows),
+    )
+    if not baseline:
+        gates["scenario_outcomes"] = all(
+            r.get("status") == ("completed" if r["answerable"] else "insufficient") for r in rows
+        )
+        gates["scenario_keywords"] = all(r.get("must_contain_ok") is not False for r in rows)
+    result["gates"] = gates
+    result["automated_gates_passed"] = all(gates.values())
+    result["semantic_acceptance"] = "requires_manual_review"
+    return result
+
+
+def _avg(values: list[float]) -> float | None:
+    return round(sum(values) / len(values), 4) if values else None
 
 
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
-    acquire_run_lock()
-    golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
-    items = golden["items"]
-    token = login()
-    kb_payload = http_json("GET", "/api/v1/knowledge/bases", token=token, timeout=20)
-    kbs = kb_payload.get("knowledge_bases") or []
-    file_to_kbs: dict[str, list[int]] = defaultdict(list)
-    uploaded: dict[int, list[str]] = {}
-    for kb in kbs:
-        docs = http_json("GET", f"/api/v1/knowledge/bases/{kb['id']}/documents", token=token, timeout=20)
-        names = [d["filename"] for d in docs.get("documents") or []]
-        uploaded[kb["id"]] = names
-        for name in names:
-            file_to_kbs[filename_key(name)].append(kb["id"])
-
-    rescore = "--rescore" in sys.argv
-    previous: dict[str, dict] = {}
-    if rescore:
-        if not OUT.exists():
-            raise SystemExit(f"--rescore needs an existing {OUT.name}")
-        previous = {row["id"]: row for row in json.loads(OUT.read_text(encoding="utf-8"))["rows"]}
-    window = context_window()
-    chunk_cache: dict[int, list[dict]] = {}
-
-    def doc_chunks(doc_id: int) -> list[dict]:
-        if doc_id in chunk_cache:
-            return chunk_cache[doc_id]
-        payload = http_json(
-            "GET",
-            f"/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks",
-            token=token,
-            timeout=30,
-        )
-        chunk_cache[doc_id] = payload.get("chunks") or []
-        return chunk_cache[doc_id]
-
-    rows = []
-    for i, item in enumerate(items, 1):
-        kb_id, kb_how = resolve_kb(item, kbs, file_to_kbs)
-        relevant = item.get("relevant_filenames") or []
-        missing_files = [fn for fn in relevant if filename_key(fn) not in file_to_kbs]
-        record: dict = {
-            "id": item["id"],
-            "query": item["query"],
-            "answerable": item["answerable"],
-            "kb_id": kb_id,
-            "kb_resolve": kb_how,
-            "missing_files": missing_files,
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dataset", type=Path, default=GOLDEN)
+    parser.add_argument("--out", type=Path, default=OUT)
+    parser.add_argument("--baseline", type=Path, default=ROOT / "last_run.json")
+    parser.add_argument("--run-dir", type=Path, default=ROOT.parent / "ai-service/data/answer-runs")
+    parser.add_argument("--rescore", action="store_true")
+    args = parser.parse_args()
+    lock_fd = acquire_run_lock()
+    try:
+        if args.rescore:
+            # 此分支在登录、读配置、列库或任何网络操作之前完成。
+            payload = json.loads(args.out.read_text(encoding="utf-8"))
+            if payload.get("version") != 6:
+                raise SystemExit("only version 6 evidence snapshots support offline rescoring")
+            items = {item["id"]: item for item in payload["dataset"]["items"]}
+            payload.setdefault("scoring_history", []).append(payload["summary"])
+            payload["rows"] = [score_record(row, items[row["id"]]) for row in payload["rows"]]
+            payload["summary"] = summary(payload["rows"], payload["baseline_summary"], len(items))
+            payload["summary"]["rescore"] = True
+            write_results(args.out, payload)
+            print(json.dumps(payload["summary"], ensure_ascii=False, indent=2))
+            return
+        if args.out.exists():
+            raise SystemExit(f"refusing to overwrite existing results: {args.out}")
+        golden = json.loads(args.dataset.read_text(encoding="utf-8"))
+        baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+        previous = {row["id"]: row for row in baseline["rows"]}
+        items = golden["items"]
+        for item in items:
+            keyword_matches("", item)
+        baseline_scores = score_keyword_baseline(baseline, items) if args.dataset.resolve() == GOLDEN.resolve() else {}
+        token = login()
+        kbs = http_json("GET", "/api/v1/knowledge/bases", token)["knowledge_bases"]
+        uploaded = {}
+        for kb in kbs:
+            uploaded[kb["id"]] = http_json("GET", f"/api/v1/knowledge/bases/{kb['id']}/documents", token)["documents"]
+        # 全部范围先验证，避免中途才发现题目映射错误。
+        for item in items:
+            resolve_kb(item, kbs, previous)
+        payload = {
+            "version": 6, "dataset": golden,
+            "baseline_summary": baseline_scores,
+            "baseline_recorded_summary": baseline["summary"] if baseline_scores else {},
+            "knowledge_bases": kbs, "documents_before": uploaded, "rows": [],
         }
-        if kb_id is None:
-            record["error"] = "no knowledge base"
-            rows.append(record)
-            continue
-        try:
-            retrieved = http_json(
-                "POST",
-                f"/api/v1/knowledge/bases/{kb_id}/retrieve",
-                token=token,
-                body={"query": item["query"], "top_k": 10},
-                timeout=60,
-            )
-            results = retrieved.get("results") or []
-            rank = first_hit_rank(results, relevant)
-            record["hit_at_5"] = rank is not None and rank <= 5 if relevant else None
-            record["hit_at_10"] = rank is not None and rank <= 10 if relevant else None
-            record["mrr"] = (1.0 / rank) if rank else (0.0 if relevant else None)
-            record["retrieve_files"] = [r.get("document_filename") for r in results]
-            chunk_ids = [r["chunk_id"] for r in results[:10]]
-            chunks_by_doc: dict[int, list[dict]] = {}
-            for row in results:
-                doc_id = row.get("document_id")
-                if doc_id is not None:
-                    chunks_by_doc[doc_id] = doc_chunks(doc_id)
-            evidence = neighbor_evidence(results, chunks_by_doc, window)
-            prior = previous.get(item["id"]) if rescore else None
-            if prior is not None and prior.get("answer") is not None and "error" not in prior:
-                answer = prior.get("answer") or ""
-                record["answer"] = answer
-                record["source_files"] = prior.get("source_files") or []
-            else:
-                rag = http_json(
-                    "POST",
-                    f"/api/v1/knowledge/bases/{kb_id}/rag/query",
-                    token=token,
-                    body={
-                        "query": item["query"],
-                        "top_k": 10,
-                        "chunk_ids": chunk_ids or None,
-                        "knowledge_base_ids": [kb_id],
-                    },
-                    timeout=180,
-                )
-                answer = rag.get("answer") or ""
-                record["answer"] = answer
-                record["source_files"] = [s.get("document_filename") for s in rag.get("sources") or []]
-            refused = is_refusal(answer)
-            record["refused"] = refused
-            must = item.get("must_contain") or []
-            record["must_contain_ok"] = all(term_covered(answer, term) for term in must) if must else None
-            traps = [t for t in (item.get("hallucination_traps") or []) if t and t in answer]
-            record["trap_hit"] = traps
-            missed = bool(item["answerable"] and refused)
-            record["missed_recall"] = missed
-            record["refusal_correct"] = (not item["answerable"] and refused)
-            unsupported = [] if refused else unsupported_sentences(answer, evidence)
-            record["unsupported_sentences"] = unsupported
-            answered = not refused
-            record["answered"] = answered
-            record["hallucinated"] = bool(
-                answered
-                and (
-                    bool(traps)
-                    or bool(unsupported)
-                    or (not item["answerable"])
-                )
-            )
-        except Exception as e:
-            record["error"] = str(e)
-            if is_quota_denied(e):
-                rows.append(record)
-                print(
-                    f"[{i}/{len(items)}] {item['id']} kb={kb_id} "
-                    f"refused={record.get('refused')} hit10={record.get('hit_at_10')} "
-                    f"hallu={record.get('hallucinated')} err={record.get('error')}",
-                    flush=True,
-                )
-                print(
-                    f"ABORT: model quota/access denied at {item['id']} "
-                    f"({i}/{len(items)}); stopping to avoid burning the rest of the run.",
-                    flush=True,
-                )
+        for index, item in enumerate(items, 1):
+            kid = resolve_kb(item, kbs, previous)
+            record = {"id": item["id"], "query": item["query"], "answerable": item["answerable"], "kb_id": kid}
+            try:
+                # 独立检索只用于召回/排名，绝不作为生成步骤的证据。
+                if not item.get("allow_web", False):
+                    record["retrieval"] = http_json("POST", f"/api/v1/knowledge/bases/{kid}/retrieve", token,
+                                                     {"query": item["query"], "top_k": 10})
+                request = {"query": item["query"], "top_k": 10, "knowledge_base_ids": item.get("knowledge_base_ids", [kid]),
+                           "allow_web": item.get("allow_web", False), "user_urls": item.get("user_urls", [])}
+                start = time.monotonic()
+                rag = http_json("POST", f"/api/v1/knowledge/bases/{kid}/rag/query", token, request)
+                record["elapsed_seconds"] = round(time.monotonic() - start, 3)
+                paths = list(args.run_dir.glob(f"user-*/run-{rag['run_id']}.json"))
+                if len(paths) != 1:
+                    raise ValueError(f"expected one persisted snapshot for {rag['run_id']}, got {len(paths)}")
+                snapshot = json.loads(paths[0].read_text(encoding="utf-8"))
+                if snapshot["result"] != rag or snapshot["query"] != item["query"]:
+                    raise ValueError("persisted snapshot does not match actual response")
+                record["request"] = request
+                record["run_snapshot"] = snapshot
+                record = score_record(record, item)
+            except Exception as exc:
+                record["error"] = str(exc)
+            payload["rows"].append(record)
+            payload["summary"] = summary(payload["rows"], payload["baseline_summary"], len(items))
+            write_results(args.out, payload)
+            print(f"[{index}/{len(items)}] {item['id']} status={record.get('status')} keyword={record.get('must_contain_ok')} error={record.get('error')}", flush=True)
+            if is_quota_denied(record.get("error", "")):
+                print("ABORT: quota/access denied; no automatic retry", flush=True)
                 break
-        rows.append(record)
-        print(f"[{i}/{len(items)}] {item['id']} kb={kb_id} refused={record.get('refused')} hit10={record.get('hit_at_10')} hallu={record.get('hallucinated')} err={record.get('error')}", flush=True)
-        time.sleep(SLEEP_S)
-
-    recall_items = [r for r in rows if r.get("hit_at_10") is not None]
-    answered = [r for r in rows if r.get("answered")]
-    answerable = [r for r in rows if r.get("answerable") and "error" not in r]
-    unanswerable = [r for r in rows if r.get("answerable") is False and "error" not in r]
-    gen_items = [r for r in rows if r.get("answerable") and r.get("must_contain_ok") is not None and "error" not in r]
-    summary = {
-        "ran_at": datetime.now(timezone.utc).isoformat(),
-        "rescore": rescore,
-        "context_window": window,
-        "hallucination_judge": "paraphrase",
-        "n_items": len(rows),
-        "n_errors": sum(1 for r in rows if r.get("error")),
-        "hit_at_5": _avg([1.0 if r["hit_at_5"] else 0.0 for r in recall_items]),
-        "hit_at_10": _avg([1.0 if r["hit_at_10"] else 0.0 for r in recall_items]),
-        "mrr": _avg([r["mrr"] for r in recall_items if r.get("mrr") is not None]),
-        "answer_correctness": _avg([1.0 if r["must_contain_ok"] else 0.0 for r in gen_items]),
-        "hallucination_rate": _avg([1.0 if r["hallucinated"] else 0.0 for r in answered]),
-        "n_answered": len(answered),
-        "refusal_accuracy": _avg([1.0 if r["refusal_correct"] else 0.0 for r in unanswerable]),
-        "missed_recall_rate": _avg([1.0 if r["missed_recall"] else 0.0 for r in answerable]),
-        "missing_source_files": sorted({fn for r in rows for fn in r.get("missing_files") or []}),
-        "knowledge_bases": [{"id": kb["id"], "name": kb["name"], "doc_count": kb.get("doc_count"), "chunk_count": kb.get("chunk_count"), "files": uploaded.get(kb["id"], [])} for kb in kbs],
-    }
-    OUT.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
-    print(f"wrote {OUT}")
-
-
-def _avg(xs: list[float]) -> float | None:
-    return round(sum(xs) / len(xs), 4) if xs else None
+            if index < len(items):
+                time.sleep(SLEEP_S)
+        print(json.dumps(payload["summary"], ensure_ascii=False, indent=2))
+    finally:
+        os.close(lock_fd)
 
 
 if __name__ == "__main__":

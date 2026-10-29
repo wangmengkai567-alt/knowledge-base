@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, replace
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
 from internal.biz.relevance import apply_relevance_gate
 from pkg.errors.base import RAGError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from internal.biz.entity import Chunk, RetrievalResult
     from internal.biz.repo import ChunkRepo
 
@@ -131,28 +130,10 @@ class MaterialProcessor:
         if base_size >= limit:
             raise RAGError(reason="INPUT_BUDGET_EXCEEDED", message="问题及系统提示已超过输入预算")
 
-        sources: list[AnswerSource | WebSource] = []
-        for original in candidates:
-            candidate = replace(original, citation_id=len(sources) + 1)
-            _, size = measure([*sources, candidate])
-            if size <= limit:
-                sources.append(candidate)
-                continue
-            # 对实际送模正文截断，同时裁剪分块映射；不登记未送模的分块。
-            low, high = 0, len(candidate.content)
-            best: AnswerSource | WebSource | None = None
-            while low <= high:
-                middle = (low + high) // 2
-                clipped = clip_source(candidate, middle)
-                _, size = measure([*sources, clipped])
-                if size <= limit:
-                    best = clipped if clipped.content else None
-                    low = middle + 1
-                else:
-                    high = middle - 1
-            if best is not None:
-                sources.append(best)
-            break
+        sources = pack_sources(
+            [replace(source, citation_id=index) for index, source in enumerate(candidates, 1)],
+            lambda values: measure(values)[1] <= limit,
+        )
         messages, size = measure(sources)
         if candidates and not sources:
             raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message="输入预算不足以容纳资料")
@@ -237,6 +218,58 @@ def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource |
         truncated=True,
         retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids],
     )
+
+
+def focus_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
+    """预算不足时优先保留真实检索命中块，再保留相邻背景，映射仍指向原文。"""
+    if length >= len(source.content):
+        return source
+    if isinstance(source, WebSource) or not source.retrieval_hits:
+        return clip_source(source, length)
+    priorities = {hit.chunk_id: index for index, hit in enumerate(source.retrieval_hits)}
+    selected = []
+    remaining = length
+    for segment in sorted(source.segments, key=lambda part: priorities.get(part.chunk_id, len(priorities))):
+        if remaining <= 0:
+            break
+        content = segment.content[:remaining]
+        if content:
+            selected.append(replace(segment, content=content, end=segment.start + len(content)))
+        remaining -= len(content) + 1
+    selected.sort(key=lambda part: (part.position, part.start))
+    ids = {part.chunk_id for part in selected}
+    return replace(source, segments=selected, truncated=True,
+                   retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids])
+
+
+def pack_sources(
+    candidates: list[AnswerSource | WebSource],
+    fits: Callable[[list[AnswerSource | WebSource]], bool],
+) -> list[AnswerSource | WebSource]:
+    """在完整请求预算内公平分配正文空间，先覆盖不同资料，避免首份资料挤掉其余来源。"""
+    if fits(candidates):
+        return candidates
+    first, rest, seen = [], [], set()
+    for source in candidates:
+        key = ((source.document_id, source.document_updated_at) if isinstance(source, AnswerSource)
+               else (source.url, source.fetched_at))
+        (rest if key in seen else first).append(source)
+        seen.add(key)
+    sources = first + rest
+    while sources:
+        if not fits([focus_source(source, 1) for source in sources]):
+            sources.pop()
+            continue
+        low, high, best = 1, max(len(source.content) for source in sources), []
+        while low <= high:
+            middle = (low + high) // 2
+            trial = [focus_source(source, middle) for source in sources]
+            if fits(trial):
+                best, low = trial, middle + 1
+            else:
+                high = middle - 1
+        return best
+    return []
 
 
 def render_materials(sources: list[AnswerSource | WebSource]) -> str:

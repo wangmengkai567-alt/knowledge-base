@@ -1,0 +1,518 @@
+{
+  "checked_at": "2026-10-29T18:53:23.752398+08:00",
+  "files": [
+    {
+      "file": ".dockerignore",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 71,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "Makefile",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 38,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "README.md",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 102,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/answer_run.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 107,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/entity.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 201,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/rag.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 443,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/repo.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 526,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/tool_model.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 147,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/biz/tool_types.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 79,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/data/llm/local.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 161,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/data/llm/memory.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 87,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/data/llm/openai_patch.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 168,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/data/parser/ocr.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 176,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/prompt/templates/rag.yaml",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 31,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/internal/service/rag.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 167,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_context_block.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 50,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_model_protocol.py",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 44,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_qwen_reranker.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 118,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_rag_grounded_answer.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 249,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_read_only_tools.py",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 96,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_relevance_gate.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 100,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/tests/test_rerank_relevance.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 119,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "ai-service/uv.lock",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 2009,
+      "mixed": false
+    },
+    {
+      "file": "deployments/docker/Dockerfile",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 54,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "deployments/docker/docker-compose.yaml",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 168,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-checks.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 33,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-deployment-smoke.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 1924,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-deployment.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 120,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-file-format.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 518,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-headroom-regression.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 6,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-offline-rescore.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 35,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-old-cache-check.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 9,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-old-cache.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-restart-check.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 68,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-secret-exclusion.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 5,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-ui-answer.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-ui-cancel.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-upload-integrity.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 123,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-usage-inventory.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 176,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/phase-6-report.md",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 143,
+      "mixed": false
+    },
+    {
+      "file": "docs/implementation/phase-6-semantic-review.md",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 33,
+      "mixed": false
+    },
+    {
+      "file": "docs/plans/agentic-rag-refactoring-plan.md",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 428,
+      "mixed": false
+    },
+    {
+      "file": "eval/README.md",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 74,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/audit_sources.py",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 72,
+      "mixed": false
+    },
+    {
+      "file": "eval/cross_source_scenarios.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 17,
+      "mixed": false
+    },
+    {
+      "file": "eval/faithfulness.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 179,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-cross-source-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 4238,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-diagnostic-after.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 4623,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-diagnostic-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 450,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-final-golden-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 178694,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-final-source-audit.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 13569,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-final-web-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 3714,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-golden-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 147964,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-source-audit.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 12635,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-web-results.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 2740,
+      "mixed": false
+    },
+    {
+      "file": "eval/phase-6-web-source-audit.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 452,
+      "mixed": false
+    },
+    {
+      "file": "eval/run_eval.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 317,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/run_metrics.py",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 151,
+      "mixed": false
+    },
+    {
+      "file": "eval/test_faithfulness.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 97,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/test_quota_abort.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 40,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/test_run_lock.py",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 71,
+      "lf": 0,
+      "mixed": false
+    },
+    {
+      "file": "eval/test_run_metrics.py",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 87,
+      "mixed": false
+    },
+    {
+      "file": "eval/web_scenarios.json",
+      "new": true,
+      "utf8_bom": false,
+      "crlf": 0,
+      "lf": 46,
+      "mixed": false
+    },
+    {
+      "file": "web/README.md",
+      "new": false,
+      "utf8_bom": false,
+      "crlf": 84,
+      "lf": 0,
+      "mixed": false
+    }
+  ],
+  "issues": []
+}

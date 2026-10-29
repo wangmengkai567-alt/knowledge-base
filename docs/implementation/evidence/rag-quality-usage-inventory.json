@@ -1,0 +1,1697 @@
+{
+  "去重运行数": 129,
+  "真实评测用量合计": {
+    "model_calls": 343,
+    "tool_calls": 217,
+    "prompt_tokens": 639592,
+    "completion_tokens": 35208,
+    "estimated_input_tokens": 2520014,
+    "charged_tokens": 2555222,
+    "unreported_model_calls": 0
+  },
+  "额外接口探针用量": {
+    "输入词元": 892,
+    "输出词元": 74,
+    "请求数": 3
+  },
+  "排除范围": "不包括优化前历史运行、嵌入和重排费用、未归档供应商消耗；不能当作供应商账单。",
+  "运行清单": {
+    "d183831c-a0cc-4617-bab1-20671bf0f00c": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "A05",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 16176,
+        "prompt_tokens": 4173,
+        "completion_tokens": 84,
+        "charged_tokens": 16260,
+        "unreported_model_calls": 0
+      }
+    },
+    "6728f5ea-328d-454c-83a3-ecafcf129526": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "A07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 14304,
+        "prompt_tokens": 3739,
+        "completion_tokens": 99,
+        "charged_tokens": 14403,
+        "unreported_model_calls": 0
+      }
+    },
+    "a00d2401-e5fc-493e-bb58-eacc93b6a36c": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "A19",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 17223,
+        "prompt_tokens": 4414,
+        "completion_tokens": 198,
+        "charged_tokens": 17421,
+        "unreported_model_calls": 0
+      }
+    },
+    "87203016-dc9d-469c-a221-01ba710a22cf": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "A22",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 31781,
+        "prompt_tokens": 7610,
+        "completion_tokens": 459,
+        "charged_tokens": 32240,
+        "unreported_model_calls": 0
+      }
+    },
+    "4ab1f8f8-e90d-4d3a-9302-af3575a52575": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "B04",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3402,
+        "prompt_tokens": 885,
+        "completion_tokens": 53,
+        "charged_tokens": 3455,
+        "unreported_model_calls": 0
+      }
+    },
+    "33f859dc-8d4c-49d9-bd0b-9730185ac014": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "B11",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10734,
+        "prompt_tokens": 2769,
+        "completion_tokens": 119,
+        "charged_tokens": 10853,
+        "unreported_model_calls": 0
+      }
+    },
+    "4a48ae98-9028-4e96-8fe5-cbc088ca93a9": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "B20",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10163,
+        "prompt_tokens": 2656,
+        "completion_tokens": 275,
+        "charged_tokens": 10438,
+        "unreported_model_calls": 0
+      }
+    },
+    "124e780f-8a2f-439b-93ec-e22064eff913": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "E02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3382,
+        "prompt_tokens": 882,
+        "completion_tokens": 17,
+        "charged_tokens": 3399,
+        "unreported_model_calls": 0
+      }
+    },
+    "10bdba0d-40e7-4757-a19e-23c81493184c": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "F01",
+      "用量": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "estimated_input_tokens": 44755,
+        "prompt_tokens": 11101,
+        "completion_tokens": 285,
+        "charged_tokens": 45040,
+        "unreported_model_calls": 0
+      }
+    },
+    "4e8a581f-8ab4-45ad-b33e-5a35529e0a01": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "F02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3458,
+        "prompt_tokens": 900,
+        "completion_tokens": 101,
+        "charged_tokens": 3559,
+        "unreported_model_calls": 0
+      }
+    },
+    "8ada4a5c-9c1b-43a2-80ad-f443b7982536": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "G01",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11764,
+        "prompt_tokens": 2608,
+        "completion_tokens": 179,
+        "charged_tokens": 11943,
+        "unreported_model_calls": 0
+      }
+    },
+    "1ef29402-cdaf-4b98-a2e9-f1cca620d0a8": {
+      "文件": "eval/rag-quality-diagnostic-results.json",
+      "题号": "G02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11658,
+        "prompt_tokens": 2561,
+        "completion_tokens": 157,
+        "charged_tokens": 11815,
+        "unreported_model_calls": 0
+      }
+    },
+    "05a22a19-3da1-4da9-b7b7-a8fe0e649059": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "A05",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12278,
+        "prompt_tokens": 3128,
+        "completion_tokens": 101,
+        "charged_tokens": 12379,
+        "unreported_model_calls": 0
+      }
+    },
+    "638843ee-aa31-48e3-95cd-592c1dd995af": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "A07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12308,
+        "prompt_tokens": 3314,
+        "completion_tokens": 169,
+        "charged_tokens": 12477,
+        "unreported_model_calls": 0
+      }
+    },
+    "88d6e8d4-a294-49ae-877b-f8c9734eab73": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "A19",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23845,
+        "prompt_tokens": 6201,
+        "completion_tokens": 278,
+        "charged_tokens": 24123,
+        "unreported_model_calls": 0
+      }
+    },
+    "00037797-38d2-4994-bb78-dc4cd1b32ca6": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "A22",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12277,
+        "prompt_tokens": 3129,
+        "completion_tokens": 249,
+        "charged_tokens": 12526,
+        "unreported_model_calls": 0
+      }
+    },
+    "9d85d7a7-164a-4865-8c65-afa0633adf04": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "B04",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3402,
+        "prompt_tokens": 885,
+        "completion_tokens": 36,
+        "charged_tokens": 3438,
+        "unreported_model_calls": 0
+      }
+    },
+    "aec75e86-9baf-485b-8ba4-810ab34e8954": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "B11",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10728,
+        "prompt_tokens": 2768,
+        "completion_tokens": 188,
+        "charged_tokens": 10916,
+        "unreported_model_calls": 0
+      }
+    },
+    "90d9c973-f8f7-4dc8-8129-43a898993fa5": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "B20",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3435,
+        "prompt_tokens": 895,
+        "completion_tokens": 16,
+        "charged_tokens": 3451,
+        "unreported_model_calls": 0
+      }
+    },
+    "cb4b3170-056e-4823-84f7-08fd9c804bf0": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "E02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3382,
+        "prompt_tokens": 882,
+        "completion_tokens": 16,
+        "charged_tokens": 3398,
+        "unreported_model_calls": 0
+      }
+    },
+    "6203da86-a925-4a71-87f0-8564ab5acc3c": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "F01",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50483,
+        "prompt_tokens": 12647,
+        "completion_tokens": 400,
+        "charged_tokens": 50883,
+        "unreported_model_calls": 0
+      }
+    },
+    "470648c5-b886-4271-88fc-f3977cd487a4": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "F02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23871,
+        "prompt_tokens": 6302,
+        "completion_tokens": 666,
+        "charged_tokens": 24537,
+        "unreported_model_calls": 0
+      }
+    },
+    "bd7e819b-657d-4fae-bc49-ee5601afdc4f": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "G01",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11774,
+        "prompt_tokens": 2612,
+        "completion_tokens": 177,
+        "charged_tokens": 11951,
+        "unreported_model_calls": 0
+      }
+    },
+    "a99b0343-b1de-40f2-9c38-4d2cb271f2ed": {
+      "文件": "eval/rag-quality-diagnostic-refined-results.json",
+      "题号": "G02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11667,
+        "prompt_tokens": 2565,
+        "completion_tokens": 138,
+        "charged_tokens": 11805,
+        "unreported_model_calls": 0
+      }
+    },
+    "9a6a14f1-0cd1-4b21-b152-6a00afbe953b": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A01",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12260,
+        "prompt_tokens": 3175,
+        "completion_tokens": 382,
+        "charged_tokens": 12642,
+        "unreported_model_calls": 0
+      }
+    },
+    "8a4e0184-6a77-4ce2-b125-9a0fc8cb297d": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A02",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12268,
+        "prompt_tokens": 3258,
+        "completion_tokens": 139,
+        "charged_tokens": 12407,
+        "unreported_model_calls": 0
+      }
+    },
+    "9e216ee2-c2e4-48eb-acf5-4280a0d850f1": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A03",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12239,
+        "prompt_tokens": 3145,
+        "completion_tokens": 258,
+        "charged_tokens": 12497,
+        "unreported_model_calls": 0
+      }
+    },
+    "0ce9cf50-1d1f-44c5-9341-94e2e9418fb6": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A04",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12317,
+        "prompt_tokens": 3377,
+        "completion_tokens": 196,
+        "charged_tokens": 12513,
+        "unreported_model_calls": 0
+      }
+    },
+    "77a1e398-de25-4767-a023-9365be0e0e2f": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A05",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12270,
+        "prompt_tokens": 3111,
+        "completion_tokens": 111,
+        "charged_tokens": 12381,
+        "unreported_model_calls": 0
+      }
+    },
+    "296a2042-344f-4af9-8dcb-c49b82451ae4": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A06",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 9877,
+        "prompt_tokens": 2483,
+        "completion_tokens": 218,
+        "charged_tokens": 10095,
+        "unreported_model_calls": 0
+      }
+    },
+    "8452cd81-ab43-4024-b65b-7a4ec7467051": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12321,
+        "prompt_tokens": 3318,
+        "completion_tokens": 121,
+        "charged_tokens": 12442,
+        "unreported_model_calls": 0
+      }
+    },
+    "a5db3f63-eb12-467a-8c2a-3f4f6c99fda6": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A08",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12257,
+        "prompt_tokens": 3246,
+        "completion_tokens": 217,
+        "charged_tokens": 12474,
+        "unreported_model_calls": 0
+      }
+    },
+    "29e10729-18f6-4edb-a5e1-717162d818f2": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A09",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50509,
+        "prompt_tokens": 12226,
+        "completion_tokens": 708,
+        "charged_tokens": 51217,
+        "unreported_model_calls": 0
+      }
+    },
+    "71cba0c9-f3ce-4f69-a398-939c8e1373e8": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A10",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23809,
+        "prompt_tokens": 5917,
+        "completion_tokens": 653,
+        "charged_tokens": 24462,
+        "unreported_model_calls": 0
+      }
+    },
+    "7c1c20ee-9f50-4732-a3ed-fd5838941237": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A11",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23784,
+        "prompt_tokens": 6242,
+        "completion_tokens": 267,
+        "charged_tokens": 24051,
+        "unreported_model_calls": 0
+      }
+    },
+    "944db8e8-88c5-432b-a482-4313453a0506": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A12",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23774,
+        "prompt_tokens": 6137,
+        "completion_tokens": 595,
+        "charged_tokens": 24369,
+        "unreported_model_calls": 0
+      }
+    },
+    "fe2e7667-eebb-4b9e-9210-865e6d6ff06a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A13",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50366,
+        "prompt_tokens": 12173,
+        "completion_tokens": 651,
+        "charged_tokens": 51017,
+        "unreported_model_calls": 0
+      }
+    },
+    "2f846be7-7d32-46b2-b8ed-44d50fa8d446": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A14",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23829,
+        "prompt_tokens": 5968,
+        "completion_tokens": 569,
+        "charged_tokens": 24398,
+        "unreported_model_calls": 0
+      }
+    },
+    "5bd0c31a-400a-4c0f-b97d-52ab417f912d": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A15",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50476,
+        "prompt_tokens": 12784,
+        "completion_tokens": 685,
+        "charged_tokens": 51161,
+        "unreported_model_calls": 0
+      }
+    },
+    "7058df26-3cf0-4c8f-827f-d6362450b388": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A16",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50230,
+        "prompt_tokens": 12406,
+        "completion_tokens": 322,
+        "charged_tokens": 50552,
+        "unreported_model_calls": 0
+      }
+    },
+    "e4c998d8-a3e2-49e5-a44a-a24a8b0eec53": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A17",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3424,
+        "prompt_tokens": 891,
+        "completion_tokens": 42,
+        "charged_tokens": 3466,
+        "unreported_model_calls": 0
+      }
+    },
+    "51a35edf-49f4-4d18-ac11-b7b08d075e5e": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A18",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3407,
+        "prompt_tokens": 884,
+        "completion_tokens": 207,
+        "charged_tokens": 3614,
+        "unreported_model_calls": 0
+      }
+    },
+    "ec953350-21a5-40a1-a2d7-b750b847cbe3": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A19",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12279,
+        "prompt_tokens": 3202,
+        "completion_tokens": 225,
+        "charged_tokens": 12504,
+        "unreported_model_calls": 0
+      }
+    },
+    "00095b8c-2c78-4680-8bbb-83e568bb2cc2": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A20",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50437,
+        "prompt_tokens": 12712,
+        "completion_tokens": 737,
+        "charged_tokens": 51174,
+        "unreported_model_calls": 0
+      }
+    },
+    "f4bb395e-53d0-4a58-b7d1-88a121008589": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A21",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50508,
+        "prompt_tokens": 12227,
+        "completion_tokens": 347,
+        "charged_tokens": 50855,
+        "unreported_model_calls": 0
+      }
+    },
+    "8581d8f4-2e1f-4069-8b7c-e42c2e9ac997": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A22",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50493,
+        "prompt_tokens": 12557,
+        "completion_tokens": 415,
+        "charged_tokens": 50908,
+        "unreported_model_calls": 0
+      }
+    },
+    "9065df33-60d9-4997-b8f4-2c9ef3f1767a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A23",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12245,
+        "prompt_tokens": 3164,
+        "completion_tokens": 193,
+        "charged_tokens": 12438,
+        "unreported_model_calls": 0
+      }
+    },
+    "dfa63a4d-8468-4c3d-8824-173d4b48fcc3": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A24",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23825,
+        "prompt_tokens": 5994,
+        "completion_tokens": 262,
+        "charged_tokens": 24087,
+        "unreported_model_calls": 0
+      }
+    },
+    "16a9f15d-be50-4ac3-998e-bfaed32a0260": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A25",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50532,
+        "prompt_tokens": 12298,
+        "completion_tokens": 713,
+        "charged_tokens": 51245,
+        "unreported_model_calls": 0
+      }
+    },
+    "d07082e2-7cc4-4f0b-ab96-a8fd92234344": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A26",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12281,
+        "prompt_tokens": 3121,
+        "completion_tokens": 433,
+        "charged_tokens": 12714,
+        "unreported_model_calls": 0
+      }
+    },
+    "5925616b-078c-4697-9fcc-d36e109c5e82": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A27",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3394,
+        "prompt_tokens": 882,
+        "completion_tokens": 23,
+        "charged_tokens": 3417,
+        "unreported_model_calls": 0
+      }
+    },
+    "e17efa09-bac6-42fa-be0c-62d79edd6da5": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "A28",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12250,
+        "prompt_tokens": 3009,
+        "completion_tokens": 303,
+        "charged_tokens": 12553,
+        "unreported_model_calls": 0
+      }
+    },
+    "6aa76c62-b8fb-4678-ba96-a0dbeaf6ed81": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B01",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12331,
+        "prompt_tokens": 3337,
+        "completion_tokens": 398,
+        "charged_tokens": 12729,
+        "unreported_model_calls": 0
+      }
+    },
+    "9e50c0cd-fbb2-4006-96f7-f24a0a04ae87": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3401,
+        "prompt_tokens": 885,
+        "completion_tokens": 49,
+        "charged_tokens": 3450,
+        "unreported_model_calls": 0
+      }
+    },
+    "c366704b-5112-4f34-acee-1b1f0ee65b49": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B03",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12298,
+        "prompt_tokens": 3393,
+        "completion_tokens": 236,
+        "charged_tokens": 12534,
+        "unreported_model_calls": 0
+      }
+    },
+    "4637aa27-4e63-440a-ba67-dca000fd41a5": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B04",
+      "用量": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "estimated_input_tokens": 36654,
+        "prompt_tokens": 10380,
+        "completion_tokens": 393,
+        "charged_tokens": 37047,
+        "unreported_model_calls": 0
+      }
+    },
+    "ef540607-973a-4733-a0de-542bbaef65cd": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B05",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3386,
+        "prompt_tokens": 881,
+        "completion_tokens": 29,
+        "charged_tokens": 3415,
+        "unreported_model_calls": 0
+      }
+    },
+    "7aed3e59-d009-43a3-b66c-0095ae27f914": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B06",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50395,
+        "prompt_tokens": 12636,
+        "completion_tokens": 396,
+        "charged_tokens": 50791,
+        "unreported_model_calls": 0
+      }
+    },
+    "6fd36ce6-cf2b-4d3d-8d4d-d01cfed1a311": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12279,
+        "prompt_tokens": 3195,
+        "completion_tokens": 153,
+        "charged_tokens": 12432,
+        "unreported_model_calls": 0
+      }
+    },
+    "7e27db23-d616-4962-826b-c486d64ae44e": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B08",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12231,
+        "prompt_tokens": 3319,
+        "completion_tokens": 229,
+        "charged_tokens": 12460,
+        "unreported_model_calls": 0
+      }
+    },
+    "3b6f1a38-9ef9-4da1-b3ab-c37afdeec8ac": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B09",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12271,
+        "prompt_tokens": 3252,
+        "completion_tokens": 267,
+        "charged_tokens": 12538,
+        "unreported_model_calls": 0
+      }
+    },
+    "8adf998c-606a-4e89-8d5c-78a688914f15": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B10",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12338,
+        "prompt_tokens": 3271,
+        "completion_tokens": 255,
+        "charged_tokens": 12593,
+        "unreported_model_calls": 0
+      }
+    },
+    "a73f17ca-71c1-45f0-95bc-3bbf65d38749": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B11",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10721,
+        "prompt_tokens": 2758,
+        "completion_tokens": 101,
+        "charged_tokens": 10822,
+        "unreported_model_calls": 0
+      }
+    },
+    "65af5d97-dafb-4b9e-8f01-40d641decbc5": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B12",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 49858,
+        "prompt_tokens": 12537,
+        "completion_tokens": 308,
+        "charged_tokens": 50166,
+        "unreported_model_calls": 0
+      }
+    },
+    "8250a045-cf0a-4e49-a433-7c6f4cb4093a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B13",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12314,
+        "prompt_tokens": 3329,
+        "completion_tokens": 334,
+        "charged_tokens": 12648,
+        "unreported_model_calls": 0
+      }
+    },
+    "67e5b09f-af89-4a46-9807-153311463506": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B14",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50524,
+        "prompt_tokens": 12703,
+        "completion_tokens": 407,
+        "charged_tokens": 50931,
+        "unreported_model_calls": 0
+      }
+    },
+    "4726515d-3aed-4bd0-a584-cff997b38761": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B15",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12266,
+        "prompt_tokens": 3149,
+        "completion_tokens": 297,
+        "charged_tokens": 12563,
+        "unreported_model_calls": 0
+      }
+    },
+    "41bf3189-c83c-4d1c-80d3-3ee090176246": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B16",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23890,
+        "prompt_tokens": 6222,
+        "completion_tokens": 453,
+        "charged_tokens": 24343,
+        "unreported_model_calls": 0
+      }
+    },
+    "d0e03d4b-af5c-4e6f-982e-317177d4c8e2": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B17",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12384,
+        "prompt_tokens": 3315,
+        "completion_tokens": 218,
+        "charged_tokens": 12602,
+        "unreported_model_calls": 0
+      }
+    },
+    "67bec20f-8562-47b1-bfee-4846c33634a9": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B18",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12288,
+        "prompt_tokens": 3298,
+        "completion_tokens": 370,
+        "charged_tokens": 12658,
+        "unreported_model_calls": 0
+      }
+    },
+    "3cbbb9fe-d688-40a1-83ae-117fc4f51bab": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B19",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12304,
+        "prompt_tokens": 3252,
+        "completion_tokens": 410,
+        "charged_tokens": 12714,
+        "unreported_model_calls": 0
+      }
+    },
+    "648e0b14-23c7-47ee-b94f-132149dfd384": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B20",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10163,
+        "prompt_tokens": 2656,
+        "completion_tokens": 271,
+        "charged_tokens": 10434,
+        "unreported_model_calls": 0
+      }
+    },
+    "ed40913f-a907-4785-87db-865c0c6d1548": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "B21",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12301,
+        "prompt_tokens": 3222,
+        "completion_tokens": 159,
+        "charged_tokens": 12460,
+        "unreported_model_calls": 0
+      }
+    },
+    "abca4808-59be-46ad-941d-aa48680e43af": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C01",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12238,
+        "prompt_tokens": 3163,
+        "completion_tokens": 304,
+        "charged_tokens": 12542,
+        "unreported_model_calls": 0
+      }
+    },
+    "3768d787-1337-49ad-b6ac-5d18c9371d0a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C02",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10854,
+        "prompt_tokens": 2740,
+        "completion_tokens": 163,
+        "charged_tokens": 11017,
+        "unreported_model_calls": 0
+      }
+    },
+    "8d8c99f9-b7d6-49ef-84a9-6a52c92dcad6": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C03",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23772,
+        "prompt_tokens": 5874,
+        "completion_tokens": 584,
+        "charged_tokens": 24356,
+        "unreported_model_calls": 0
+      }
+    },
+    "7cf8a219-535c-4b6e-9c38-15ae2958af65": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C04",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3448,
+        "prompt_tokens": 892,
+        "completion_tokens": 78,
+        "charged_tokens": 3526,
+        "unreported_model_calls": 0
+      }
+    },
+    "640c4f96-b312-42ca-80a1-8a496d452bf8": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C05",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12328,
+        "prompt_tokens": 3026,
+        "completion_tokens": 337,
+        "charged_tokens": 12665,
+        "unreported_model_calls": 0
+      }
+    },
+    "d6e6e115-fa73-47c0-b1d7-ca9e548363b0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C06",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12261,
+        "prompt_tokens": 3174,
+        "completion_tokens": 418,
+        "charged_tokens": 12679,
+        "unreported_model_calls": 0
+      }
+    },
+    "44183bb6-ae7d-4c79-b54d-77e8b802ab3b": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12269,
+        "prompt_tokens": 3001,
+        "completion_tokens": 314,
+        "charged_tokens": 12583,
+        "unreported_model_calls": 0
+      }
+    },
+    "b455d72b-8836-45c7-8523-27febb3f7c44": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C08",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50470,
+        "prompt_tokens": 11956,
+        "completion_tokens": 316,
+        "charged_tokens": 50786,
+        "unreported_model_calls": 0
+      }
+    },
+    "df876272-5e2b-4188-b4e1-a655405eb24a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C09",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 49048,
+        "prompt_tokens": 11843,
+        "completion_tokens": 321,
+        "charged_tokens": 49369,
+        "unreported_model_calls": 0
+      }
+    },
+    "15550049-dc3a-4aba-ae0a-3f6448b3deed": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "C10",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10905,
+        "prompt_tokens": 2746,
+        "completion_tokens": 108,
+        "charged_tokens": 11013,
+        "unreported_model_calls": 0
+      }
+    },
+    "94680bee-d5e3-4224-9f1b-eedc16880ff7": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D01",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12239,
+        "prompt_tokens": 3301,
+        "completion_tokens": 343,
+        "charged_tokens": 12582,
+        "unreported_model_calls": 0
+      }
+    },
+    "4dccaf09-7738-47dd-bd16-4f368da69e81": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23788,
+        "prompt_tokens": 6386,
+        "completion_tokens": 128,
+        "charged_tokens": 23916,
+        "unreported_model_calls": 0
+      }
+    },
+    "17cda954-f8ba-4c24-b14e-a68f47de5b51": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D03",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 9276,
+        "prompt_tokens": 2433,
+        "completion_tokens": 127,
+        "charged_tokens": 9403,
+        "unreported_model_calls": 0
+      }
+    },
+    "23d06078-023e-4acd-8929-5ee4ac4d8ee0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D04",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12262,
+        "prompt_tokens": 3371,
+        "completion_tokens": 309,
+        "charged_tokens": 12571,
+        "unreported_model_calls": 0
+      }
+    },
+    "6dba6979-cc3b-4d8d-a6d9-81a8178c205b": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D05",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23254,
+        "prompt_tokens": 6403,
+        "completion_tokens": 449,
+        "charged_tokens": 23703,
+        "unreported_model_calls": 0
+      }
+    },
+    "a7546735-c30e-4e26-8fbc-889a44b01859": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D06",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12258,
+        "prompt_tokens": 3310,
+        "completion_tokens": 392,
+        "charged_tokens": 12650,
+        "unreported_model_calls": 0
+      }
+    },
+    "5bf0c1e0-f02f-484b-8e42-c6ccded65f3b": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D07",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3427,
+        "prompt_tokens": 890,
+        "completion_tokens": 23,
+        "charged_tokens": 3450,
+        "unreported_model_calls": 0
+      }
+    },
+    "716d899f-29d0-46d6-97cc-90a81e2a3212": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D08",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50484,
+        "prompt_tokens": 13176,
+        "completion_tokens": 435,
+        "charged_tokens": 50919,
+        "unreported_model_calls": 0
+      }
+    },
+    "51388ef5-9739-4038-903e-49f1d03f765d": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D09",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50563,
+        "prompt_tokens": 13413,
+        "completion_tokens": 379,
+        "charged_tokens": 50942,
+        "unreported_model_calls": 0
+      }
+    },
+    "4e0977cd-8e8e-4e5a-90cf-21828fe294e0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D10",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10800,
+        "prompt_tokens": 2858,
+        "completion_tokens": 160,
+        "charged_tokens": 10960,
+        "unreported_model_calls": 0
+      }
+    },
+    "13d4252b-22c4-472e-8071-27147561a0d1": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D11",
+      "用量": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "estimated_input_tokens": 33807,
+        "prompt_tokens": 9134,
+        "completion_tokens": 414,
+        "charged_tokens": 34221,
+        "unreported_model_calls": 0
+      }
+    },
+    "cbb5c9a8-c193-4053-a88d-776a0cfa36ef": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "D12",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23781,
+        "prompt_tokens": 6556,
+        "completion_tokens": 363,
+        "charged_tokens": 24144,
+        "unreported_model_calls": 0
+      }
+    },
+    "0acfff2a-bf98-44ba-99c6-50d7ff01d41b": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E01",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23794,
+        "prompt_tokens": 6561,
+        "completion_tokens": 371,
+        "charged_tokens": 24165,
+        "unreported_model_calls": 0
+      }
+    },
+    "a726754d-9ea8-4033-b9ff-60ffecd3af59": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "estimated_input_tokens": 3382,
+        "prompt_tokens": 882,
+        "completion_tokens": 17,
+        "charged_tokens": 3399,
+        "unreported_model_calls": 0
+      }
+    },
+    "afa9e0a0-7139-4732-9b65-ac9a3099f123": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E03",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12261,
+        "prompt_tokens": 3274,
+        "completion_tokens": 232,
+        "charged_tokens": 12493,
+        "unreported_model_calls": 0
+      }
+    },
+    "887cd980-2a2d-409e-a8e7-cf9d33fe6be0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E04",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12277,
+        "prompt_tokens": 3396,
+        "completion_tokens": 416,
+        "charged_tokens": 12693,
+        "unreported_model_calls": 0
+      }
+    },
+    "1d27a68c-4869-442c-9f41-194aaa3a4658": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E05",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12248,
+        "prompt_tokens": 3305,
+        "completion_tokens": 408,
+        "charged_tokens": 12656,
+        "unreported_model_calls": 0
+      }
+    },
+    "4b14bdf5-0651-46c3-b676-d5c8c9e58f3a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E06",
+      "用量": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "estimated_input_tokens": 36774,
+        "prompt_tokens": 8929,
+        "completion_tokens": 522,
+        "charged_tokens": 37296,
+        "unreported_model_calls": 0
+      }
+    },
+    "77599b6f-5f05-4e5a-afce-3f61a04611ad": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E07",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12336,
+        "prompt_tokens": 3103,
+        "completion_tokens": 315,
+        "charged_tokens": 12651,
+        "unreported_model_calls": 0
+      }
+    },
+    "c065227a-120a-47ff-a2fb-0bc3554653ec": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E08",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23845,
+        "prompt_tokens": 6019,
+        "completion_tokens": 478,
+        "charged_tokens": 24323,
+        "unreported_model_calls": 0
+      }
+    },
+    "8d6a4024-f91e-4d23-b324-e183fdbb9f0a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E09",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23855,
+        "prompt_tokens": 5943,
+        "completion_tokens": 232,
+        "charged_tokens": 24087,
+        "unreported_model_calls": 0
+      }
+    },
+    "12ba3a76-c6c3-4bf1-9cb2-9699a66eb6ec": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E10",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12245,
+        "prompt_tokens": 3030,
+        "completion_tokens": 96,
+        "charged_tokens": 12341,
+        "unreported_model_calls": 0
+      }
+    },
+    "350b04da-214f-4ac6-a0b1-4bf224b7b2e6": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E11",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 10786,
+        "prompt_tokens": 2601,
+        "completion_tokens": 171,
+        "charged_tokens": 10957,
+        "unreported_model_calls": 0
+      }
+    },
+    "741d63dc-d378-4ed8-910d-d044556dbefe": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E12",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23603,
+        "prompt_tokens": 6017,
+        "completion_tokens": 586,
+        "charged_tokens": 24189,
+        "unreported_model_calls": 0
+      }
+    },
+    "128b9596-9bb9-4b97-a6a4-8c60219a34e3": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E13",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12261,
+        "prompt_tokens": 3163,
+        "completion_tokens": 214,
+        "charged_tokens": 12475,
+        "unreported_model_calls": 0
+      }
+    },
+    "b1e86b18-5249-4110-8f74-e26b5b2229d6": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E14",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23855,
+        "prompt_tokens": 6143,
+        "completion_tokens": 281,
+        "charged_tokens": 24136,
+        "unreported_model_calls": 0
+      }
+    },
+    "9c6b04e3-5a06-4ca5-a448-fa9519751fc4": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E15",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50218,
+        "prompt_tokens": 12385,
+        "completion_tokens": 478,
+        "charged_tokens": 50696,
+        "unreported_model_calls": 0
+      }
+    },
+    "a45dbe70-c9e6-45dc-ac6c-508bfdd6c0d1": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "E16",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "estimated_input_tokens": 12224,
+        "prompt_tokens": 3224,
+        "completion_tokens": 137,
+        "charged_tokens": 12361,
+        "unreported_model_calls": 0
+      }
+    },
+    "5012d79c-9d17-4fa5-aafe-a409d158bed0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "F01",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23861,
+        "prompt_tokens": 6174,
+        "completion_tokens": 441,
+        "charged_tokens": 24302,
+        "unreported_model_calls": 0
+      }
+    },
+    "459e617d-0a00-48e9-9c7f-5092965839d0": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "F02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 23873,
+        "prompt_tokens": 6286,
+        "completion_tokens": 446,
+        "charged_tokens": 24319,
+        "unreported_model_calls": 0
+      }
+    },
+    "f878bdb0-0392-40e9-86a6-798beedfe152": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "F03",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 49874,
+        "prompt_tokens": 13095,
+        "completion_tokens": 293,
+        "charged_tokens": 50167,
+        "unreported_model_calls": 0
+      }
+    },
+    "904e42a8-c1d9-4297-8eea-919c55f246c5": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G01",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11755,
+        "prompt_tokens": 2607,
+        "completion_tokens": 171,
+        "charged_tokens": 11926,
+        "unreported_model_calls": 0
+      }
+    },
+    "950905e6-e47e-48ab-a0f6-a78795725e25": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G02",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11687,
+        "prompt_tokens": 2572,
+        "completion_tokens": 126,
+        "charged_tokens": 11813,
+        "unreported_model_calls": 0
+      }
+    },
+    "9c897b01-f53b-489a-8d65-2b56e3096b6c": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G03",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11824,
+        "prompt_tokens": 2626,
+        "completion_tokens": 223,
+        "charged_tokens": 12047,
+        "unreported_model_calls": 0
+      }
+    },
+    "4ab88974-e4c8-4060-ad5b-62b70ec2bc55": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G04",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11667,
+        "prompt_tokens": 2572,
+        "completion_tokens": 124,
+        "charged_tokens": 11791,
+        "unreported_model_calls": 0
+      }
+    },
+    "82c6f904-3fad-4ce6-8499-2bcd4149cd3e": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G05",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11776,
+        "prompt_tokens": 2628,
+        "completion_tokens": 151,
+        "charged_tokens": 11927,
+        "unreported_model_calls": 0
+      }
+    },
+    "1d696e03-842f-4ee3-af82-69757e5aa2d2": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G06",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11865,
+        "prompt_tokens": 2625,
+        "completion_tokens": 150,
+        "charged_tokens": 12015,
+        "unreported_model_calls": 0
+      }
+    },
+    "7dfb9aaa-d3f7-40eb-b3a0-70030fdd9b1a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G07",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11731,
+        "prompt_tokens": 2579,
+        "completion_tokens": 135,
+        "charged_tokens": 11866,
+        "unreported_model_calls": 0
+      }
+    },
+    "24cf05e9-5a84-41c7-a63e-418a61220f7f": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G08",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11851,
+        "prompt_tokens": 2627,
+        "completion_tokens": 139,
+        "charged_tokens": 11990,
+        "unreported_model_calls": 0
+      }
+    },
+    "9e7c7827-6c0d-4a3b-860e-352c6108120a": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G09",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11871,
+        "prompt_tokens": 2626,
+        "completion_tokens": 183,
+        "charged_tokens": 12054,
+        "unreported_model_calls": 0
+      }
+    },
+    "417a49e7-289e-4fad-8bc5-3634b14790ae": {
+      "文件": "eval/rag-quality-optimized-golden-results.json",
+      "题号": "G10",
+      "用量": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "estimated_input_tokens": 11855,
+        "prompt_tokens": 2626,
+        "completion_tokens": 132,
+        "charged_tokens": 11987,
+        "unreported_model_calls": 0
+      }
+    },
+    "d4d26aa9-5ea9-492c-b556-86b8036b714e": {
+      "文件": "eval/rag-quality-optimized-web-results.json",
+      "题号": "W01",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "estimated_input_tokens": 4635,
+        "prompt_tokens": 1214,
+        "completion_tokens": 42,
+        "charged_tokens": 4677,
+        "unreported_model_calls": 0
+      }
+    },
+    "24fdebef-c50e-4fd7-adb6-84e9bf577f69": {
+      "文件": "eval/rag-quality-optimized-web-results.json",
+      "题号": "W02",
+      "用量": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "estimated_input_tokens": 4633,
+        "prompt_tokens": 1207,
+        "completion_tokens": 52,
+        "charged_tokens": 4685,
+        "unreported_model_calls": 0
+      }
+    },
+    "9352cade-0653-4809-ab78-40d1cadbfbc4": {
+      "文件": "eval/rag-quality-optimized-web-results.json",
+      "题号": "W03",
+      "用量": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "estimated_input_tokens": 14197,
+        "prompt_tokens": 3642,
+        "completion_tokens": 94,
+        "charged_tokens": 14291,
+        "unreported_model_calls": 0
+      }
+    },
+    "0bad5b94-4002-4539-ad73-d3520f4d7352": {
+      "文件": "eval/rag-quality-optimized-web-results.json",
+      "题号": "W04",
+      "用量": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "estimated_input_tokens": 38372,
+        "prompt_tokens": 10340,
+        "completion_tokens": 330,
+        "charged_tokens": 38702,
+        "unreported_model_calls": 0
+      }
+    },
+    "c5768679-db41-4c54-ad77-df2172fb76d2": {
+      "文件": "eval/rag-quality-optimized-cross-source-results.json",
+      "题号": "CROSS01",
+      "用量": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 50683,
+        "prompt_tokens": 13402,
+        "completion_tokens": 372,
+        "charged_tokens": 51055,
+        "unreported_model_calls": 0
+      }
+    }
+  }
+}

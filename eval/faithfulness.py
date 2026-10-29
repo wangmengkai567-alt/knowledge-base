@@ -2,7 +2,7 @@
 
 A sentence is grounded when the retrieved text supports it, including a
 paraphrase or a short summary. Literal 4-gram overlap is not required.
-Neighbor chunks are included by the caller, matching rag.context_window.
+Evidence is the persisted material actually sent to the model.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ _STOP_BIGRAMS = {
     "不会", "不能", "不要", "进行", "使用", "包括", "表示", "用于", "其中", "因此", "同时",
     "已经", "还是", "只是", "主要", "一般", "通常", "例如", "比如", "的是", "是指", "来说",
     "方面", "情况", "时候", "之后", "之前", "当中", "自己", "什么", "怎么", "哪些", "是否",
-    "也会", "就会", "都是", "还有", "从而", "以便", "不是", "不会",
+    "也会", "就会", "都是", "还有", "从而", "以便",
 }
 
 # Recall of content bigrams at or above this counts as a paraphrase.
@@ -94,9 +94,7 @@ def is_substantive_claim(claim: str) -> bool:
     if _META_RE.search(stripped):
         return False
     alnum = re.sub(r"[^\w\u4e00-\u9fff]", "", compact, flags=re.UNICODE)
-    if len(alnum) < 8 and not _NUMBER_RE.search(compact):
-        return False
-    return True
+    return not (len(alnum) < 8 and not _NUMBER_RE.search(compact))
 
 
 def _content_bigrams(text: str) -> set[str]:
@@ -179,40 +177,3 @@ def unsupported_sentences(answer: str, evidence: str) -> list[str]:
             continue
         bad.append(claim)
     return bad
-
-
-def neighbor_evidence(
-    results: list[dict],
-    chunks_by_doc: dict[int, list[dict]],
-    window: int,
-) -> str:
-    """Hit chunks plus ±window neighbors, the same span generation reads."""
-    if window <= 0:
-        return "\n".join((row.get("content") or "") for row in results)
-    pos_maps: dict[int, dict[int, dict]] = {}
-    for doc_id, chunks in chunks_by_doc.items():
-        pos_maps[doc_id] = {int(chunk["position"]): chunk for chunk in chunks}
-    seen: set[int] = set()
-    parts: list[str] = []
-    for row in results:
-        doc_id = row.get("document_id")
-        pos = row.get("position")
-        pos_map = pos_maps.get(doc_id) or {}
-        if pos is None or not pos_map:
-            cid = row.get("chunk_id")
-            if cid not in seen:
-                if cid is not None:
-                    seen.add(cid)
-                parts.append(row.get("content") or "")
-            continue
-        for position in range(int(pos) - window, int(pos) + window + 1):
-            chunk = pos_map.get(position)
-            if chunk is None:
-                continue
-            cid = chunk.get("id")
-            if cid in seen:
-                continue
-            if cid is not None:
-                seen.add(cid)
-            parts.append(chunk.get("content") or "")
-    return "\n".join(parts)

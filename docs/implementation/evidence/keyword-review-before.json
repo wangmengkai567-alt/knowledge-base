@@ -1,0 +1,21 @@
+{
+  "purpose": "Input integrity before user-authorized keyword expansion; hashes are content checks, not filenames",
+  "files": {
+    "eval/golden_set.json": "34fe8e5332694a5142d0f539c4a780f1cb33197119f86356fc2061e86a1884e6",
+    "eval/last_run.json": "a6a1b0d7657cefb51f21e7a93413bcc52a8501d56795d4d3a60b6c92489bfb53",
+    "eval/phase-6-golden-results.json": "0af0c9eecd966958e19f66dc0412d16fca9849eb661aca98c59a3fcd8ae5a831",
+    "eval/phase-6-final-golden-results.json": "ee472e488af44cbc1fef34fe79cb5344304fdeece825fa893504654f2c4975ad",
+    "eval/phase-6-final-web-results.json": "502f872bef6db899b294ae3181056957b1ddfa2a595a2eb24ed1ec388bdfadfa",
+    "eval/test_faithfulness.py": "706f3d71ac70f46e47ed59297c48f293af7e2b258c6e1c44397b2fb5cd75b95e",
+    "eval/test_quota_abort.py": "262bb1e96580de3f3ea9b4c6269a5f9a52aefbb3c7c7e1a2c3d23a30848f7ad3",
+    "eval/test_run_lock.py": "4d73c87dec3f75a09ebf66c1161ed2ea77e777320d3b81bad083653a62a0d9de",
+    "eval/test_run_metrics.py": "107ef451fde0ba2e81f73a6655d1e108bf0cbc86635bdb8bbff9d53de7007e6f",
+    "ai-service/tests/test_context_block.py": "c53f774f034a57ccf87404828eeee3c8a337bb1a91fc893033e631c15f0a0859",
+    "ai-service/tests/test_model_protocol.py": "c8c2171ac5dc59ebd522ff646336a24d1d1e3010bec10100679ecc04eaabcc05",
+    "ai-service/tests/test_qwen_reranker.py": "fe000ea1c2af046e8053b4471ff6b4a825e8c601801e586f337bad0a6428523b",
+    "ai-service/tests/test_rag_grounded_answer.py": "74f00bdc12bae0529856042c9fca9be436d4648640f24733448b42e468974671",
+    "ai-service/tests/test_read_only_tools.py": "aca8165ac5509c20ebe29fbf8817a3c66c9acd72a2b5c4fffe6ce435ffee4963",
+    "ai-service/tests/test_relevance_gate.py": "7758200075676ee25d580d6cba634aa470d5b5dbc06c7743580d93aafea8aad1",
+    "ai-service/tests/test_rerank_relevance.py": "f8f883d6397100a5aba722a4fd329531351a8e2b10d028a3bcd521440684b58d"
+  }
+}

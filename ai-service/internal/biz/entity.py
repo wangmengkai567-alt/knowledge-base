@@ -176,19 +176,6 @@ class ChatResult:
 
 
 @dataclass
-class ChatChunk:
-    """LLM 流式对话分片值对象
-
-    每个 chunk 包含一小段增量内容（delta），
-    客户端逐步接收并拼接为完整回复。
-    """
-
-    delta: str                # 增量文本内容
-    model: str                # 使用的模型名称
-    finish_reason: str | None = None  # 结束原因（null=进行中，"stop"=结束）
-
-
-@dataclass
 class EmbeddingUsage:
     """嵌入 API token 用量
 

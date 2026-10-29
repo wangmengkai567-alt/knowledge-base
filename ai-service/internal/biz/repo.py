@@ -12,11 +12,9 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
     from datetime import datetime
 
     from internal.biz.entity import (
-        ChatChunk,
         ChatResult,
         Chunk,
         Document,
@@ -367,7 +365,7 @@ class LLMProvider(ABC):
 
     接收 messages 列表，返回 LLM 生成内容。
     支持 OpenAI / DeepSeek / Ollama 等兼容 OpenAI API 的提供商。
-    支持非流式 generate() 和流式 generate_stream()。
+    返回完整模型结果；问答过程事件由 RAGService 发布。
     """
 
     @abstractmethod
@@ -409,31 +407,6 @@ class LLMProvider(ABC):
         from pkg.errors.base import LLMError
 
         raise LLMError(reason="TOOL_CALLING_UNSUPPORTED", message="当前模型未配置原生工具调用能力")
-
-    @abstractmethod
-    async def generate_stream(
-        self,
-        messages: list[dict[str, str]],
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-    ) -> AsyncIterator[ChatChunk]:
-        """调用 LLM 生成回复（流式）。
-
-        逐步 yield ChatChunk，每个 chunk 包含增量文本 delta。
-        最后一个 chunk 的 finish_reason 为 "stop"。
-
-        参数:
-            messages: LLM messages 列表
-            temperature: 生成温度（覆盖默认值）
-            max_tokens: 最大生成 token 数（覆盖默认值）
-
-        产出:
-            ChatChunk 值对象（delta + model + finish_reason）
-
-        异常:
-            APIError: LLM 调用失败
-        """
-        ...
 
     @property
     @abstractmethod

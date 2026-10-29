@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
-from internal.biz.materials import AnswerSource, InputBudget, WebSource, clip_source
+from internal.biz.materials import AnswerSource, InputBudget, WebSource, pack_sources
 from internal.biz.tool_types import ToolError, ToolFailure, ToolResult
 from internal.biz.tools import ToolScope
 from pkg.errors.base import APIError
@@ -157,6 +157,7 @@ class RAGBiz:
         seen_ids: set[str] = set()
         pending_sources: list[AnswerSource | WebSource] = []
         final_reason = ""
+        no_progress = 0
         while run.status == "running":
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
@@ -171,7 +172,7 @@ class RAGBiz:
                     final_reason = "tool_call_limit"
                 elif remaining < estimate + output_tokens + reserve:
                     final_reason = "token_budget"
-            final = bool(final_reason)
+            final = bool(final_reason) or no_progress >= 2
             request = [*messages, _FINAL_CONTROL] if final else messages
             estimate = self._model.estimate(request, session)
             if (
@@ -301,6 +302,9 @@ class RAGBiz:
                     ).to_message()
                     final_reason = "input_budget"
                     break
+                no_progress = 0 if bounded.sources else no_progress + 1
+                if no_progress == 2:
+                    run.emit("search_stopped", reason="no_new_evidence", consecutive_results=no_progress)
                 messages[start + index] = bounded.to_message()
                 pending_sources.extend(bounded.sources)
                 run.emit(
@@ -319,35 +323,59 @@ class RAGBiz:
         index: int,
         session: ToolSession,
     ) -> ToolResult | None:
-        # 同一内容复用已送模资料；内容或时间不同则保留独立快照，避免覆盖冲突。
+        # 只向后续模型发送尚未见过的原文范围；重排分变化不构成新证据。
         registry = [*run.sources, *pending]
+        next_id = max((source.citation_id for source in registry), default=0) + 1
         sources = []
         for original in result.sources:
-            source = replace(original, citation_id=len(registry) + len(sources) + 1)
-            if any(
-                replace(existing, citation_id=0) == replace(source, citation_id=0)
-                for existing in [*registry, *sources]
-            ):
+            source = replace(original)
+            if isinstance(source, AnswerSource):
+                segments = []
+                for segment in source.segments:
+                    portions = [segment]
+                    for existing in registry:
+                        if not isinstance(existing, AnswerSource) or (
+                            existing.document_id, existing.document_updated_at
+                        ) != (source.document_id, source.document_updated_at):
+                            continue
+                        for old in existing.segments:
+                            if old.chunk_id != segment.chunk_id:
+                                continue
+                            remaining = []
+                            for part in portions:
+                                start, end = max(part.start, old.start), min(part.end, old.end)
+                                if start >= end or part.content[start-part.start:end-part.start] != old.content[start-old.start:end-old.start]:
+                                    remaining.append(part)
+                                    continue
+                                if part.start < start:
+                                    remaining.append(replace(part, end=start, content=part.content[:start-part.start]))
+                                if end < part.end:
+                                    remaining.append(replace(part, start=end, content=part.content[end-part.start:]))
+                            portions = remaining
+                    segments.extend(portions)
+                if not segments:
+                    continue
+                ids = {part.chunk_id for part in segments}
+                source = replace(source, segments=segments,
+                                 retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids])
+            elif any(isinstance(existing, WebSource) and replace(existing, citation_id=0) == replace(source, citation_id=0)
+                     for existing in registry):
                 continue
-            sources.append(source)
-        bounded = replace(result, sources=list(sources))
-
-        def fits() -> bool:
+            sources.append(replace(source, citation_id=next_id + len(sources)))
+        bounded = replace(result)
+        empty = list(messages)
+        empty[index] = replace(bounded, sources=[]).to_message()
+        base = self._model.estimate([*empty, _FINAL_CONTROL], session)
+        if base > self._budget.input_limit - self._budget.output_limit:
+            return None
+        # 当前资料只使用剩余输入空间的一半，为缺失子问题的新证据保留空间。
+        limit = base + max(0, self._budget.input_limit - self._budget.output_limit - base) // 2
+        def fits(values):
             trial = list(messages)
-            trial[index] = bounded.to_message()
-            return (
-                self._model.estimate([*trial, _FINAL_CONTROL], session) <= self._budget.input_limit
-            )
-
-        while not fits():
-            if not bounded.sources:
-                return None
-            source = bounded.sources[-1]
-            if len(source.content) <= 128:
-                bounded.sources.pop()
-            else:
-                bounded.sources[-1] = clip_source(source, len(source.content) // 2)
-        if sources and not bounded.sources:
+            trial[index] = replace(bounded, sources=values).to_message()
+            return self._model.estimate([*trial, _FINAL_CONTROL], session) <= limit
+        bounded.sources = pack_sources(sources, fits)
+        if not fits(bounded.sources) or (sources and not bounded.sources):
             return None
         return bounded
 
@@ -394,6 +422,7 @@ class RAGBiz:
 
     @staticmethod
     def _publish(run: AnswerRun, result: ChatResult, final_reason: str) -> None:
+        run.final_response = result.content
         run.emit("answer_check_started")
         try:
             value = json.loads(result.content)

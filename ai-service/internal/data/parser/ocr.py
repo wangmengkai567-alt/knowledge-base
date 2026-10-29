@@ -121,7 +121,7 @@ def _get_engine():
             logger.warning(
                 "ocr_unavailable",
                 error=str(e),
-                hint="pip install rapidocr-onnxruntime",
+                hint="使用 uv sync --locked 安装依赖；Docker 环境需重建镜像",
             )
             return None
     return _engine

@@ -28,6 +28,10 @@ class QuotaAbortTest(unittest.TestCase):
             )
         )
 
+    def test_structured_run_authorization_error(self):
+        self.assertTrue(is_quota_denied("model_failed: model_error (LLM_AUTHORIZATION_FAILED)"))
+        self.assertTrue(is_quota_denied("model_failed: model_error (LLM_RATE_LIMITED)"))
+
     def test_normal_error_not_quota(self):
         self.assertFalse(is_quota_denied("POST /rag/query -> 500 timeout"))
 

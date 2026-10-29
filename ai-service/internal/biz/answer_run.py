@@ -78,6 +78,7 @@ class AnswerRun:
     stop_reason: str = ""
     error_code: str | None = None
     answer: str = ""
+    final_response: str = ""  # 仅最终响应，用于本机验收；不发布未通过检查的答案。
     model: str = ""
     usage: RunUsage = field(default_factory=RunUsage)
     # 仅登记真正进入模型请求的内容；获取但未送模的结果另保存在 tool_results。

@@ -6,13 +6,11 @@ internal/data/llm/memory.py — 内存伪 LLM 实现
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
-from collections.abc import AsyncIterator
 
 import structlog
 
-from internal.biz.entity import ChatResult, ChatChunk
+from internal.biz.entity import ChatResult
 from internal.biz.repo import LLMProvider
 
 logger = structlog.get_logger()
@@ -87,37 +85,3 @@ class MemoryLLM(LLMProvider):
         )
 
         return result
-
-    async def generate_stream(
-        self,
-        messages: list[dict[str, str]],
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-    ) -> AsyncIterator[ChatChunk]:
-        """模拟流式伪回复 — 逐字 yield，模拟真实 LLM 流式体验。"""
-        user_content = self._extract_user_content(messages)
-        content = self._build_pseudo_reply(user_content)
-
-        # 逐字符 yield，模拟流式体验（每 5 个字符一组，间隔 20ms）
-        chunk_size = 5
-        for i in range(0, len(content), chunk_size):
-            delta = content[i:i + chunk_size]
-            yield ChatChunk(
-                delta=delta,
-                model=self._model,
-                finish_reason=None,
-            )
-            await asyncio.sleep(0.02)
-
-        # 最后一个 chunk 标记 finish_reason
-        yield ChatChunk(
-            delta="",
-            model=self._model,
-            finish_reason="stop",
-        )
-
-        logger.debug(
-            "memory_llm_stream_response",
-            query_preview=user_content[:50],
-            content_length=len(content),
-        )

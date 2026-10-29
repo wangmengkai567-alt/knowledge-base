@@ -15,13 +15,10 @@ Ollama 接口文档：https://github.com/ollama/ollama/blob/main/docs/api.md
 
 from __future__ import annotations
 
-import json
-from collections.abc import AsyncIterator
-
 import httpx
 import structlog
 
-from internal.biz.entity import ChatResult, ChatChunk
+from internal.biz.entity import ChatResult
 from internal.biz.repo import LLMProvider
 from pkg.errors.base import APIError
 from pkg.errors.codes import ErrorCode
@@ -33,7 +30,7 @@ class OllamaLLM(LLMProvider):
     """Ollama 本地 LLM — 通过原生 /api/chat 端点实现。
 
     适用于本地 Ollama 实例，无需 API Key。
-    支持非流式 generate() 和流式 generate_stream()。
+    模型原生调用返回完整结果；问答过程事件由 RAGService 发布。
     """
 
     def __init__(
@@ -138,12 +135,12 @@ class OllamaLLM(LLMProvider):
 
             return result
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as exc:
             logger.error("ollama_llm_timeout", url=url, timeout=self._timeout)
             raise APIError(
                 code=ErrorCode.LLM_TIMEOUT,
                 message=f"Ollama API timeout after {self._timeout}s",
-            )
+            ) from exc
         except httpx.ConnectError as e:
             logger.error("ollama_llm_connect_error", url=url, error=str(e))
             raise APIError(
@@ -153,7 +150,7 @@ class OllamaLLM(LLMProvider):
                     f"Ensure Ollama is running and the model '{self._model}' is pulled. "
                     f"Run: ollama pull {self._model}"
                 ),
-            )
+            ) from e
         except APIError:
             raise
         except Exception as e:
@@ -161,108 +158,4 @@ class OllamaLLM(LLMProvider):
             raise APIError(
                 code=ErrorCode.LLM_ERROR,
                 message=f"Unexpected Ollama LLM error: {e}",
-            )
-
-    async def generate_stream(
-        self,
-        messages: list[dict[str, str]],
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-    ) -> AsyncIterator[ChatChunk]:
-        """调用 Ollama /api/chat 端点（流式）。
-
-        Ollama 流式响应使用 NDJSON 格式（每行一个 JSON 对象），而非 SSE。
-
-        每行格式：
-            {"message": {"content": "delta"}, "done": false}
-            ...
-            {"message": {"content": ""}, "done": true,
-             "eval_count": N, "prompt_eval_count": M}
-        """
-        url = f"{self._base_url}/api/chat"
-
-        payload: dict = {
-            "model": self._model,
-            "messages": messages,
-            "stream": True,
-            "options": {
-                "temperature": temperature if temperature is not None else self._temperature,
-                "num_predict": max_tokens if max_tokens is not None else self._max_tokens,
-            },
-            "keep_alive": self._keep_alive,
-        }
-
-        logger.debug(
-            "ollama_llm_stream_request",
-            url=url,
-            model=self._model,
-            message_count=len(messages),
-        )
-
-        try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
-                async with client.stream("POST", url, json=payload) as response:
-                    if response.status_code != 200:
-                        body = await response.aread()
-                        logger.error(
-                            "ollama_llm_stream_error",
-                            status_code=response.status_code,
-                            body=body.decode(errors="replace")[:500],
-                        )
-                        raise APIError(
-                            code=ErrorCode.LLM_ERROR,
-                            message=(
-                                f"Ollama API returned {response.status_code}: "
-                                f"{body.decode(errors='replace')[:200]}"
-                            ),
-                        )
-
-                    # Ollama 使用 NDJSON：每行一个完整的 JSON 对象
-                    async for line in response.aiter_lines():
-                        line = line.strip()
-                        if not line:
-                            continue
-
-                        try:
-                            data = json.loads(line)
-                        except (json.JSONDecodeError, ValueError) as e:
-                            logger.warning(
-                                "ollama_ndjson_parse_error",
-                                line=line[:100],
-                                error=str(e),
-                            )
-                            continue
-
-                        content = data.get("message", {}).get("content", "")
-                        done = data.get("done", False)
-
-                        yield ChatChunk(
-                            delta=content,
-                            model=self._model,
-                            finish_reason="stop" if done else None,
-                        )
-
-        except httpx.TimeoutException:
-            logger.error("ollama_llm_stream_timeout", url=url, timeout=self._timeout)
-            raise APIError(
-                code=ErrorCode.LLM_TIMEOUT,
-                message=f"Ollama API timeout after {self._timeout}s",
-            )
-        except httpx.ConnectError as e:
-            logger.error("ollama_llm_stream_connect_error", url=url, error=str(e))
-            raise APIError(
-                code=ErrorCode.LLM_ERROR,
-                message=(
-                    f"Cannot connect to Ollama at {self._base_url}. "
-                    f"Ensure Ollama is running and the model '{self._model}' is pulled. "
-                    f"Run: ollama pull {self._model}"
-                ),
-            )
-        except APIError:
-            raise
-        except Exception as e:
-            logger.error("ollama_llm_stream_unexpected_error", error=str(e))
-            raise APIError(
-                code=ErrorCode.LLM_ERROR,
-                message=f"Unexpected Ollama stream error: {e}",
-            )
+            ) from e

@@ -1,240 +1,102 @@
-# AI Knowledge Base
+# AI 知识库
 
-上传 PDF / Markdown / TXT，解析分块后做向量 + 关键词混合检索，再按资料回答。
+Python FastAPI + Vue 3 个人知识库。后端在一次有预算的运行中选择知识库检索、网页搜索和正文读取，浏览器展示过程、终态和实际使用的来源。
 
-后端 FastAPI（`ai-service/`，`:8084`），前端 Vue 3（`web/`，`:5173`）。LLM / Embedding 走 OpenAI 兼容 HTTP，可接 DeepSeek、腾讯云 TokenHub、阿里云、Ollama。
+## 问答与入库
 
-## 功能
+- 知识库检索复用现有向量、BM25、RRF 和重排；保留真实分数类型，不按顺序制造相关性分数。
+- 用户开启联网后才允许 Tavily Search / Extract；只外发必要公开关键词。搜索摘要与网页正文分别标记，网页保留 URL、获取时间和实际文字。
+- 后端持有资料、工具调用、预算和引用映射；最终答案通过引用格式检查后一次发布。引用语义是否支持结论另由评测核对。
+- 每题最多 6 次模型调用、10 次工具调用、120 秒；单次输入保守估算上限 16000，单次输出 2048，累计扣减上限 64000。保守估算与模型返回 token 分开记录。
+- `completed`、`insufficient`、`tool_failed`、`model_failed`、`timeout`、`cancelled`、`budget_exhausted`、`repeated_call`、`invalid_answer` 是不同终态。资料不足允许说明缺失信息，不要求固定输出某句话。
+- 解析、分块、向量索引和关键词索引分别记录状态、错误和更新时间。只有当前配置所需步骤全部完成才是 `ready`；从失败阶段重试，关键词重试不重新嵌入。
+- 运行记录与实际资料保存在 `ai-service/data/answer-runs/user-*/`，本机保留七天，不支持断线重连或重启后续跑。页面取消会传到后端请求，但不能保证供应商停止计算或计费。
 
-- 注册 / 登录，Opaque Token（Redis），登出可吊销
-- 知识库 CRUD；删库级联文档、分块、向量
-- 上传 PDF / Markdown / TXT（不支持 DOCX）。扫描版 PDF 会做 OCR。解析失败可重解析，嵌入失败可重试
-- Hybrid 检索：向量余弦 + BM25，RRF 融合，可选关键词重叠 rerank
-- RAG：先检索相关资料，再由 LLM 按资料生成回答（SSE 流式）。搜索页只检索一次：列表展示命中，同一批分块交给模型
-- 无相关资料时直接回答「我不知道」，不调用 LLM、不编造
-- 生成失败时返回「模型回答失败」，不把检索摘录当成回答
-- `/metrics`、`/health/live`、`/health/ready`
+## 配置
 
+复制模板，分别供 Compose 和本机运行读取；不要覆盖已有密钥文件：
 
-## 技术栈
-
-| 层 | 实现 |
-|----|------|
-| 后端 | Python 3.11+，FastAPI，Uvicorn，Pydantic v2 |
-| 分层 | `server` → `service` → `biz` → `data` |
-| 存储 | SQLite 或 PostgreSQL 16 + pgvector |
-| 检索 | pgvector / 内存向量 + 进程内 BM25，RRF（k=60） |
-| 前端 | Vue 3、TypeScript、Vite、Pinia、Element Plus、TailwindCSS |
-| 其它 | Redis（Session / 限流）、structlog、Prometheus |
-
-`AI_SERVER__WORKERS` 必须为 **1**。BM25 在进程内存里，多 worker 会导致上传和检索打到不同进程。
-
-## 架构
-
-```
-浏览器 (Vue :5173)
-    │  Vite 将 /api 代理到 FastAPI
-    ▼
-ai-service :8084
-    server  鉴权 / 限流 / SSE
-    service DTO ↔ 领域对象
-    biz     文档、分块、检索、RAG、对话
-    data    DB、向量库、BM25、LLM HTTP
-    Redis   Session、限流
+```powershell
+Copy-Item ai-service/.env.example .env
+Copy-Item ai-service/.env.example ai-service/.env
 ```
 
-```
-上传 PDF/MD/TXT
-  → 解析（PDF 文字层；扫描页 OCR。表格保留表头对应关系）
-  → 分块（递归，约 256 token / 重叠 32）
-  → Embedding → 向量库 + BM25
-提问
-  → Embedding（单条 query 进程内 LRU 缓存）
-  → Hybrid（向量 + BM25，RRF）+ 相关度门槛（每个知识库一次）
-  → 无相关资料 → 回答「我不知道」（不调用 LLM）
-  → 有资料 → 列表按文档去重展示；同一批块拼 context → LLM 生成
-  → 生成失败 → 「模型回答失败」（不贴检索摘录）
-```
+配置清单见 [环境变量模板](ai-service/.env.example) 和 [已确认选型、预算](docs/preparation/preparation-report.md)。当前模型为 `qwen3.8-flash`，嵌入为 `qwen3.7-text-embedding-flash`、1024 维，重排为 `qwen3.7-text-rerank`，网页供应商为 Tavily。填写模型密钥、`TAVILY_API_KEY` 和 `POSTGRES_PASSWORD`。修改环境变量后需重新创建后端容器使其生效。
 
-## 目录
+`AI_SERVER__WORKERS` 必须为 **1**；关键词索引是进程内状态。保留既有向量与上传文件，不为启用工具问答重新上传全部资料。
 
-```
-.
-├── README.md
-├── Makefile                          # docker / ruff
-├── .gitignore
-├── .dockerignore
-│
-├── ai-service/                       # FastAPI（:8084）
-│   ├── .env.example                  # 复制为根目录 .env 和本目录 .env
-│   ├── pyproject.toml
-│   ├── cmd/
-│   │   ├── main.py                   # python -m cmd.main
-│   │   ├── wire.py                   # 依赖组装
-│   │   └── migrate.py                # 建表
-│   ├── configs/config.yaml           # 非密钥默认值，可被 .env 覆盖
-│   ├── api/openapi/schemas/          # 请求 / 响应 DTO
-│   ├── pkg/                          # 错误码、Session
-│   ├── data/uploads/                 # 本地上传文件（不入库）
-│   └── internal/
-│       ├── conf/                     # 配置、日志
-│       ├── server/                   # FastAPI、鉴权 / 限流 / 指标
-│       ├── service/                  # DTO ↔ 领域对象
-│       ├── biz/                      # 用户、知识库、文档、检索、RAG
-│       ├── data/
-│       │   ├── parser/               # PDF / Markdown / TXT
-│       │   ├── chunker/              # 递归分块
-│       │   ├── embedding/            # TokenHub / OpenAI 兼容 / memory
-│       │   ├── llm/                  # 同上
-│       │   ├── vector_store/         # pgvector / 内存
-│       │   ├── keyword/              # 进程内 BM25
-│       │   ├── retriever/            # 向量 / Hybrid + RRF
-│       │   ├── reranker/             # 关键词重叠精排
-│       │   ├── storage/              # 本地文件
-│       │   ├── user/ · knowledge_base/ · document/ · chunk/
-│       │   └── models.py · database.py
-│       ├── prompt/templates/         # RAG 提示词
-│       └── streaming/                # SSE
-│
-├── web/                              # Vue 3（:5173）
-│   ├── README.md
-│   ├── package.json
-│   ├── vite.config.ts                # /api → :8084
-│   ├── index.html
-│   ├── public/
-│   └── src/
-│       ├── api/                      # 鉴权、知识库、文档、检索
-│       ├── views/                    # 登录、检索、知识库、文档、设置等
-│       ├── components/               # Search / Knowledge / Common
-│       ├── layout/
-│       ├── stores/
-│       ├── router/
-│       ├── hooks/
-│       ├── types/
-│       ├── utils/
-│       └── style/
-│
-└── deployments/docker/
-    ├── docker-compose.yaml           # Postgres + pgvector、Redis、ai-service
-    ├── Dockerfile
-    └── prometheus.yml
-```
+## Docker 运行与显式迁移
 
-密钥在 `.env`（根目录给 Compose，`ai-service/.env` 给本机 Python），不入库。模板见 `ai-service/.env.example`。
+需要 Docker Compose；前端开发需要 Node.js。镜像使用 uv 和 `ai-service/uv.lock` 安装依赖，环境位于 `/opt/venv`，源码挂载不会覆盖它。依赖改变后必须重建镜像。
 
-## 快速开始
-
-需要 Python 3.11+、Node.js。用 Postgres / Redis 时再加 Docker Compose。
-
-### 1. 环境变量
-
-Compose 读仓库根目录 `.env`；本机 `python -m cmd.main` 读 `ai-service/.env`。两份内容应一致。
+已有数据库升级前，先按 [备份与恢复说明](docs/preparation/preparation-report.md) 保存数据库和上传文件的成对备份。以下命令只处理本项目后端、数据库和 Redis：
 
 ```bash
-cp ai-service/.env.example .env
-cp ai-service/.env.example ai-service/.env
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env build ai-service
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d postgres redis
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env stop ai-service
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env run --rm --no-deps ai-service uv run --no-sync python -m cmd.migrate
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d --no-deps ai-service
 ```
 
-PowerShell：`Copy-Item ai-service\.env.example .env; Copy-Item ai-service\.env.example ai-service\.env`
+迁移幂等，不覆盖已有阶段错误或把旧解析标记复制为全部就绪。启动时核实真实向量并重建关键词索引，不自动重新嵌入。上传卷为 `docker_ai-uploads`，数据库卷为 `docker_ai-postgres-data`（默认 Compose 项目名 `docker`）。不要用 `down -v` 删除已有数据。
 
-填写 `AI_LLM__API_KEY` 和 `POSTGRES_PASSWORD`。完整项见 [`ai-service/.env.example`](./ai-service/.env.example)。端口、Session、限流等走 yaml 默认值，不必写进 `.env`。
+- 后端接口文档：[localhost:8084/docs](http://localhost:8084/docs)
+- 进程健康：`/health/live`；数据库与 Redis 就绪：`/health/ready`；指标：`/metrics`
+- 启动日志应确认关键词索引重建；就绪接口不能代替逐文档入库状态核对。
 
-改 `.env` 后需重启后端。换过 embedding 模型的文档要重新解析或重传。
+## 本机后端与前端
 
-### 2. 后端
+Python 环境和依赖统一由 uv 管理。已有数据默认在 Docker PostgreSQL；本机运行前须显式配置同一目标数据库、Redis、原文件路径，避免误用模板 SQLite。
 
 ```bash
 cd ai-service
-python -m venv .venv
-source .venv/bin/activate          # Windows: .\.venv\Scripts\Activate.ps1
-python -m pip install -U pip
-pip install .
-python -m cmd.main
+uv sync --locked --extra dev
+uv run --no-sync --env-file .env python -m cmd.migrate
+uv run --no-sync python -m cmd.main
 ```
 
-http://localhost:8084/docs
-
-### 3. 前端
+另一个终端：
 
 ```bash
 cd web
-npm install
+npm ci
 npm run dev
 ```
 
-http://localhost:5173 ，先注册再登录。Vite 把 `/api` 代理到 `http://localhost:8084`。
+打开 [localhost:5173](http://localhost:5173)，注册或登录。前端构建执行 `npm run build`，包括 Vue/TypeScript 检查。更多交互说明见 [前端说明](web/README.md)。
 
-### 4. Docker Compose（Postgres + pgvector + Redis）
+## API 约定
 
-```bash
-docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d --build
+成功返回资源 JSON；HTTP 错误返回 `{code, reason, message}`，问答运行失败则由响应内 `status`、`stop_reason`、`error_code` 表达。鉴权使用 `Authorization: Bearer <access_token>`。
+
+| 方法 | 路径 | 用途 |
+|---|---|---|
+| POST | `/api/v1/users/register`、`/api/v1/users/login` | 注册、登录 |
+| GET/POST | `/api/v1/knowledge/bases` | 列表、创建知识库 |
+| GET/PATCH/DELETE | `/api/v1/knowledge/bases/{id}` | 知识库详情、更新、删除 |
+| POST/GET | `/api/v1/knowledge/bases/{kb_id}/documents` | 上传、文档列表 |
+| GET/DELETE | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}` | 文档详情、删除 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/parse` | 重新解析；已解析资料使用 `force=true` |
+| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/retry` | `{}` 从失败步骤继续，或指定 `stage: parse/chunk/vector/keyword` |
+| GET | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks` | 当前分块 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/retrieve` | 独立检索，不是问答必经请求 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query` | 同步问答 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query/stream` | SSE 过程和最终结果，同一次执行 |
+
+问答请求示例：
+
+```json
+{"query":"Docker 镜像和容器有什么区别？","knowledge_base_ids":[3],"top_k":8,"allow_web":false}
 ```
 
-```bash
-docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d
-```
+`user_urls` 可提供最多三个公开网址，要求开启联网。请求不接受旧的 `chunk_ids`。SSE 协议版本为 4，依次发送 `type=event` 过程、`type=result` 结果和 `[DONE]`；回答不是逐字流式输出。来源包含实际送模 `content`，知识库有分块位置、片段范围和文档版本时间，网页有 URL 与抓取时间。
 
-| 服务 | 地址 |
-|------|------|
-| ai-service | http://localhost:8084 |
-| PostgreSQL | localhost:5432，用户/库 `ai_kb` |
-| Redis | localhost:6379 |
+## 项目记录
 
-停服务用 `stop` 或 `down`（不要 `kill` / 强杀容器），给 Postgres 时间做干净关机：
+- [分阶段重构计划](docs/plans/agentic-rag-refactoring-plan.md)
+- [评测说明](eval/README.md)
+- [术语表](GLOSSARY.md)
+- [只读工具问答设计](docs/adr/0002-bounded-read-only-question-answering.md)
 
-```bash
-docker compose -f deployments/docker/docker-compose.yaml --env-file .env stop
-```
-
-Windows Docker Desktop 上，非干净关机后 Postgres 要对命名卷 `ai-postgres-data` 做 fsync，可能要 2–3 分钟才接受连接。这段时间 `pg_isready` 会失败，Compose 会报 `ai-postgres is unhealthy`。健康检查已把 `start_period` 放到 180s；第一次探测成功仍会立刻标为 healthy。
-
-本机 Ollama：
-
-```bash
-docker compose -f deployments/docker/docker-compose.yaml --profile ollama up -d ollama
-docker exec -it ollama ollama pull qwen2.5:7b
-docker exec -it ollama ollama pull nomic-embed-text
-```
-
-`.env` 设 `AI_LLM__PROVIDER=local`、`AI_EMBEDDING__PROVIDER=local`。Compose 网络内地址为 `http://ollama:11434`。
-
-## 常见问题
-
-| 现象 | 处理 |
-|------|------|
-| Compose 报 `POSTGRES_PASSWORD must be set` | 根目录 `.env` 填写该变量 |
-| Compose 报 `ai-postgres is unhealthy` | 多为崩溃恢复（日志有 `recovery mode` / `syncing data directory`），不是密码或数据卷坏了。等出现 `ready to accept connections` 后再 `up -d`。停库用 `stop`，不要强杀容器 |
-| 关键词能搜到、语义很差 | embedding 仍是 `memory`，或文档用旧模型嵌入，需重解析 |
-| 回答是「我不知道」 | 知识库没有足够相关的文档，不会编答案；可换问法或补文档 |
-| 回答是「模型回答失败」 | 对话模型调用失败（Key、额度、网络）；不会改贴检索摘录 |
-| 检索时有时无 | `workers` 改回 `1` |
-| `/health/ready` 503 | 检查 Postgres / Redis 是否已启动 |
-| 登录后接口 401 | 先注册；确认后端已启动，且 `web/.env` 中 `VITE_USE_MOCK=false` |
-| 改 `.env` 无效 | 重启进程；Key 不要写进 yaml |
-
-## API
-
-成功时返回对应 Pydantic 模型的 JSON。业务错误为 `{ code, reason, message }`。需登录的接口带 `Authorization: Bearer <access_token>`。
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/users/register` | 注册 |
-| POST | `/api/v1/users/login` | 登录 |
-| POST | `/api/v1/users/logout` | 登出 |
-| POST | `/api/v1/users/token/refresh` | 刷新 token |
-| GET | `/api/v1/users/me` | 当前用户 |
-| GET/POST | `/api/v1/knowledge/bases` | 知识库列表 / 创建 |
-| GET/PATCH/DELETE | `/api/v1/knowledge/bases/{id}` | 详情 / 更新 / 删除 |
-| POST/GET | `/api/v1/knowledge/bases/{kb_id}/documents` | 上传 / 列表 |
-| GET/DELETE | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}` | 详情 / 删除 |
-| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/parse` | 重解析 |
-| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/retry` | 从失败阶段继续或指定阶段重试 |
-| GET | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks` | 分块列表 |
-| POST | `/api/v1/knowledge/bases/{kb_id}/retrieve` | 混合检索（返回分块；列表由前端按文档去重） |
-| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query` | 提交问题与 `knowledge_base_ids`，后端检索并生成；返回真实检索分、实际送模片段与引用编号。无资料「我不知道」；依赖或引用错误明确报错 |
-| POST | `/api/v1/knowledge/bases/{kb_id}/rag/query/stream` | 同上，SSE：有资料时先 `sources` 再逐段 `chunk` |
-| GET | `/health/live` | 进程是否在跑 |
-| GET | `/health/ready` | 数据库和 Redis 是否连得上 |
-| GET | `/metrics` | Prometheus |
-
-前端说明见 [`web/README.md`](./web/README.md)。
+提交和推送由用户决定。

@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-10-29T05:43:24.809838+00:00",
+  "checks": [
+    {
+      "suite": "ai-service/tests",
+      "count": 47,
+      "failures": 0,
+      "errors": 0,
+      "successful": true,
+      "output": "...............................................\n----------------------------------------------------------------------\nRan 47 tests in 0.612s\n\nOK\n"
+    },
+    {
+      "suite": "eval",
+      "count": 24,
+      "failures": 0,
+      "errors": 0,
+      "successful": true,
+      "output": "........................\n----------------------------------------------------------------------\nRan 24 tests in 0.385s\n\nOK\n"
+    }
+  ],
+  "delivery_checks": {
+    "checked_at": "2026-10-29T18:53:52.913028+08:00",
+    "text_files_checked": 64,
+    "valid_json_files": 26,
+    "local_document_links_checked": 34,
+    "encoding_and_line_ending_issues": 0,
+    "git_diff_check": "passed",
+    "git_cached_diff_check": "passed",
+    "test_files_modified_in_this_continuation": 0,
+    "runtime_evidence": "phase-6-restart-check.json",
+    "full_online_evaluation_repeated": false
+  }
+}

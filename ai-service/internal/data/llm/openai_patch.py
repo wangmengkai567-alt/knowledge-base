@@ -7,22 +7,13 @@ internal/data/llm/openai_patch.py — OpenAI 兼容 LLM 实现（patched Authori
 
 from __future__ import annotations
 
-import json
-from typing import TYPE_CHECKING
-
 import httpx
-import structlog
 
-from internal.biz.entity import ChatChunk, ChatResult
+from internal.biz.entity import ChatResult
 from internal.biz.repo import LLMProvider
 from internal.biz.tool_types import ToolCall
-from pkg.errors.base import APIError, LLMError
+from pkg.errors.base import LLMError
 from pkg.errors.codes import ErrorCode
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
-logger = structlog.get_logger()
 
 
 class OpenAILLM(LLMProvider):
@@ -99,6 +90,13 @@ class OpenAILLM(LLMProvider):
             payload.update(
                 tools=tools, tool_choice=tool_choice,
                 parallel_tool_calls=False, enable_thinking=False,
+                response_format={"type": "json_schema", "json_schema": {
+                    "name": "grounded_answer", "strict": True,
+                    "schema": {"type": "object", "properties": {
+                        "status": {"type": "string", "enum": ["answered", "insufficient"]},
+                        "answer": {"type": "string"}},
+                        "required": ["status", "answer"], "additionalProperties": False},
+                }},
             )
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -110,7 +108,9 @@ class OpenAILLM(LLMProvider):
             if response.status_code != 200:
                 # 不把供应商响应原文（可能回显私有提示或密钥）放进错误或日志。
                 raise LLMError(
-                    reason="LLM_DEPENDENCY_ERROR",
+                    reason=("LLM_AUTHORIZATION_FAILED" if response.status_code in (401, 403)
+                            else "LLM_RATE_LIMITED" if response.status_code == 429
+                            else "LLM_DEPENDENCY_ERROR"),
                     message=f"LLM API 返回 HTTP {response.status_code}",
                 )
             return self._parse_result(response.json(), tools, tool_choice)
@@ -173,104 +173,3 @@ class OpenAILLM(LLMProvider):
             prompt_tokens=counts[0], completion_tokens=counts[1], total_tokens=counts[2],
             tool_calls=calls, finish_reason=finish,
         )
-
-    async def generate_stream(
-        self,
-        messages: list[dict[str, str]],
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-    ) -> AsyncIterator[ChatChunk]:
-        """流式调用 OpenAI-compatible chat completions API。
-
-        通过 httpx 发送 stream=True 请求，逐行解析 SSE 事件。
-        """
-        url = f"{self._base_url}/chat/completions"
-
-        payload = {
-            "model": self._model,
-            "messages": messages,
-            "temperature": temperature if temperature is not None else self._temperature,
-            "max_tokens": max_tokens if max_tokens is not None else self._max_tokens,
-            "stream": True,
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._api_key}",
-        }
-
-        logger.debug(
-            "openai_llm_stream_request",
-            url=url,
-            model=self._model,
-            message_count=len(messages),
-        )
-
-        try:
-            async with (
-                httpx.AsyncClient(timeout=self._timeout) as client,
-                client.stream("POST", url, json=payload, headers=headers) as response,
-            ):
-                if response.status_code != 200:
-                    raise LLMError(
-                        reason="LLM_DEPENDENCY_ERROR",
-                        message=f"LLM API 返回 HTTP {response.status_code}",
-                    )
-
-                async for line in response.aiter_lines():
-                    line = line.strip()
-                    if not line or line.startswith(":" ):
-                        continue
-
-                    if not line.startswith("data: "):
-                        continue
-
-                    data_str = line[6:]
-                    if data_str == "[DONE]":
-                        break
-
-                    try:
-                        data = json.loads(data_str)
-                    except (json.JSONDecodeError, ValueError):
-                        continue
-
-                    choices = data.get("choices", [])
-                    if not choices:
-                        continue
-
-                    choice = choices[0]
-                    delta = choice.get("delta") or {}
-                    content = delta.get("content") or ""
-                    if not content:
-                        content = (choice.get("message") or {}).get("content") or ""
-                    finish_reason = choice.get("finish_reason")
-
-                    yield ChatChunk(
-                        delta=content,
-                        model=data.get("model", self._model),
-                        finish_reason=finish_reason,
-                    )
-
-        except httpx.TimeoutException as exc:
-            logger.error("openai_llm_stream_timeout", url=url, timeout=self._timeout)
-            raise APIError(
-                code=ErrorCode.LLM_TIMEOUT,
-                reason="LLM_TIMEOUT",
-                message=f"LLM API timeout after {self._timeout}s",
-            ) from exc
-        except httpx.ConnectError as e:
-            logger.error("openai_llm_stream_connect_error", url=url, error=str(e))
-            raise APIError(
-                code=ErrorCode.LLM_ERROR,
-                reason="LLM_DEPENDENCY_ERROR",
-                message="LLM API connection failed",
-            ) from e
-        except APIError:
-            raise
-        except Exception as e:
-            logger.error("openai_llm_stream_unexpected_error", error=str(e))
-            raise APIError(
-                code=ErrorCode.LLM_ERROR,
-                reason="LLM_ERROR",
-                message=f"Unexpected LLM stream error: {e}",
-            ) from e

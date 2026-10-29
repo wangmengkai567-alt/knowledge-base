@@ -25,6 +25,13 @@ coverage.html
 
 # 环境 / 密钥（绝对不能进镜像）
 .env
+.env.*
+**/.env
+**/.env.*
+.venv/
+**/.venv/
+node_modules/
+**/node_modules/
 *.pem
 *.key
 
@@ -50,6 +57,7 @@ ai-service/_check_files.py
 ai-service/_verify_*.py
 
 # 本地数据库文件
+ai-service/data/answer-runs/
 ai-service/data/*.db
 ai-service/data/uploads/*
 

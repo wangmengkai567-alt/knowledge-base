@@ -1,0 +1,68 @@
+{
+  "checked_at": "2026-10-29T18:51:15.009223+08:00",
+  "status": "passed",
+  "scope": "Read-only post-restart checks; no model, search or embedding API requests",
+  "running_image": "sha256:04748395daea4e7ed2921a7cb7e721e5398d5230b4144bc6cb1e0350f8267a4c",
+  "same_as_accepted_deployment_image": true,
+  "container_state": {
+    "Status": "running",
+    "Running": true,
+    "StartedAt": "2026-10-29T10:43:01.588509221Z"
+  },
+  "container_health": "healthy",
+  "ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "data": {
+    "knowledge_bases": 6,
+    "documents": 29,
+    "chunks": 1153,
+    "vectors": 1153
+  },
+  "ingestion_stages": [
+    {
+      "stage": "chunk",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "keyword",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "parse",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "vector",
+      "status": "completed",
+      "documents": 29
+    }
+  ],
+  "keyword_warmup": {
+    "chunk_count": 1153,
+    "event": "b'indices_warmup_done'",
+    "level": "b'info'",
+    "logger": "b'internal.server.http'",
+    "timestamp": "b'2026-10-29T10:45:27.715559Z'"
+  },
+  "upload_originals": {
+    "expected": 29,
+    "matched": 29,
+    "all_originals_match_preparation_backup": true
+  },
+  "frontend": {
+    "url": "http://localhost:5173/",
+    "http_status": 200,
+    "vite_entry_present": true
+  },
+  "frontend_api_proxy": {
+    "url": "http://localhost:5173/api/v1/knowledge/bases",
+    "http_status": 401,
+    "authentication_enforced": true
+  },
+  "quality_acceptance": "failed; existing evaluation results unchanged"
+}

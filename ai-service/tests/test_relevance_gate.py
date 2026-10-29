@@ -18,6 +18,8 @@ def _chunk(chunk_id: int, text: str, filename: str, score: float) -> RetrievalRe
     return RetrievalResult(
         chunk_id=chunk_id,
         score=score,
+        score_type="rerank",
+        score_method="fixture:rerank",
         chunk_content=text,
         chunk_position=0,
         document_id=chunk_id,

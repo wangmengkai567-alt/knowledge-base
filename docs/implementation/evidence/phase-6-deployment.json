@@ -1,0 +1,120 @@
+{
+  "started_at": "2026-10-29T06:09:03.306565+00:00",
+  "status": "operational_checks_passed",
+  "data_before": {
+    "knowledge_bases": 6,
+    "documents": 29,
+    "chunks": 1153,
+    "vectors": 1153
+  },
+  "existing_service_ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "scope": "ai-service only; preserve existing Postgres, Redis and upload volumes",
+  "full_live_quality_evaluation": "completed before locked-image rebuild; not repeated after dependency changes",
+  "image": "sha256:04748395daea4e7ed2921a7cb7e721e5398d5230b4144bc6cb1e0350f8267a4c",
+  "image_smoke_exit_code": 0,
+  "image_smoke_log": "warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.\nPHASE6_IMAGE={\"python\": \"3.11.18\", \"uv\": \"uv 0.11.26 (x86_64-unknown-linux-musl)\", \"versions\": {\"fastapi\": \"0.162.0\", \"httpx\": \"0.28.1\", \"pymupdf\": \"1.28.2\", \"rapidocr-onnxruntime\": \"1.4.4\", \"onnxruntime\": \"1.31.1\", \"opencv-python\": \"5.0.0.93\", \"numpy\": \"2.4.6\", \"sqlalchemy\": \"2.1.6\", \"asyncpg\": \"0.32.0\"}, \"uid\": 999, \"source_files_matched\": 20, \"pdf_text_extraction\": true, \"ocr_initialization_and_blank_inference\": true, \"secret_files_absent\": true, \"actual_api_keys_absent\": true, \"host_venv_absent\": true, \"runtime_build_proxy_absent\": true}\n",
+  "build_network": "Temporary HTTP_PROXY/HTTPS_PROXY build arguments used existing host proxy; no persistent network setting changed",
+  "build_history_id": "iqbsawftc0746q3hljxd9hh5x",
+  "build_replaced_attempt": "Prior slow attempt cancelled before image export; final build includes complete source and nested secret exclusions",
+  "image_smoke": {
+    "python": "3.11.18",
+    "uv": "uv 0.11.26 (x86_64-unknown-linux-musl)",
+    "versions": {
+      "fastapi": "0.162.0",
+      "httpx": "0.28.1",
+      "pymupdf": "1.28.2",
+      "rapidocr-onnxruntime": "1.4.4",
+      "onnxruntime": "1.31.1",
+      "opencv-python": "5.0.0.93",
+      "numpy": "2.4.6",
+      "sqlalchemy": "2.1.6",
+      "asyncpg": "0.32.0"
+    },
+    "uid": 999,
+    "source_files_matched": 20,
+    "pdf_text_extraction": true,
+    "ocr_initialization_and_blank_inference": true,
+    "secret_files_absent": true,
+    "actual_api_keys_absent": true,
+    "host_venv_absent": true,
+    "runtime_build_proxy_absent": true
+  },
+  "linux_backend_tests": {
+    "exit_code": 0,
+    "output": "2026-10-29 07:07:17 [info     ] qwen_rerank_completed          input_count=2 model=qwen3.7-text-rerank output_count=2 request_id=None top_score=0.97 total_tokens=10\n2026-10-29 07:07:17 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:17 [info     ] answer_run_finished            charged_tokens=3826 completion_tokens=0 model_calls=1 prompt_tokens=0 run_id=b3144f5b-ec89-4240-bd6a-0efeff0f9ca7 status=cancelled stop_reason=user_cancelled tool_calls=0\n2026-10-29 07:07:17 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=7093 completion_tokens=30 model_calls=3 prompt_tokens=60 run_id=e953d5bc-6986-4dc9-858f-ec549cdea222 status=completed stop_reason=answer_completed tool_calls=2\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=3924 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=a7091ef8-0151-432b-9606-70d7386e90b2 status=insufficient stop_reason=insufficient_material tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=0 completion_tokens=0 model_calls=0 prompt_tokens=0 run_id=826ddb00-cb31-445b-a512-ba56a2b70c3f status=budget_exhausted stop_reason=token_budget tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=1788 completion_tokens=10 model_calls=1 prompt_tokens=20 run_id=1a63a219-b027-4257-83c8-b81910d05ea3 status=invalid_answer stop_reason=invalid_citation_or_format tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=1942 completion_tokens=10 model_calls=1 prompt_tokens=20 run_id=b1647221-4126-4575-8242-bd00cd293f34 status=budget_exhausted stop_reason=model_call_limit tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=10405 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=01a3f9be-ec36-4bbe-b233-8bac9b05b99f status=insufficient stop_reason=insufficient_material tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=3826 completion_tokens=0 model_calls=1 prompt_tokens=0 run_id=2fd54fd0-82c7-4831-88ba-1ec459784f01 status=model_failed stop_reason=model_error tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=1788 completion_tokens=10 model_calls=1 prompt_tokens=20 run_id=d07b9b59-2fa5-4744-b66d-5d84109e977c status=insufficient stop_reason=insufficient_material tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=4148 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=23e1f3aa-305b-4f1a-835f-e9320fb9b65d status=insufficient stop_reason=insufficient_material tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=6655 completion_tokens=30 model_calls=3 prompt_tokens=60 run_id=adff1211-9e43-4fed-9193-a150be67e99e status=repeated_call stop_reason=repeated_call tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=1774 completion_tokens=10 model_calls=1 prompt_tokens=20 run_id=ea388ba6-5d82-401b-bb08-e45652b48f8b status=insufficient stop_reason=insufficient_material tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=3826 completion_tokens=0 model_calls=1 prompt_tokens=0 run_id=e413a6eb-cbcd-4b06-9508-e7d4e2ea4f53 status=timeout stop_reason=execution_timeout tool_calls=0\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=1788 completion_tokens=10 model_calls=1 prompt_tokens=20 run_id=e6877673-557d-425f-87ca-37d5b878f822 status=tool_failed stop_reason=tool_error tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=4078 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=fa74e8b0-7948-4833-946e-8296b025cb86 status=budget_exhausted stop_reason=tool_call_limit tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=3924 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=1dd788d1-2abe-42b6-b01c-aeb4b243c18b status=insufficient stop_reason=insufficient_material tool_calls=1\n2026-10-29 07:07:18 [debug    ] prompt_template_built          message_count=2 template=rag\n2026-10-29 07:07:18 [info     ] answer_run_finished            charged_tokens=4148 completion_tokens=20 model_calls=2 prompt_tokens=40 run_id=24b0969e-38e1-47d5-a6fd-2a388d4193c8 status=completed stop_reason=answer_completed tool_calls=1\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=0 before=1 dropped_neighbor=0 min_relevance=0.5 rescued=0 term_count=0\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=0 before=1 dropped_neighbor=1 min_relevance=0.5 rescued=0 term_count=3\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=0 before=1 dropped_neighbor=0 min_relevance=0.5 rescued=0 term_count=3\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=1 before=1 dropped_neighbor=0 min_relevance=0.5 rescued=0 term_count=0\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=1 before=1 dropped_neighbor=0 min_relevance=0.5 rescued=1 term_count=3\n2026-10-29 07:07:18 [info     ] relevance_gate_applied         after=1 before=2 dropped_neighbor=1 min_relevance=0.5 rescued=1 term_count=2\n2026-10-29 07:07:18 [debug    ] memory_reranker_completed      input_count=2 output_count=2 query_length=11 top_score=0.001\n2026-10-29 07:07:18 [debug    ] zhipu_rerank_request           document_count=2 model=rerank request_id=d80ad992210f4414a037c059f323c458 top_n=all url=https://example.invalid/rerank\n2026-10-29 07:07:18 [info     ] zhipu_rerank_raw_scores_squashed raw_top=12.171875 unit_top=0.177811\n2026-10-29 07:07:18 [info     ] zhipu_rerank_completed         input_count=2 model=rerank output_count=2 prompt_tokens=None request_id=d80ad992210f4414a037c059f323c458 top_score=0.177811 total_tokens=None\n2026-10-29 07:07:18 [debug    ] zhipu_rerank_request           document_count=2 model=rerank request_id=cd4f104095bd4685a1c7f051ae87eeda top_n=all url=https://example.invalid/rerank\n2026-10-29 07:07:18 [info     ] zhipu_rerank_raw_scores_squashed raw_top=22.2188 unit_top=0.923262\n2026-10-29 07:07:18 [info     ] zhipu_rerank_completed         input_count=2 model=rerank output_count=2 prompt_tokens=None request_id=cd4f104095bd4685a1c7f051ae87eeda top_score=0.923262 total_tokens=None\n2026-10-29 07:07:18 [debug    ] zhipu_rerank_request           document_count=2 model=rerank request_id=d21d6cb83b6b413e893fca8f7fc80620 top_n=all url=https://example.invalid/rerank\n2026-10-29 07:07:18 [info     ] zhipu_rerank_raw_scores_squashed raw_top=0.999995 unit_top=0.002473\n2026-10-29 07:07:18 [info     ] zhipu_rerank_completed         input_count=2 model=rerank output_count=2 prompt_tokens=None request_id=d21d6cb83b6b413e893fca8f7fc80620 top_score=0.002473 total_tokens=None\n...............................................\n----------------------------------------------------------------------\nRan 47 tests in 0.282s\n\nOK\n"
+  },
+  "updated_at": "2026-10-29T07:14:51.192028+00:00",
+  "stop_existing_service": {
+    "exit_code": 0,
+    "output": " Container ai-service Stopping \n Container ai-service Stopped \n"
+  },
+  "explicit_migration": {
+    "exit_code": 0,
+    "output": "2026-10-29 07:11:51 [info     ] pgvector_schema_ready          dimension=1024 table=chunk_vectors\nMigration completed successfully\n Container docker-ai-service-run-7eb373e51022 Creating \n Container docker-ai-service-run-7eb373e51022 Created \n"
+  },
+  "start_new_service": {
+    "exit_code": 0,
+    "output": " Container ai-service Recreate \n Container ai-service Recreated \n Container ai-service Starting \n Container ai-service Started \n"
+  },
+  "checked_at": "2026-10-29T07:15:41.249778+00:00",
+  "running_image": "sha256:04748395daea4e7ed2921a7cb7e721e5398d5230b4144bc6cb1e0350f8267a4c",
+  "ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "data_after": {
+    "knowledge_bases": 6,
+    "documents": 29,
+    "chunks": 1153,
+    "vectors": 1153
+  },
+  "ingestion_stages_after": [
+    {
+      "stage": "chunk",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "keyword",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "parse",
+      "status": "completed",
+      "documents": 29
+    },
+    {
+      "stage": "vector",
+      "status": "completed",
+      "documents": 29
+    }
+  ],
+  "upload_originals": {
+    "expected": 29,
+    "matched": 29,
+    "all_originals_match": true,
+    "non_manifest_files": []
+  },
+  "keyword_warmup_log": [
+    "{\"chunk_count\": 1153, \"event\": \"b'indices_warmup_done'\", \"level\": \"b'info'\", \"logger\": \"b'internal.server.http'\", \"timestamp\": \"b'2026-10-29T07:15:35.487936Z'\"}"
+  ],
+  "api_smoke": {
+    "run_id": "604f58c1-826e-45ba-843d-f286b5f02389",
+    "status": "completed",
+    "stop_reason": "answer_completed",
+    "usage": {
+      "model_calls": 2,
+      "tool_calls": 1,
+      "estimated_input_tokens": 15695,
+      "prompt_tokens": 3947,
+      "completion_tokens": 405,
+      "charged_tokens": 16100,
+      "unreported_model_calls": 0
+    },
+    "elapsed_seconds": 12.76500000001397
+  }
+}

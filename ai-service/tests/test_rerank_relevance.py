@@ -70,7 +70,7 @@ async def _zhipu_with_scores(raw_scores: list[float]) -> list[RetrievalResult]:
 
 
 class ZhipuRerankCollapseTests(unittest.IsolatedAsyncioTestCase):
-    async def test_collapsed_near_one_scores_fall_back_to_lexical_floor(self):
+    async def test_small_raw_logits_are_calibrated_below_threshold(self):
         reranker = ZhipuReranker(
             base_url="https://example.invalid",
             api_key="test-key",

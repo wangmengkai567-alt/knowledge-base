@@ -1,0 +1,680 @@
+{
+  "source": "eval\\phase-6-final-golden-results.json",
+  "原始摘要": {
+    "ran_at": "2026-10-29T05:33:22.070880+00:00",
+    "n_items": 100,
+    "expected_items": 100,
+    "n_errors": 50,
+    "hit_at_5": 1.0,
+    "hit_at_10": 1.0,
+    "mrr": 1.0,
+    "answer_correctness": 0.5,
+    "hallucination_rate": 0.0959,
+    "n_answered": 73,
+    "refusal_accuracy": 0.3,
+    "missed_recall_rate": 0.0778,
+    "hallucination_judge": "historical_heuristic_actual_model_materials",
+    "statuses": {
+      "budget_exhausted": 39,
+      "completed": 43,
+      "invalid_answer": 10,
+      "insufficient": 7,
+      "timeout": 1
+    },
+    "stop_reasons": {
+      "input_budget": 33,
+      "answer_completed": 43,
+      "invalid_citation_or_format": 10,
+      "insufficient_material": 7,
+      "execution_timeout": 1,
+      "model_call_limit": 6
+    },
+    "latency_p50_seconds": 7.813,
+    "latency_p95_seconds": 12.063,
+    "latency_max_seconds": 33.188,
+    "usage_totals": {
+      "model_calls": 275,
+      "tool_calls": 175,
+      "prompt_tokens": 591316,
+      "completion_tokens": 34808,
+      "estimated_input_tokens": 2425111,
+      "charged_tokens": 2461967,
+      "unreported_model_calls": 1
+    },
+    "repeated_executions": 0,
+    "semantic_review_pending": 100,
+    "cost_currency": null,
+    "cost_note": "Only model usage is recorded; no unverified prices or currency costs.",
+    "gates": {
+      "answer_correctness": false,
+      "refusal_accuracy": false,
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "mrr": true,
+      "heuristic_hallucination_rate": false,
+      "complete": true,
+      "no_errors": false,
+      "valid_evidence": true,
+      "within_budget": true,
+      "valid_citations": true,
+      "ordered_events": true,
+      "no_repeat_execution": true,
+      "expected_tools": true
+    },
+    "automated_gates_passed": false,
+    "semantic_acceptance": "requires_manual_review",
+    "rescore": true
+  },
+  "相同补词标准关键词命中": 78,
+  "正常完成且关键词命中": 43,
+  "停止原因": {
+    "input_budget": 33,
+    "answer_completed": 43,
+    "invalid_citation_or_format": 10,
+    "insufficient_material": 7,
+    "execution_timeout": 1,
+    "model_call_limit": 6
+  },
+  "题目与运行编号": [
+    {
+      "id": "A01",
+      "run_id": "c73b9245-aa07-4a43-a650-089f425962f6",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A02",
+      "run_id": "ecacb3a7-c365-4493-9af4-9b6ac1d52364",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A03",
+      "run_id": "2e790ef6-f3e2-4001-b4ff-c7f4cc453b17",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A04",
+      "run_id": "23991de9-ebfc-4a2d-b965-2a575eb0b549",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A05",
+      "run_id": "d6212d36-43c7-4d80-be8a-b0d246fecc1f",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "A06",
+      "run_id": "eb1a573f-2a18-4603-84b9-cb10865086c0",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "A07",
+      "run_id": "8018e321-7090-4578-8d87-53a38d69e498",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "A08",
+      "run_id": "43f64840-36b9-480c-9715-30cf8e406a93",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A09",
+      "run_id": "13b0ff9b-88ad-4d5c-884b-928a771c7a06",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A10",
+      "run_id": "c61af6a8-f9ab-4404-8147-bb044388014a",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A11",
+      "run_id": "0322c10d-763d-46a2-945f-a4f186bb0e9e",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A12",
+      "run_id": "b0cb3b00-f3da-4a98-84c5-f89c976de85b",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A13",
+      "run_id": "dc11991a-fead-4047-abec-d88b4799f4c3",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A14",
+      "run_id": "0cfde9b7-58e9-4069-8ee5-5343a1557319",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A15",
+      "run_id": "1d72cf0b-139d-4098-b3f7-08f546eb4a3d",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A16",
+      "run_id": "800ed1af-1300-4ec3-a112-7ca7f7fd0a5e",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A17",
+      "run_id": "73e780c8-40f6-496c-8e5a-6c19b0f73498",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A18",
+      "run_id": "c7c82585-7a58-4f7b-aca5-7b4655329a83",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A19",
+      "run_id": "72c53795-2b81-4657-ab17-5a7657a59e81",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A20",
+      "run_id": "3a7a66db-a036-419d-8073-6ce34203e985",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A21",
+      "run_id": "8fc13642-69f2-436d-88fd-4ae6a937cc04",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A22",
+      "run_id": "49f97684-9746-4b9b-b14f-54c4fa8ccd00",
+      "status": "timeout",
+      "hallucinated": false
+    },
+    {
+      "id": "A23",
+      "run_id": "cec28773-6e68-4ec3-9476-5337fb4cc3ec",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A24",
+      "run_id": "4c92698b-d581-4160-9106-49676273a68f",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A25",
+      "run_id": "d2985bb3-8439-4441-9b0d-cdb7b21ca2b1",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A26",
+      "run_id": "ef4b4605-d77c-4620-969e-f7514bd76882",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "A27",
+      "run_id": "c7defca1-575b-40ee-b555-56b517a4d9fa",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "A28",
+      "run_id": "c9601d22-4c14-4b2e-af73-330ead1154a8",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "B01",
+      "run_id": "327d5a75-7ceb-4994-a05b-617a9b90f1ec",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B02",
+      "run_id": "e7ced110-fd54-4374-bcd3-1c747a36da49",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B03",
+      "run_id": "cfac35a3-b18c-4ff5-9ab4-26fd651329f2",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B04",
+      "run_id": "541d70b4-79b3-4a62-8010-cf4b8ae2f3f4",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "B05",
+      "run_id": "358e0843-28ed-4952-9ecc-3dcc55ffee52",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B06",
+      "run_id": "03ef253a-db36-4684-b56f-03f958b0347d",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "B07",
+      "run_id": "952a6af0-ca02-45eb-8522-b0f233c4de16",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "B08",
+      "run_id": "c9078f8d-223e-4e14-b386-47599001dc5f",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B09",
+      "run_id": "2e11886b-7e57-40e1-af38-0f4c41706485",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B10",
+      "run_id": "8f09c1f4-b158-43bc-9677-7ba5e8b1886d",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "B11",
+      "run_id": "078182d7-1a30-4c0f-ac36-f92c09ce765f",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "B12",
+      "run_id": "f686aecf-05cd-4e34-9f5d-ef9f20a65221",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "B13",
+      "run_id": "e8333e20-0aaa-4300-ad3f-100778f1907c",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "B14",
+      "run_id": "d52415ee-d554-482c-9dbd-74805c4a2ae9",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "B15",
+      "run_id": "8f389fbb-7354-457f-a590-1fac64e77bea",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B16",
+      "run_id": "40cc5167-6a79-430e-a588-e6955f9d67d8",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "B17",
+      "run_id": "27287a40-4780-4ec4-a395-38e4fd7a6eff",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B18",
+      "run_id": "85a2561f-2dfa-449e-883b-c4c2c299713d",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "B19",
+      "run_id": "4969d60c-3ed8-4068-9e9c-ce99f2f0c8ec",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "B20",
+      "run_id": "1364002f-d058-45a0-ad43-fc8def10b8e6",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "B21",
+      "run_id": "2e04e0af-deea-45cc-9012-04a38b5bb6f3",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "C01",
+      "run_id": "b80f3ddb-8d08-49de-97ec-8a7aa17ba843",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "C02",
+      "run_id": "e7e4aacc-eef4-4b75-9396-3e79d04f2cc5",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "C03",
+      "run_id": "35089ef1-491e-4673-ae87-0c442b05811d",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "C04",
+      "run_id": "3aafb908-802e-4265-aa5c-00b965997b3a",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "C05",
+      "run_id": "e15396b2-7c79-4ff2-8278-2964fa861270",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "C06",
+      "run_id": "0b3a8a6a-9fe6-47d6-8040-8c17c20a9355",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "C07",
+      "run_id": "57126cab-d1fb-4c0e-9680-987ee38c3945",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "C08",
+      "run_id": "cdc697ea-8104-469b-a4b2-3d9026192a45",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "C09",
+      "run_id": "0bfc9d21-1792-4e99-bcc3-ebd166c34a1f",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "C10",
+      "run_id": "be8a5b62-861e-4ab0-a85a-ca5c27f7faf3",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "D01",
+      "run_id": "f8eb01de-da63-4f4f-aa0f-cad5995f1509",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "D02",
+      "run_id": "7d45ed85-7989-4ea1-a54b-228902503055",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "D03",
+      "run_id": "9fb680f8-fe37-4eae-8b57-65e57c69d2a3",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "D04",
+      "run_id": "c85a6fcf-a3fd-4ea0-bc0a-b55cb9dca1fa",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "D05",
+      "run_id": "06c024ce-2497-49ec-b1ba-34ffe24ba960",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "D06",
+      "run_id": "97dd4921-70ab-4632-8399-c7ef8d2721eb",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "D07",
+      "run_id": "4174de66-6773-48ac-9c04-cc7ddda932a1",
+      "status": "completed",
+      "hallucinated": true
+    },
+    {
+      "id": "D08",
+      "run_id": "195e151c-af91-4e92-846d-ccd7a9213c7d",
+      "status": "budget_exhausted",
+      "hallucinated": true
+    },
+    {
+      "id": "D09",
+      "run_id": "8af2ee0e-4acd-4881-9ef4-efae57a04c8c",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "D10",
+      "run_id": "6327bc71-95c1-4b1c-a40b-5d51111a1c98",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "D11",
+      "run_id": "00feb4a7-6796-4f35-b46b-8ebf8b0f78ff",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "D12",
+      "run_id": "89d6da07-b711-4b31-82ac-7aa6ab327865",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "E01",
+      "run_id": "1773592b-8d8e-433a-a068-6ef7c27977d5",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "E02",
+      "run_id": "ce74886f-a6d7-47eb-97cd-5f66d8439d7e",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "E03",
+      "run_id": "62380f07-2d28-488c-b5d5-fdcba30ee86e",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E04",
+      "run_id": "93dc3dcc-d217-408a-8603-6e0525f54a2e",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E05",
+      "run_id": "5c3fec4b-a4c9-4e3b-83af-a75455308da4",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "E06",
+      "run_id": "fca6dad0-0173-4203-924f-4c394e171283",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "E07",
+      "run_id": "9faa683d-8533-4956-be4e-d70e778b44eb",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E08",
+      "run_id": "e86e4151-af62-4727-b57b-a75fff8c1b39",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E09",
+      "run_id": "2257d360-4403-4038-9d38-54fb4d4439a5",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E10",
+      "run_id": "f462f8b7-3480-4eac-9b7b-0f286e5909be",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "E11",
+      "run_id": "1b0c53dc-0f04-4fbc-a4e9-7970cdc0b8df",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E12",
+      "run_id": "152fdc94-9340-4f60-b891-6179132773dc",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E13",
+      "run_id": "9883619c-6e96-4058-8b90-997acff1ac0a",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "E14",
+      "run_id": "271c94e2-8236-407c-9c37-fc3c6c126608",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "E15",
+      "run_id": "a576571b-f191-4ce0-b204-a50fe33dd40e",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "E16",
+      "run_id": "8c47e7e8-48d2-4f5d-905d-8adc5dce6fb1",
+      "status": "completed",
+      "hallucinated": false
+    },
+    {
+      "id": "F01",
+      "run_id": "61ad60c9-8446-4b80-b686-b4122719a2cc",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "F02",
+      "run_id": "de706d7a-3473-4231-bc84-74124ab3acf9",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "F03",
+      "run_id": "7ac1ea2f-124c-4896-95f8-d03597bc628c",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G01",
+      "run_id": "4d1ce3db-19dc-43d4-aa89-ad503173581d",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G02",
+      "run_id": "26a4e4f9-d6c1-4264-9243-7506e0068e31",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G03",
+      "run_id": "f9e926a1-2515-416b-962d-e085064851bf",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "G04",
+      "run_id": "709f3412-18ef-4d60-b334-a8b7a7c77ef1",
+      "status": "invalid_answer",
+      "hallucinated": false
+    },
+    {
+      "id": "G05",
+      "run_id": "57b09656-b16c-4af0-a496-cad502ee1f23",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "G06",
+      "run_id": "38ee6970-92d8-4308-a0ff-18a8599d2b9f",
+      "status": "insufficient",
+      "hallucinated": false
+    },
+    {
+      "id": "G07",
+      "run_id": "6122bd0a-cd4a-4c64-a839-851d2ded3ae5",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G08",
+      "run_id": "f4629581-5335-48b2-b781-2e675a79ac45",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G09",
+      "run_id": "82681f2a-1f78-458f-b2d1-0cb7ed0fb959",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    },
+    {
+      "id": "G10",
+      "run_id": "75bd97d3-24cc-4f1c-ac44-97a697671215",
+      "status": "budget_exhausted",
+      "hallucinated": false
+    }
+  ]
+}

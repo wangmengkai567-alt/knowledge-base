@@ -1,0 +1,46 @@
+{
+  "description": "第六阶段联网验收。与知识库黄金题分开；必须核对实际抓取快照，关键词只作辅助。",
+  "items": [
+    {
+      "id": "W01",
+      "kb_id": 3,
+      "query": "请读取 https://docs.astral.sh/uv/guides/integration/docker/ ，依据该页说明如何把 uv 二进制加入现有 Python Docker 镜像，给出对应 COPY 命令并附引用。",
+      "allow_web": true,
+      "user_urls": ["https://docs.astral.sh/uv/guides/integration/docker/"],
+      "answerable": true,
+      "must_contain": ["COPY", "uv"],
+      "required_tools": ["web_read"],
+      "required_source_types": ["web_page"]
+    },
+    {
+      "id": "W02",
+      "kb_id": 3,
+      "query": "请先搜索 Tavily 官方 Search API 文档，再读取搜索得到的官方正文，说明 search_depth 与 include_answer 参数的含义。不要只根据搜索摘要作答。",
+      "allow_web": true,
+      "answerable": true,
+      "must_contain": ["search_depth", "include_answer"],
+      "required_tools": ["web_search", "web_read"],
+      "required_source_types": ["web_search_summary", "web_page"]
+    },
+    {
+      "id": "W03",
+      "kb_id": 3,
+      "query": "先查知识库中 Docker 镜像和容器的关系，再读取 https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/ ，对照两类资料解释两者区别。分别引用知识库与官方网页，资料有分歧时明确说明。",
+      "allow_web": true,
+      "user_urls": ["https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/"],
+      "answerable": true,
+      "must_contain": ["镜像", "容器"],
+      "required_tools": ["knowledge_base_search", "web_read"],
+      "required_source_types": ["knowledge_base", "web_page"]
+    },
+    {
+      "id": "W04",
+      "kb_id": 8,
+      "query": "请用公开网页搜索核实：本项目尚未发布的《第六阶段内部评审结论》原文是什么？如果搜索不到可核对的原文，请说明资料不足，不要把类似项目的评审当作本项目结论。",
+      "allow_web": true,
+      "answerable": false,
+      "must_contain": [],
+      "required_tools": ["web_search"]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "checked_at": "2026-10-29T10:14:33.921524+00:00",
+  "scope": "Only explicitly archived phase-6 answer runs, deduplicated by run_id; not a provider billing statement",
+  "unique_runs": 222,
+  "usage_totals": {
+    "model_calls": 603,
+    "tool_calls": 360,
+    "prompt_tokens": 1450090,
+    "completion_tokens": 71130,
+    "estimated_input_tokens": 5475614,
+    "charged_tokens": 5552888,
+    "unreported_model_calls": 3
+  },
+  "by_file": [
+    {
+      "file": "eval/phase-6-golden-results.json",
+      "records": 100,
+      "new_unique_runs": 100,
+      "usage": {
+        "model_calls": 272,
+        "tool_calls": 150,
+        "prompt_tokens": 748795,
+        "completion_tokens": 31391,
+        "estimated_input_tokens": 2574578,
+        "charged_tokens": 2605969,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "eval/phase-6-web-results.json",
+      "records": 4,
+      "new_unique_runs": 4,
+      "usage": {
+        "model_calls": 10,
+        "tool_calls": 5,
+        "prompt_tokens": 23665,
+        "completion_tokens": 678,
+        "estimated_input_tokens": 108282,
+        "charged_tokens": 111008,
+        "unreported_model_calls": 1
+      }
+    },
+    {
+      "file": "eval/phase-6-final-golden-results.json",
+      "records": 100,
+      "new_unique_runs": 100,
+      "usage": {
+        "model_calls": 275,
+        "tool_calls": 175,
+        "prompt_tokens": 591316,
+        "completion_tokens": 34808,
+        "estimated_input_tokens": 2425111,
+        "charged_tokens": 2461967,
+        "unreported_model_calls": 1
+      }
+    },
+    {
+      "file": "eval/phase-6-final-web-results.json",
+      "records": 4,
+      "new_unique_runs": 4,
+      "usage": {
+        "model_calls": 10,
+        "tool_calls": 8,
+        "prompt_tokens": 24398,
+        "completion_tokens": 728,
+        "estimated_input_tokens": 102829,
+        "charged_tokens": 103557,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "eval/phase-6-cross-source-results.json",
+      "records": 1,
+      "new_unique_runs": 1,
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "prompt_tokens": 8207,
+        "completion_tokens": 222,
+        "estimated_input_tokens": 32948,
+        "charged_tokens": 33170,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "eval/phase-6-diagnostic-results.json",
+      "records": 3,
+      "new_unique_runs": 3,
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 2,
+        "prompt_tokens": 5057,
+        "completion_tokens": 392,
+        "estimated_input_tokens": 20589,
+        "charged_tokens": 20981,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "eval/phase-6-diagnostic-after.json",
+      "records": 6,
+      "new_unique_runs": 6,
+      "usage": {
+        "model_calls": 20,
+        "tool_calls": 14,
+        "prompt_tokens": 35654,
+        "completion_tokens": 1693,
+        "estimated_input_tokens": 148449,
+        "charged_tokens": 150142,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-ui-answer.json",
+      "records": 1,
+      "new_unique_runs": 1,
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "prompt_tokens": 3965,
+        "completion_tokens": 450,
+        "estimated_input_tokens": 15711,
+        "charged_tokens": 16161,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-ui-cancel.json",
+      "records": 1,
+      "new_unique_runs": 1,
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "prompt_tokens": 1121,
+        "completion_tokens": 33,
+        "estimated_input_tokens": 15711,
+        "charged_tokens": 17792,
+        "unreported_model_calls": 1
+      }
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-old-cache.json",
+      "records": 1,
+      "new_unique_runs": 1,
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "prompt_tokens": 3965,
+        "completion_tokens": 330,
+        "estimated_input_tokens": 15711,
+        "charged_tokens": 16041,
+        "unreported_model_calls": 0
+      }
+    },
+    {
+      "file": "docs/implementation/evidence/phase-6-deployment-smoke.json",
+      "records": 1,
+      "new_unique_runs": 1,
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "prompt_tokens": 3947,
+        "completion_tokens": 405,
+        "estimated_input_tokens": 15695,
+        "charged_tokens": 16100,
+        "unreported_model_calls": 0
+      }
+    }
+  ],
+  "currency_cost": null,
+  "unknowns": [
+    "Unreported model calls have unknown actual usage, not zero usage",
+    "Embedding and rerank usage from retrieval, tool execution and ingestion is not covered by answer-model counters",
+    "Unarchived requests and provider-side work after cancellation are not quantified"
+  ]
+}

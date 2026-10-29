@@ -97,17 +97,21 @@ class QwenRerankTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(ranked[0].score, 0.5)
         self.assertLess(ranked[1].score, 0.5)
 
-    async def test_http_error_raises_for_fallback(self):
+    async def test_http_error_is_explicit(self):
         client = _client(404, {"code": "NotFound", "message": "no route"})
-        with patch("internal.data.reranker.qwen.httpx.AsyncClient", return_value=client):
-            with self.assertRaises(RAGError):
-                await self._reranker().rerank("q", [_chunk(1, "x")])
+        with (
+            patch("internal.data.reranker.qwen.httpx.AsyncClient", return_value=client),
+            self.assertRaises(RAGError),
+        ):
+            await self._reranker().rerank("q", [_chunk(1, "x")])
 
     async def test_empty_results_raise(self):
         client = _client(200, {"output": {"results": []}})
-        with patch("internal.data.reranker.qwen.httpx.AsyncClient", return_value=client):
-            with self.assertRaises(RAGError):
-                await self._reranker().rerank("q", [_chunk(1, "x")])
+        with (
+            patch("internal.data.reranker.qwen.httpx.AsyncClient", return_value=client),
+            self.assertRaises(RAGError),
+        ):
+            await self._reranker().rerank("q", [_chunk(1, "x")])
 
 
 if __name__ == "__main__":

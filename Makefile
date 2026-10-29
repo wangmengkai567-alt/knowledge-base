@@ -15,7 +15,7 @@ help:
 
 ## lint: Ruff
 lint:
-	@cd $(AI_SERVICE_DIR) && python -m ruff check internal/ pkg/ cmd/
+	@cd $(AI_SERVICE_DIR) && uv run --locked --extra dev ruff check internal/ pkg/ cmd/
 
 ## docker-up: 启动 Compose
 docker-up:

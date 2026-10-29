@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from internal.biz.materials import InputBudget, MaterialProcessor, clip_source
+from internal.biz.materials import InputBudget, MaterialProcessor, pack_sources
 from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult
 from internal.biz.web_access import normalize_public_url, validate_public_url
 from pkg.errors.base import APIError
@@ -311,26 +311,10 @@ class ReadOnlyToolExecutor:
     def _bound_result(self, result: ToolResult) -> None:
         """工具输出上限；完整模型消息及所有历史的预算在 request_action 中再核算。"""
         had_sources = bool(result.sources)
-        remaining = self._max_content_chars
-        sources = []
-        for source in result.sources:
-            if remaining <= 0:
-                break
-            if len(source.content) > remaining:
-                source = clip_source(source, remaining)
-            if source.content:
-                # 编号由后续问答运行在汇总实际送模资料时统一分配。
-                sources.append(replace(source, citation_id=0))
-                remaining -= len(source.content)
-        result.sources = sources
-        # 连序列化后的映射和错误信息一起限制，避免大量元数据挤占输入空间。
-        while len(json.dumps(result.to_message(), ensure_ascii=False).encode()) > 12000:
-            if not result.sources:
-                raise ToolError("TOOL_RESULT_TOO_LARGE", "工具结果元数据超过预算")
-            last = result.sources[-1]
-            if len(last.content) > 128:
-                result.sources[-1] = clip_source(last, len(last.content) // 2)
-            else:
-                result.sources.pop()
-        if had_sources and not result.sources:
+        def fits(sources):
+            bounded = replace(result, sources=sources)
+            return (sum(len(source.content) for source in sources) <= self._max_content_chars
+                    and len(json.dumps(bounded.to_message(), ensure_ascii=False).encode()) <= 12000)
+        result.sources = [replace(source, citation_id=0) for source in pack_sources(result.sources, fits)]
+        if not fits(result.sources) or (had_sources and not result.sources):
             raise ToolError("TOOL_RESULT_TOO_LARGE", "资料无法在工具结果预算内保留")

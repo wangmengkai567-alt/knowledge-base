@@ -53,7 +53,7 @@ services:
       - AI_VECTOR_STORE__PROVIDER=pgvector
       - AI_SERVER__CORS_ORIGINS=${AI_SERVER__CORS_ORIGINS:-["http://localhost:5173"]}
     volumes:
-      # 挂当前仓库源码：本机 docker-ai-service 镜像停在 7 月底，且镜像源无法拉取 python:3.11-slim 重建。
+      # 开发时挂载源码；uv 依赖环境位于 /opt/venv，更新依赖仍需重建镜像。
       # 上传文件仍走命名卷，避免 Windows 目录覆盖掉已有文档。
       - ../../ai-service:/app
       - ai-uploads:/app/data/uploads
