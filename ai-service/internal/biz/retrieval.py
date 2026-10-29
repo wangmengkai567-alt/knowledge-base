@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 from internal.biz.entity import RetrievalResult, RetrievedChunk, SourceScore
+from internal.biz.ingestion_state import ingestion_status
 from internal.biz.materials import select_materials
 from internal.biz.query_plan import QueryPlan, plan_query
 from internal.biz.rrf import reciprocal_rank_fusion
@@ -151,7 +152,7 @@ class RetrievalBiz:
                 continue
 
             doc = doc_map.get(chunk.document_id)
-            if doc is None:
+            if doc is None or ingestion_status(doc.stages) != "ready":
                 continue
 
             # 过滤：只返回指定知识库内的结果

@@ -6,7 +6,6 @@ import type { UploadRequestOptions } from 'element-plus'
 import { documentApi } from '@/api/document'
 import { knowledgeApi } from '@/api/knowledge'
 import DocumentList from '@/components/Knowledge/DocumentList.vue'
-import { ParseStatus, IndexStatus } from '@/types'
 import type { DocItem, KnowledgeBase } from '@/types'
 
 const props = defineProps<{ kbId: string }>()
@@ -30,12 +29,7 @@ function triggerUpload() {
 }
 
 function needsPoll(list: DocItem[]): boolean {
-  return list.some(
-    (d) =>
-      d.parseStatus === ParseStatus.Processing ||
-      d.parseStatus === ParseStatus.Pending ||
-      d.indexStatus === IndexStatus.Indexing,
-  )
+  return list.some(d => d.ingestionStatus === 'processing')
 }
 
 function stopPoll() {
@@ -89,14 +83,14 @@ async function runUpload(file: File) {
   uploadPhase.value = 'uploading'
   uploadPercent.value = 0
   try {
-    await documentApi.upload(kbId.value, file, {
+    const result = await documentApi.upload(kbId.value, file, {
       onProgress: (p) => {
         uploadPercent.value = p
       },
     })
     uploadPhase.value = 'processing'
     uploadPercent.value = 100
-    ElMessage.success('上传成功，正在解析入库')
+    showResult(result)
     await load()
   } finally {
     uploadPhase.value = 'idle'
@@ -129,27 +123,27 @@ async function removeMany(items: DocItem[]) {
   load()
 }
 
-async function reindex(doc: DocItem) {
+function showResult(doc: DocItem) {
+  if (doc.ingestionStatus === 'ready') ElMessage.success('入库完成')
+  else if (doc.ingestionStatus === 'failed') ElMessage.warning('文件已保存，部分阶段失败，请查看详情并重试')
+  else ElMessage.info('处理尚未完成，请查看阶段状态')
+}
+
+async function retry(doc: DocItem) {
   try {
-    if (
-      doc.parseStatus === ParseStatus.Parsed &&
-      (doc.indexStatus === IndexStatus.Failed || doc.indexStatus === IndexStatus.Indexing)
-    ) {
-      ElMessage.info(`正在重试「${doc.title}」的向量化…`)
-      await documentApi.retryEmbed(kbId.value, doc.docId)
-    } else {
-      ElMessage.info(`正在重新解析「${doc.title}」…`)
-      await documentApi.reparse(
-        kbId.value,
-        doc.docId,
-        doc.parseStatus === ParseStatus.Parsed || doc.parseStatus === ParseStatus.Processing,
-      )
-    }
-    ElMessage.success('处理完成')
-  } catch {
-    /* 请求层已提示错误 */
+    showResult(await documentApi.retry(kbId.value, doc.docId))
+  } finally {
+    await load()
   }
-  await load()
+}
+
+async function reindex(doc: DocItem) {
+  await ElMessageBox.confirm('重新解析将撤销当前就绪状态，并替换旧分块和索引。失败后可从对应阶段重试。', '重新解析', { type: 'warning' })
+  try {
+    showResult(await documentApi.reparse(kbId.value, doc.docId, true))
+  } finally {
+    await load()
+  }
 }
 
 async function download(doc: DocItem) {
@@ -220,6 +214,7 @@ onUnmounted(stopPoll)
       @delete="remove"
       @delete-many="removeMany"
       @reindex="reindex"
+      @retry="retry"
       @upload="triggerUpload"
       @download="download"
     />

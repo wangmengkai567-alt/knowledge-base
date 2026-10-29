@@ -87,6 +87,16 @@ class DocumentRepo(ABC):
         ...
 
     @abstractmethod
+    async def list_all(self) -> list[Document]:
+        """列出文档，供启动时核对入库阶段。"""
+        ...
+
+    @abstractmethod
+    async def update_stages(self, document_id: int, stages: dict) -> None:
+        """原子保存一个文档的全部阶段快照。"""
+        ...
+
+    @abstractmethod
     async def update_status(
         self, document_id: int, status: int, error_message: str | None = None
     ) -> None:
@@ -197,7 +207,7 @@ class ChunkRepo(ABC):
     async def replace_for_document(
         self, document_id: int, chunks: list[Chunk]
     ) -> list[Chunk]:
-        """原子替换文档的所有分块（先删后建，同一事务）。
+        """原子替换文档的所有分块（先建后删，同一事务）。
 
         防止 delete 成功但 create 失败导致数据丢失。
         """
@@ -297,8 +307,13 @@ class KeywordStore(ABC):
     """关键词索引存储接口 — biz 层定义，data 层实现（Sprint 18）。
 
     与 VectorStore 对称设计：负责关键词全文检索（BM25 等）的存储与查询。
-    分块创建/删除时由 EmbeddingBiz 同步维护索引。
+    由入库编排独立触发关键词建立与删除。
     """
+
+    @abstractmethod
+    async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        """返回当前进程中真实已索引且归属正确的分块。"""
+        ...
 
     @abstractmethod
     async def index(
@@ -490,6 +505,11 @@ class VectorStore(ABC):
     @abstractmethod
     async def delete(self, chunk_ids: list[int]) -> None:
         """删除指定分块的向量。"""
+        ...
+
+    @abstractmethod
+    async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        """返回真实存在且文档、知识库元数据正确的向量 ID。"""
         ...
 
     @abstractmethod

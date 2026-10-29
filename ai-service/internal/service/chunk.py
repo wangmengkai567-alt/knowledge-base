@@ -22,8 +22,10 @@ class ChunkService:
     async def list_chunks(self, document_id: int, user_id: int) -> ChunkListResponse:
         """列出文档下所有分块（含文档所有权校验）。"""
         # 校验文档存在 + 所有权（与 DocumentService 一致）
-        await self._document_biz.get_document(document_id, user_id=user_id)
-        chunks = await self._chunk_biz.list_chunks(document_id)
+        document = await self._document_biz.get_document(document_id, user_id=user_id)
+        chunks = []
+        if document.stages.get("chunk", {}).get("status") == "completed":
+            chunks = await self._chunk_biz.list_chunks(document_id)
         return ChunkListResponse(
             chunks=[ChunkResponse.from_domain(c) for c in chunks],
             total=len(chunks),

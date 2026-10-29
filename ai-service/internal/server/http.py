@@ -41,6 +41,7 @@ from api.openapi.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
     ParseDocumentRequest,
+    RetryDocumentRequest,
 )
 from api.openapi.schemas.knowledge_base import (
     KnowledgeBaseCreateRequest,
@@ -130,7 +131,7 @@ class HTTPServer:
         session_factory: async_sessionmaker | None = None,
         engine: AsyncEngine | None = None,
         rate_limit_settings: RateLimitSettings | None = None,
-        embedding_biz: object | None = None,
+        ingestion: object | None = None,
         # Sprint 18 修复：memory 向量库为进程内易失结构，重启后清空，
         # 启动时需从 DB 重建向量索引。pgvector 持久化则无需重建。
         rebuild_vectors: bool = False,
@@ -151,7 +152,7 @@ class HTTPServer:
         self._engine = engine
         self._rate_limit_settings = rate_limit_settings
         # 启动时为 hybrid 检索重建索引
-        self._embedding_biz = embedding_biz
+        self._ingestion = ingestion
         self._rebuild_vectors = rebuild_vectors
         self._ensure_pgvector = ensure_pgvector
         self._vector_dimension = vector_dimension
@@ -176,8 +177,8 @@ class HTTPServer:
                     dimension=self._vector_dimension,
                 )
             # 易失结构，重启后清空。阻塞式重建，确保对外服务前索引就绪，
-            # 否则首次检索会返回空（"未找到相关结果"）。失败仅告警，不阻断启动。
-            if self._embedding_biz is not None:
+            # 否则首次检索会返回空（"未找到相关结果"）。逐文档保存失败；无法核实全部状态时阻断启动。
+            if self._ingestion is not None:
                 await self._warmup_indices()
             if self._rag_service is not None:
                 await self._rag_service.start()
@@ -192,29 +193,10 @@ class HTTPServer:
 
     async def _warmup_indices(self) -> None:
         """启动时重建内存索引（vector store + keyword index）。"""
-        try:
-            # type: ignore — 避免在此处硬依赖 biz 具体类型
-            count = await self._embedding_biz.rebuild_indices(  # type: ignore[attr-defined]
-                include_vectors=self._rebuild_vectors,
-            )
-            if count > 0:
-                logger.info(
-                    "indices_warmup_done",
-                    chunk_count=count,
-                    rebuild_vectors=self._rebuild_vectors,
-                )
-            else:
-                logger.warning(
-                    "indices_warmup_empty",
-                    hint="no chunks indexed; search will return empty. "
-                         "upload/process a document first.",
-                )
-        except Exception as e:
-            logger.warning(
-                "indices_warmup_failed",
-                error=str(e),
-                exc_info=True,
-            )
+        count = await self._ingestion.rebuild_indices(
+            include_vectors=self._rebuild_vectors,
+        )
+        logger.info("indices_warmup_done", chunk_count=count)
 
     def create(self) -> FastAPI:
         """创建 FastAPI 应用实例。
@@ -504,11 +486,13 @@ class HTTPServer:
             await authorize_document(kb_id, doc_id, user_id)
             return await document_service.parse_document(document_id=doc_id, user_id=user_id, force=body.force)
 
-        @router.post("/{doc_id}/embed", response_model=DocumentResponse)
-        async def retry_document_embeddings(kb_id: int, doc_id: int, request: Request) -> DocumentResponse:
+        @router.post("/{doc_id}/retry", response_model=DocumentResponse)
+        async def retry_document(
+            kb_id: int, doc_id: int, request: Request, body: RetryDocumentRequest,
+        ) -> DocumentResponse:
             user_id = request.state.user_id
             await authorize_document(kb_id, doc_id, user_id)
-            return await document_service.retry_embeddings(document_id=doc_id, user_id=user_id)
+            return await document_service.retry(doc_id, user_id, body.stage)
 
         return router
     def _chunk_router(self) -> APIRouter:

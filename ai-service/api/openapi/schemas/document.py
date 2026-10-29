@@ -8,10 +8,15 @@ DTO 对外暴露（OpenAPI schema），DO 内部使用。
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field
 
-from internal.biz.entity import Document
+from internal.biz.ingestion_state import ingestion_status
+
+if TYPE_CHECKING:
+    from internal.biz.entity import Document
+
 
 
 class DocumentResponse(BaseModel):
@@ -23,6 +28,9 @@ class DocumentResponse(BaseModel):
     file_size: int = Field(description="文件大小（字节）")
     mime_type: str = Field(description="MIME 类型")
     status: int = Field(description="文档状态：1=待解析, 2=已解析, 3=解析失败, 4=解析中")
+    stages: dict = Field(description="解析、分块、向量与关键词阶段：状态、错误和更新时间")
+    ingestion_status: str = Field(description="pending/processing/failed/ready，所有必需阶段完成才就绪")
+    updated_at: datetime | None = None
     parsed_content: str | None = Field(default=None, description="解析后的纯文本内容")
     error_message: str | None = Field(default=None, description="解析失败时的错误信息")
     chunk_count: int = Field(default=0, description="分块（向量）数量")
@@ -41,6 +49,9 @@ class DocumentResponse(BaseModel):
             file_size=doc.file_size,
             mime_type=doc.mime_type,
             status=doc.status,
+            stages=doc.stages,
+            ingestion_status=ingestion_status(doc.stages),
+            updated_at=doc.updated_at,
             parsed_content=doc.parsed_content,
             error_message=doc.error_message,
             chunk_count=doc.chunk_count,
@@ -58,6 +69,10 @@ class ParseDocumentRequest(BaseModel):
         default=False,
         description="为 true 时对已解析文档也重新解析并重分块",
     )
+
+
+class RetryDocumentRequest(BaseModel):
+    stage: Literal["parse", "chunk", "vector", "keyword"] | None = None
 
 
 class DocumentListResponse(BaseModel):

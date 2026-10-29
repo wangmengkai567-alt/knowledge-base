@@ -41,6 +41,20 @@ export const EMBEDDING_STATUS_LABEL: Record<number, string> = {
   2: '失败',
 }
 
+export type IngestionStage = 'parse' | 'chunk' | 'vector' | 'keyword'
+export type StageStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+export interface StageState {
+  status: StageStatus
+  error: string | null
+  updated_at: string
+}
+export const STAGE_LABEL: Record<IngestionStage, string> = {
+  parse: '解析', chunk: '分块', vector: '向量索引', keyword: '关键词索引',
+}
+export const STAGE_STATUS_LABEL: Record<StageStatus, string> = {
+  pending: '待处理', running: '处理中', completed: '完成', failed: '失败', skipped: '当前配置不需要',
+}
+
 /** 文档列表项（GET /api/v1/kbs/{kbId}/docs） */
 export interface DocItem {
   docId: number
@@ -53,6 +67,11 @@ export interface DocItem {
   /** 原始文件字节数 */
   fileSize: number
   chunkCount: number
+  embeddingCompletedCount: number
+  embeddingPendingCount: number
+  embeddingFailedCount: number
+  stages: Record<IngestionStage, StageState>
+  ingestionStatus: 'pending' | 'processing' | 'failed' | 'ready'
   parseStatus: ParseStatus
   parseStatusDesc: string
   indexStatus: IndexStatus

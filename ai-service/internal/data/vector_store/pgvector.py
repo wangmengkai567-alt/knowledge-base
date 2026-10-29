@@ -10,13 +10,12 @@ from __future__ import annotations
 
 import json
 import re
-import structlog
 
+import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from internal.biz.repo import VectorStore
-
 
 logger = structlog.get_logger()
 
@@ -164,6 +163,18 @@ class PGVectorStore(VectorStore):
             await session.commit()
 
         logger.debug("pgvector_delete", count=len(chunk_ids))
+
+    async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        if not chunk_ids:
+            return set()
+        async with self._session_factory() as session:
+            rows = await session.execute(text(
+                f"SELECT chunk_id FROM {self._table_name} WHERE chunk_id = ANY(:ids) "
+                "AND document_id = :doc_id "
+                "AND metadata @> CAST(:meta AS jsonb)"
+            ), {"ids": chunk_ids, "doc_id": document_id,
+                "meta": json.dumps({"document_id": document_id, "knowledge_base_id": knowledge_base_id})})
+            return set(rows.scalars())
 
     async def search(
         self,

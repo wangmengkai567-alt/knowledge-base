@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import IngestionStatus from '@/components/Knowledge/IngestionStatus.vue'
+import type { IngestionStage } from '@/types'
 import { ArrowLeft, Collection } from '@element-plus/icons-vue'
 import { documentApi } from '@/api/document'
 import DocumentPreview from '@/components/Knowledge/DocumentPreview.vue'
@@ -18,6 +21,19 @@ const doc = ref<DocDetail | null>(null)
 const chunks = ref<Chunk[]>([])
 const loading = ref(false)
 const selected = ref<Chunk | null>(null)
+const retrying = ref(false)
+
+async function retry(stage?: IngestionStage) {
+  retrying.value = true
+  try {
+    const result = await documentApi.retry(kbId.value, docId.value, stage)
+    if (result.ingestionStatus === 'ready') ElMessage.success('入库完成')
+    else ElMessage.warning('请查看各阶段状态与错误')
+  } finally {
+    retrying.value = false
+    await load()
+  }
+}
 
 // 基于完整文档（parsed_content）整体渲染 Markdown，并抽取标题生成目录。
 // 不再拼接各 chunk（切块含 overlap，拼接会产生重复 / 断行乱码）。
@@ -79,6 +95,8 @@ onMounted(load)
         <span class="truncate">{{ doc?.title || '文档详情' }}</span>
       </h2>
     </div>
+
+    <IngestionStatus v-if="doc" :doc="doc" :busy="retrying" @retry="retry" />
 
     <div class="grid grid-cols-1 gap-5 xl:grid-cols-[200px_minmax(0,1fr)_300px]">
       <aside class="liquid-card rounded-2xl p-3">

@@ -80,7 +80,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         "/rag",        # /api/v1/knowledge/bases/{id}/rag/query（及 /query/stream）
         "/retrieve",   # /api/v1/knowledge/bases/{id}/retrieve
         "/parse",      # 重解析：走解析 + 分块 + 嵌入
-        "/embed",      # 文档级重嵌入
+        "/retry",      # 入库阶段定向重试
     )
 
     def _get_rate_limit(self, path: str) -> int:

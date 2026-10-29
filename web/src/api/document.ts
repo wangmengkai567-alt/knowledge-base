@@ -1,7 +1,7 @@
 import { get, post, del } from './request'
 import { fileExt, formatFileSize } from '@/utils/format'
 import { PARSE_STATUS_LABEL, EMBEDDING_STATUS_LABEL, INDEX_STATUS_LABEL, IndexStatus } from '@/types'
-import type { DocItem, DocDetail, Chunk } from '@/types'
+import type { DocItem, DocDetail, Chunk, IngestionStage, StageState } from '@/types'
 
 /** 去掉扩展名作为可读标题 */
 function stripExt(name: string): string {
@@ -14,13 +14,12 @@ function mapDoc(d: any): DocDetail {
   const ext = fileExt(d.filename || '')
   const status = d.status as number
   const charCount = d.parsed_content ? String(d.parsed_content).length : 0
-  const pending = Number(d.embedding_pending_count ?? 0)
-  const failed = Number(d.embedding_failed_count ?? 0)
-  const completed = Number(d.embedding_completed_count ?? 0)
+  const stages = d.stages as Record<IngestionStage, StageState>
+  const indexStages = [stages.chunk, stages.vector, stages.keyword]
   let indexStatus: IndexStatus
-  if (failed > 0) indexStatus = IndexStatus.Failed
-  else if (pending > 0 || status === 4) indexStatus = IndexStatus.Indexing
-  else if (completed > 0) indexStatus = IndexStatus.Indexed
+  if (indexStages.some(s => s.status === 'failed')) indexStatus = IndexStatus.Failed
+  else if (indexStages.some(s => s.status === 'running')) indexStatus = IndexStatus.Indexing
+  else if (d.ingestion_status === 'ready') indexStatus = IndexStatus.Indexed
   else indexStatus = IndexStatus.None
   return {
     docId: d.id,
@@ -31,9 +30,12 @@ function mapDoc(d: any): DocDetail {
     tags: [],
     charCount,
     fileSize: d.file_size || 0,
-    // 后端 list_documents 已聚合返回 chunk_count；未提供时置 -1，
-    // 由知识库 store 降级为逐文档统计（仅后端未重启该聚合时使用）。
-    chunkCount: typeof d.chunk_count === 'number' ? d.chunk_count : -1,
+    chunkCount: d.chunk_count,
+    embeddingCompletedCount: d.embedding_completed_count,
+    embeddingPendingCount: d.embedding_pending_count,
+    embeddingFailedCount: d.embedding_failed_count,
+    stages,
+    ingestionStatus: d.ingestion_status,
     parseStatus: status,
     parseStatusDesc: PARSE_STATUS_LABEL[status] ?? '未知',
     indexStatus,
@@ -41,11 +43,11 @@ function mapDoc(d: any): DocDetail {
     version: 1,
     language: '',
     createdAt: d.created_at || '',
-    indexedAt: status === 2 ? d.created_at || '' : undefined,
+    indexedAt: stages.vector.status === 'completed' ? stages.vector.updated_at : undefined,
     // DocDetail 扩展字段
     fullContent: d.parsed_content ? String(d.parsed_content) : undefined,
     parseErrorMsg: d.error_message || null,
-    parsedAt: d.created_at || '',
+    parsedAt: stages.parse.status === 'completed' ? stages.parse.updated_at : undefined,
     file: {
       fileId: d.id,
       originalName: d.filename || '未命名文档',
@@ -53,7 +55,7 @@ function mapDoc(d: any): DocDetail {
       fileSize: d.file_size || 0,
       fileSizeDesc: formatFileSize(d.file_size || 0),
     },
-    updatedAt: d.created_at || '',
+    updatedAt: d.updated_at || '',
   }
 }
 
@@ -135,9 +137,9 @@ export const documentApi = {
       { timeout: 600000 },
     ).then(mapDoc),
 
-  /** POST /api/v1/knowledge/bases/{kbId}/documents/{docId}/embed — 重试 FAILED/PENDING 嵌入 */
-  retryEmbed: (kbId: number, docId: number): Promise<DocDetail> =>
-    post<any>(`/v1/knowledge/bases/${kbId}/documents/${docId}/embed`, undefined, {
-      timeout: 180000,
+  /** 从失败步骤继续；指定 stage 时只修复对应阶段及其必要下游。 */
+  retry: (kbId: number, docId: number, stage?: IngestionStage): Promise<DocDetail> =>
+    post<any>(`/v1/knowledge/bases/${kbId}/documents/${docId}/retry`, { stage }, {
+      timeout: 600000,
     }).then(mapDoc),
 }

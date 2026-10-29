@@ -6,6 +6,8 @@ import type {
   KnowledgeBasePayload,
   DocItem,
   DocDetail,
+  IngestionStage,
+  StageState,
   Chunk,
   SearchHit,
   User,
@@ -23,6 +25,12 @@ import {
 const delay = 260
 const now = () => new Date().toISOString()
 const daysAgo = (d: number) => new Date(Date.now() - d * 86400000).toISOString()
+const mockStages = (status: 'pending' | 'completed'): Record<IngestionStage, StageState> => ({
+  parse: { status, error: null, updated_at: now() },
+  chunk: { status, error: null, updated_at: now() },
+  vector: { status, error: null, updated_at: now() },
+  keyword: { status, error: null, updated_at: now() },
+})
 
 function ok<T>(data: T, pagination?: Pagination): ApiResponse<T> {
   return { code: '000000', message: 'success', data, pagination }
@@ -249,6 +257,11 @@ class KBStore {
           charCount: d.chunks.reduce((s, c) => s + c.content.length, 0),
           fileSize: d.chunks.reduce((s, c) => s + c.content.length, 0),
           chunkCount: d.chunks.length,
+          embeddingCompletedCount: d.chunks.length,
+          embeddingPendingCount: 0,
+          embeddingFailedCount: 0,
+          stages: mockStages('completed'),
+          ingestionStatus: 'ready',
           parseStatus: ParseStatus.Parsed,
           parseStatusDesc: '解析成功',
           indexStatus: IndexStatus.Indexed,
@@ -471,6 +484,11 @@ function handle(ctx: Ctx): any {
       charCount: 0,
       fileSize: 0,
       chunkCount: 0,
+      embeddingCompletedCount: 0,
+      embeddingPendingCount: 0,
+      embeddingFailedCount: 0,
+      stages: mockStages('pending'),
+      ingestionStatus: 'pending',
       parseStatus: ParseStatus.Pending,
       parseStatusDesc: '待解析',
       indexStatus: IndexStatus.None,
@@ -520,7 +538,7 @@ function handle(ctx: Ctx): any {
     )
     return ok({ docId, deletedAt: now() })
   }
-  let pem = path.match(p('^knowledge/bases/(\\d+)/documents/(\\d+)/(parse|embed)$'))
+  let pem = path.match(p('^knowledge/bases/(\\d+)/documents/(\\d+)/(parse|retry)$'))
   if (pem && pm === 'post') {
     const kbId = Number(pem[1])
     const docId = Number(pem[2])
@@ -543,6 +561,8 @@ function handle(ctx: Ctx): any {
       embedding_pending_count: 0,
       embedding_failed_count: 0,
       embedding_completed_count: doc.chunkCount,
+      stages: mockStages('completed'),
+      ingestion_status: 'ready',
       created_at: doc.createdAt,
     }
   }

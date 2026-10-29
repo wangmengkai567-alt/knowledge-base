@@ -7,14 +7,20 @@ data 层实现 biz 定义的 DocumentRepo 接口（依赖倒置）。
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import delete, func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from internal.biz.constants import DocumentStatus, EmbeddingStatus
-from internal.biz.entity import Document
 from internal.biz.repo import DocumentRepo
 from internal.data.converter import document_do_to_po, document_po_to_do
 from internal.data.models import ChunkPO, DocumentPO
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from internal.biz.entity import Document
+
 
 
 class SQLAlchemyDocumentRepo(DocumentRepo):
@@ -117,13 +123,25 @@ class SQLAlchemyDocumentRepo(DocumentRepo):
             await session.commit()
             return result.rowcount > 0
 
+    async def list_all(self) -> list[Document]:
+        async with self._session_factory() as session:
+            rows = await session.execute(select(DocumentPO).order_by(DocumentPO.id))
+            return [document_po_to_do(po) for po in rows.scalars()]
+
+    async def update_stages(self, document_id: int, stages: dict) -> None:
+        async with self._session_factory() as session:
+            await session.execute(
+                update(DocumentPO).where(DocumentPO.id == document_id).values(stages=stages, updated_at=DocumentPO.updated_at)
+            )
+            await session.commit()
+
     async def update_status(
         self, document_id: int, status: int, error_message: str | None = None
     ) -> None:
         async with self._session_factory() as session:
-            values: dict = {"status": status}
-            if error_message is not None:
-                values["error_message"] = error_message
+            values: dict = {"status": status, "error_message": error_message}
+            if status == DocumentStatus.PROCESSING:
+                values["parsed_content"] = None
             stmt = (
                 update(DocumentPO)
                 .where(DocumentPO.id == document_id)

@@ -11,13 +11,17 @@ ChunkBiz 负责：
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 import structlog
 
 from internal.biz.entity import Chunk
-from internal.biz.repo import ChunkRepo, TextChunker
 from internal.biz.tokenizer import count_tokens
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from internal.biz.repo import ChunkRepo, TextChunker
 
 logger = structlog.get_logger()
 
@@ -29,12 +33,10 @@ class ChunkBiz:
         self,
         chunk_repo: ChunkRepo,
         chunker: TextChunker,
-        on_chunk_success: Callable[[int, list[Chunk]], Awaitable[None]] | None = None,
-        on_chunk_delete: Callable[[int, list[Chunk]], Awaitable[None]] | None = None,
+        on_chunk_delete: Callable[[int, list[Chunk]], Awaitable[None]],
     ) -> None:
         self._chunk_repo = chunk_repo
         self._chunker = chunker
-        self._on_chunk_success = on_chunk_success
         self._on_chunk_delete = on_chunk_delete
 
     async def chunk_document(self, document_id: int, parsed_content: str) -> list[Chunk]:
@@ -42,16 +44,11 @@ class ChunkBiz:
 
         流程：
         1. 调用分块器切分文本
-        2. 原子替换分块并触发 Embedding
+        2. 清理旧索引，再原子替换分块；后续索引由入库编排执行
         """
-        if not parsed_content or not parsed_content.strip():
-            logger.warning("empty_content_skip_chunking", document_id=document_id)
-            return []
-
         text_chunks = self._chunker.chunk(parsed_content)
         if not text_chunks:
-            logger.warning("no_chunks_produced", document_id=document_id)
-            return []
+            raise ValueError("解析内容未产生任何分块")
 
         chunks = [
             Chunk(
@@ -65,15 +62,8 @@ class ChunkBiz:
         ]
 
         old_chunks = await self._chunk_repo.list_by_document(document_id)
-        if old_chunks and self._on_chunk_delete is not None:
-            try:
-                await self._on_chunk_delete(document_id, old_chunks)
-            except Exception as e:
-                logger.warning(
-                    "pre_replace_embedding_delete_failed",
-                    document_id=document_id,
-                    error=str(e),
-                )
+        if old_chunks:
+            await self._on_chunk_delete(document_id, old_chunks)
 
         created = await self._chunk_repo.replace_for_document(document_id, chunks)
 
@@ -84,16 +74,6 @@ class ChunkBiz:
             avg_length=sum(len(c.content) for c in created) // len(created),
         )
 
-        if self._on_chunk_success is not None:
-            try:
-                await self._on_chunk_success(document_id, created)
-            except Exception as e:
-                logger.warning(
-                    "auto_embed_failed",
-                    document_id=document_id,
-                    error=str(e),
-                )
-
         return created
 
     async def list_chunks(self, document_id: int) -> list[Chunk]:
@@ -103,14 +83,6 @@ class ChunkBiz:
     async def delete_chunks(self, document_id: int) -> int:
         """删除文档下所有分块，返回删除数量。"""
         chunks = await self._chunk_repo.list_by_document(document_id)
-        deleted = await self._chunk_repo.delete_by_document(document_id)
-        if self._on_chunk_delete is not None and chunks:
-            try:
-                await self._on_chunk_delete(document_id, chunks)
-            except Exception as e:
-                logger.warning(
-                    "embedding_delete_failed",
-                    document_id=document_id,
-                    error=str(e),
-                )
-        return deleted
+        if chunks:
+            await self._on_chunk_delete(document_id, chunks)
+        return await self._chunk_repo.delete_by_document(document_id)

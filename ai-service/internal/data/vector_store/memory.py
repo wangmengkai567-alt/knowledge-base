@@ -8,6 +8,7 @@ internal/data/vector_store/memory.py — 内存向量存储
 from __future__ import annotations
 
 import math
+
 import structlog
 
 from internal.biz.repo import VectorStore
@@ -42,6 +43,11 @@ class InMemoryVectorStore(VectorStore):
         for cid in chunk_ids:
             self._store.pop(cid, None)
         logger.debug("memory_vector_delete", count=len(chunk_ids), total=len(self._store))
+
+    async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        return {cid for cid in chunk_ids if cid in self._store
+                and self._store[cid][1].get("document_id") == document_id
+                and self._store[cid][1].get("knowledge_base_id") == knowledge_base_id}
 
     async def search(
         self,

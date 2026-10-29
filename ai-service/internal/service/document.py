@@ -7,9 +7,13 @@ internal/service/document.py — 文档应用层
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from api.openapi.schemas.document import DocumentListResponse, DocumentResponse
-from internal.biz.document import DocumentBiz
-from internal.biz.embedding import EmbeddingBiz
+
+if TYPE_CHECKING:
+    from internal.biz.document import DocumentBiz
+
 
 
 class DocumentService:
@@ -18,10 +22,8 @@ class DocumentService:
     def __init__(
         self,
         document_biz: DocumentBiz,
-        embedding_biz: EmbeddingBiz | None = None,
     ) -> None:
         self._document_biz = document_biz
-        self._embedding_biz = embedding_biz
 
     async def upload(
         self,
@@ -72,18 +74,6 @@ class DocumentService:
         )
         return DocumentResponse.from_domain(document)
 
-    async def retry_embeddings(self, document_id: int, user_id: int) -> DocumentResponse:
-        """对已有分块重试嵌入（PENDING + FAILED）。"""
-        await self._document_biz.get_document(document_id, user_id=user_id)
-        if self._embedding_biz is None:
-            from pkg.errors.base import APIError
-            from pkg.errors.codes import ErrorCode
-
-            raise APIError(
-                code=ErrorCode.INTERNAL_ERROR,
-                reason="EMBEDDING_UNAVAILABLE",
-                message="Embedding service is not configured.",
-            )
-        await self._embedding_biz.retry_document_embeddings(document_id)
-        document = await self._document_biz.get_document(document_id, user_id=user_id)
+    async def retry(self, document_id: int, user_id: int, stage: str | None = None) -> DocumentResponse:
+        document = await self._document_biz.retry(document_id, user_id, stage)
         return DocumentResponse.from_domain(document)

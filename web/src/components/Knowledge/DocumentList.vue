@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { Delete, View, Download, Refresh, MoreFilled } from '@element-plus/icons-vue'
 import { formatDate, formatFileSize, paginateSlice } from '@/utils/format'
-import { PARSE_STATUS_LABEL, INDEX_STATUS_LABEL, ParseStatus, IndexStatus } from '@/types'
+import { STAGE_LABEL } from '@/types'
 import { usePointerGlow } from '@/hooks/usePointerGlow'
 import type { DocItem } from '@/types'
 
@@ -12,6 +12,7 @@ const emit = defineEmits<{
   (e: 'delete', doc: DocItem): void
   (e: 'delete-many', docs: DocItem[]): void
   (e: 'reindex', doc: DocItem): void
+  (e: 'retry', doc: DocItem): void
   (e: 'upload'): void
   (e: 'download', doc: DocItem): void
 }>()
@@ -110,28 +111,22 @@ function blurb(row: DocItem) {
 }
 
 function statusText(row: DocItem) {
-  if (row.parseStatus === ParseStatus.Error) return PARSE_STATUS_LABEL[row.parseStatus]
-  if (row.parseStatus !== ParseStatus.Parsed) return PARSE_STATUS_LABEL[row.parseStatus]
-  if (row.indexStatus === IndexStatus.Failed) return INDEX_STATUS_LABEL[row.indexStatus]
-  if (row.indexStatus === IndexStatus.Indexing) return INDEX_STATUS_LABEL[row.indexStatus]
-  return PARSE_STATUS_LABEL[row.parseStatus]
+  if (row.ingestionStatus === 'ready') return '入库完成'
+  const failure = Object.entries(row.stages).find(([, s]) => s.status === 'failed')
+  if (failure) return `${STAGE_LABEL[failure[0] as keyof typeof STAGE_LABEL]}失败`
+  const running = Object.entries(row.stages).find(([, s]) => s.status === 'running')
+  if (running) return `${STAGE_LABEL[running[0] as keyof typeof STAGE_LABEL]}中`
+  return '待处理'
 }
 
 function statusClass(row: DocItem) {
-  if (row.parseStatus === ParseStatus.Error || row.indexStatus === IndexStatus.Failed) return 'is-err'
-  if (
-    row.parseStatus === ParseStatus.Processing ||
-    row.parseStatus === ParseStatus.Pending ||
-    row.indexStatus === IndexStatus.Indexing
-  ) {
-    return 'is-warn is-busy'
-  }
-  if (row.parseStatus === ParseStatus.Parsed) return 'is-ok'
-  return 'is-muted'
+  if (row.ingestionStatus === 'failed') return 'is-err'
+  if (row.ingestionStatus === 'processing') return 'is-warn is-busy'
+  return row.ingestionStatus === 'ready' ? 'is-ok' : 'is-muted'
 }
 
 function vectorText(row: DocItem) {
-  const n = row.chunkCount >= 0 ? row.chunkCount : 0
+  const n = row.stages.chunk.status === 'completed' ? row.embeddingCompletedCount : 0
   return n.toLocaleString('en-US')
 }
 
@@ -221,7 +216,7 @@ function removeSelected() {
         <span class="docs-num">{{ vectorText(row) }}</span>
         <span class="docs-time">{{ formatDate(row.createdAt, true) }}</span>
         <span>
-          <i class="docs-status" :class="statusClass(row)">{{ statusText(row) }}</i>
+          <i class="docs-status" :class="statusClass(row)" :title="Object.values(row.stages).filter(s => s.error).map(s => s.error).join('；')">{{ statusText(row) }}</i>
         </span>
         <div class="docs-ops" @click.stop>
           <button type="button" title="查看" @click="emit('view', row)">
@@ -230,13 +225,14 @@ function removeSelected() {
           <button type="button" title="下载" @click="emit('download', row)">
             <el-icon><Download /></el-icon>
           </button>
-          <el-dropdown trigger="click" @command="(c: string) => (c === 'reindex' ? emit('reindex', row) : emit('delete', row))">
+          <el-dropdown trigger="click" @command="(c: string) => (c === 'retry' ? emit('retry', row) : c === 'reindex' ? emit('reindex', row) : emit('delete', row))">
             <button type="button" title="更多">
               <el-icon><MoreFilled /></el-icon>
             </button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="reindex" :icon="Refresh">重解析</el-dropdown-item>
+                <el-dropdown-item v-if="row.ingestionStatus !== 'ready'" command="retry" :icon="Refresh" :disabled="row.ingestionStatus === 'processing'">从失败阶段继续</el-dropdown-item>
+                <el-dropdown-item command="reindex" :icon="Refresh" :disabled="row.ingestionStatus === 'processing'">重新解析</el-dropdown-item>
                 <el-dropdown-item command="delete" divided :icon="Delete">删除</el-dropdown-item>
               </el-dropdown-menu>
             </template>

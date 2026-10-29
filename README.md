@@ -228,7 +228,7 @@ docker exec -it ollama ollama pull nomic-embed-text
 | POST/GET | `/api/v1/knowledge/bases/{kb_id}/documents` | 上传 / 列表 |
 | GET/DELETE | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}` | 详情 / 删除 |
 | POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/parse` | 重解析 |
-| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/embed` | 重试嵌入 |
+| POST | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/retry` | 从失败阶段继续或指定阶段重试 |
 | GET | `/api/v1/knowledge/bases/{kb_id}/documents/{doc_id}/chunks` | 分块列表 |
 | POST | `/api/v1/knowledge/bases/{kb_id}/retrieve` | 混合检索（返回分块；列表由前端按文档去重） |
 | POST | `/api/v1/knowledge/bases/{kb_id}/rag/query` | 提交问题与 `knowledge_base_ids`，后端检索并生成；返回真实检索分、实际送模片段与引用编号。无资料「我不知道」；依赖或引用错误明确报错 |

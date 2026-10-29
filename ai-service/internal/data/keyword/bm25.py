@@ -9,7 +9,7 @@ internal/data/keyword/bm25.py — BM25 关键词索引（内存实现）
 
 内存实现的定位：
 - 与 MemoryVectorStore 对称，进程内倒排，零外部依赖
-- 索引在进程内维护，重启后需要重建（EmbeddingBiz 已通过分块流程保证）
+- 索引在进程内维护，重启后需要重建（IngestionBiz 启动时逐文档重建并记录状态）
 """
 
 from __future__ import annotations
@@ -130,6 +130,11 @@ class BM25KeywordStore(KeywordStore):
             total_docs=self._num_docs,
             avg_doc_len=round(self._avg_doc_len, 2),
         )
+
+    async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        return {cid for cid in chunk_ids if cid in self._doc_len
+                and self._metadata.get(cid, {}).get("document_id") == document_id
+                and self._metadata.get(cid, {}).get("knowledge_base_id") == knowledge_base_id}
 
     async def delete(self, chunk_ids: list[int]) -> None:
         """删除指定分块的关键词索引。"""

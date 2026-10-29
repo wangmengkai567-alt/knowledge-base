@@ -58,12 +58,12 @@ class SQLAlchemyChunkRepo(ChunkRepo):
     async def replace_for_document(
         self, document_id: int, chunks: list[Chunk]
     ) -> list[Chunk]:
-        """原子替换文档的所有分块（先删后建，同一事务）。"""
+        """原子替换文档的所有分块（先建后删，同一事务）。"""
         async with self._session_factory() as session:
-            # 删除旧分块
-            await session.execute(
-                delete(ChunkPO).where(ChunkPO.document_id == document_id)
-            )
+            # 先分配新 ID，再删除旧行；SQLite 也不能把旧引用 ID 复用于新内容。
+            old_ids = list((await session.execute(
+                select(ChunkPO.id).where(ChunkPO.document_id == document_id)
+            )).scalars())
             # 插入新分块
             if chunks:
                 pos = [chunk_do_to_po(c) for c in chunks]
@@ -71,8 +71,12 @@ class SQLAlchemyChunkRepo(ChunkRepo):
                 await session.flush()
                 for p in pos:
                     await session.refresh(p)
+                if old_ids:
+                    await session.execute(delete(ChunkPO).where(ChunkPO.id.in_(old_ids)))
                 await session.commit()
                 return [chunk_po_to_do(p) for p in pos]
+            if old_ids:
+                await session.execute(delete(ChunkPO).where(ChunkPO.id.in_(old_ids)))
             await session.commit()
             return []
 

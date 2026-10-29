@@ -77,6 +77,7 @@ def document_po_to_do(po: DocumentPO) -> Document:
         file_size=po.file_size,
         mime_type=po.mime_type,
         status=DocumentStatus(po.status),
+        stages=po.stages,
         parsed_content=po.parsed_content,
         error_message=po.error_message,
         created_at=po.created_at,
@@ -94,6 +95,7 @@ def document_do_to_po(document: Document) -> DocumentPO:
         file_size=document.file_size,
         mime_type=document.mime_type,
         status=document.status,
+        stages=document.stages,
         parsed_content=document.parsed_content,
         error_message=document.error_message,
     )

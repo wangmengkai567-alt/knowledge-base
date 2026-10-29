@@ -26,6 +26,7 @@ from internal.biz.auth import AuthBiz
 from internal.biz.chunk import ChunkBiz
 from internal.biz.document import DocumentBiz
 from internal.biz.embedding import EmbeddingBiz
+from internal.biz.ingestion import IngestionBiz
 from internal.biz.knowledge_base import KnowledgeBaseBiz
 from internal.biz.materials import InputBudget
 from internal.biz.rag import RAGBiz
@@ -204,22 +205,20 @@ def create_app() -> FastAPI:
     chunk_biz = ChunkBiz(
         chunk_repo=chunk_repo,
         chunker=text_chunker,
-        on_chunk_success=embedding_biz.embed_document,
         on_chunk_delete=embedding_biz.delete_embeddings,
     )
-    # ChunkService 需要 DocumentBiz 做所有权校验，先创建 document_biz 再组装
+    ingestion = IngestionBiz(document_repo, chunk_repo, chunk_biz, embedding_biz, create_document_parser)
+    # ChunkService 复用文档校验
     document_biz = DocumentBiz(
         document_repo=document_repo,
         file_storage_repo=file_storage_repo,
-        parser_factory=create_document_parser,
+        ingestion=ingestion,
         max_file_size=settings.security.max_request_body_size,
-        on_parse_success=chunk_biz.chunk_document,
         on_document_delete=chunk_biz.delete_chunks,
     )
     chunk_service = ChunkService(chunk_biz=chunk_biz, document_biz=document_biz)
     document_service = DocumentService(
         document_biz=document_biz,
-        embedding_biz=embedding_biz,
     )
 
     kb_repo = create_knowledge_base_repo(session_factory)
@@ -344,7 +343,7 @@ def create_app() -> FastAPI:
         rate_limit_settings=rate_limit_settings,
         # memory 向量库为易失结构，重启后清空，需从 DB 重建；
         # pgvector 持久化则无需重建向量，只重建内存关键词索引。
-        embedding_biz=embedding_biz,
+        ingestion=ingestion,
         rebuild_vectors=(settings.vector_store.provider == "memory"),
         ensure_pgvector=(settings.vector_store.provider == "pgvector"),
         vector_dimension=settings.embedding.dimension,

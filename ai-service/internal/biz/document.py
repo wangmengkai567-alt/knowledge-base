@@ -14,16 +14,22 @@ DocumentBiz 负责：
 from __future__ import annotations
 
 import mimetypes
-from collections.abc import Awaitable, Callable
 from pathlib import PurePosixPath
+from typing import TYPE_CHECKING
 
 import structlog
 
 from internal.biz.constants import DocumentStatus
 from internal.biz.entity import Document
-from internal.biz.repo import DocumentParser, DocumentRepo, FileStorageRepo
+from internal.biz.ingestion_state import stage_state
 from pkg.errors.base import APIError
 from pkg.errors.codes import ErrorCode
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from internal.biz.ingestion import IngestionBiz
+    from internal.biz.repo import DocumentRepo, FileStorageRepo
 
 logger = structlog.get_logger()
 
@@ -59,16 +65,14 @@ class DocumentBiz:
         self,
         document_repo: DocumentRepo,
         file_storage_repo: FileStorageRepo,
-        parser_factory: Callable[[str], DocumentParser],
+        ingestion: IngestionBiz,
+        on_document_delete: Callable[[int], Awaitable[None]],
         max_file_size: int = MAX_FILE_SIZE,
-        on_parse_success: Callable[[int, str], Awaitable[None]] | None = None,
-        on_document_delete: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         self._document_repo = document_repo
         self._file_storage_repo = file_storage_repo
-        self._parser_factory = parser_factory
+        self._ingestion = ingestion
         self._max_file_size = max_file_size
-        self._on_parse_success = on_parse_success
         self._on_document_delete = on_document_delete
 
     async def upload(
@@ -139,6 +143,7 @@ class DocumentBiz:
             file_size=file_size,
             mime_type=mime_type,
             status=DocumentStatus.PENDING,
+            stages=self._ingestion.new_stages(),
         )
         try:
             created = await self._document_repo.create(document)
@@ -158,20 +163,8 @@ class DocumentBiz:
             file_size=file_size,
         )
 
-        # 上传后自动触发解析（解析失败不阻塞上传）
-        try:
-            created = await self.parse_document(created.id, user_id=user_id)
-        except APIError:
-            # 解析失败：parse_document 内部已将状态置为 ERROR，
-            # 重新从 DB 获取最新状态，确保返回值与数据库一致
-            created = await self.get_document(created.id, user_id=user_id)
-            logger.warning(
-                "auto_parse_failed",
-                document_id=created.id,
-                status=created.status,
-            )
-
-        return created
+        # 各阶段失败随文档状态返回，文件保存成功不等于入库完成。
+        return await self.parse_document(created.id, user_id=user_id)
 
     async def parse_document(
         self,
@@ -179,82 +172,13 @@ class DocumentBiz:
         user_id: int,
         force: bool = False,
     ) -> Document:
-        """解析文档 — 提取纯文本内容。
+        """解析并完成下游入库阶段；重解析显式撤销旧就绪状态。"""
+        await self.get_document(document_id, user_id=user_id)
+        return await self._ingestion.process(document_id, force=force)
 
-        流程：
-        1. 校验文档存在 + 所有权
-        2. 检查状态（已解析且未 force 则跳过；PROCESSING 且未 force 则跳过）
-        3. 更新状态为 PROCESSING
-        4. 根据文件类型选择 Parser 并解析
-        5. 成功：保存 parsed_content + 状态 PARSED
-        6. 失败：状态 ERROR + 记录 error_message
-        """
-        document = await self.get_document(document_id, user_id=user_id)
-
-        if document.status == DocumentStatus.PARSED and not force:
-            logger.info("document_already_parsed", document_id=document_id)
-            return document
-        if document.status == DocumentStatus.PROCESSING and not force:
-            logger.info("document_parse_in_progress", document_id=document_id)
-            return document
-
-        # 更新状态为 PROCESSING
-        await self._document_repo.update_status(
-            document_id=document_id,
-            status=DocumentStatus.PROCESSING,
-        )
-
-        try:
-            # 根据文件扩展名选择 Parser
-            parser = self._parser_factory(document.file_path)
-            parsed_content = await parser.parse(document.file_path)
-
-            # 保存解析结果（同时更新状态为 PARSED）
-            await self._document_repo.update_parsed_content(
-                document_id=document_id,
-                parsed_content=parsed_content,
-            )
-
-            logger.info(
-                "document_parsed",
-                document_id=document_id,
-                content_length=len(parsed_content),
-            )
-
-            # 解析成功后触发分块
-            if self._on_parse_success is not None:
-                try:
-                    await self._on_parse_success(document_id, parsed_content)
-                except Exception as e:
-                    logger.warning(
-                        "auto_chunk_failed",
-                        document_id=document_id,
-                        error=str(e),
-                    )
-
-            # 返回更新后的文档
-            return await self.get_document(document_id, user_id=user_id)
-
-        except APIError:
-            # 业务异常（如 APIError）直接向上，不覆盖状态
-            raise
-        except Exception as e:
-            error_msg = str(e)[:500]  # 截断防止过长
-            await self._document_repo.update_status(
-                document_id=document_id,
-                status=DocumentStatus.ERROR,
-                error_message=error_msg,
-            )
-            logger.error(
-                "document_parse_failed",
-                document_id=document_id,
-                error=error_msg,
-            )
-            raise APIError(
-                code=ErrorCode.INTERNAL_ERROR,
-                reason="PARSE_FAILED",
-                message=f"Document parsing failed: {error_msg}",
-            ) from e
+    async def retry(self, document_id: int, user_id: int, stage: str | None = None) -> Document:
+        await self.get_document(document_id, user_id=user_id)
+        return await self._ingestion.process(document_id, stage=stage)
 
     async def list_documents(self, knowledge_base_id: int, user_id: int) -> list[Document]:
         """列出知识库下所有文档。
@@ -282,33 +206,26 @@ class DocumentBiz:
         return document
 
     async def delete_document(self, document_id: int, user_id: int) -> None:
-        """删除文档 — 校验所有权 → 删文件 → 删记录。
+        async with self._ingestion.lock(document_id):
+            await self._delete_document(document_id, user_id)
 
-        文件删除失败不阻塞记录删除（记录是元数据，文件可孤儿清理）。
-        """
+    async def _delete_document(self, document_id: int, user_id: int) -> None:
+        """撤销就绪，依次清理索引、分块、原文件和文档记录；失败保留修复入口。"""
         document = await self.get_document(document_id, user_id=user_id)
 
-        # 删除文件（尽力而为）
+        doc_stages = document.stages
+        doc_stages["chunk"] = stage_state("running")
+        defaults = self._ingestion.new_stages()
+        doc_stages["vector"] = defaults["vector"]
+        doc_stages["keyword"] = defaults["keyword"]
+        await self._document_repo.update_stages(document_id, doc_stages)
         try:
+            await self._on_document_delete(document_id)
             await self._file_storage_repo.delete(document.file_path)
-        except Exception as e:
-            logger.warning(
-                "file_delete_failed",
-                document_id=document_id,
-                file_path=document.file_path,
-                error=str(e),
-            )
-
-        # 级联删除分块
-        if self._on_document_delete is not None:
-            try:
-                await self._on_document_delete(document_id)
-            except Exception as e:
-                logger.warning(
-                    "chunk_delete_failed",
-                    document_id=document_id,
-                    error=str(e),
-                )
+        except Exception as exc:
+            doc_stages["chunk"] = stage_state("failed", f"删除未完成：{exc}")
+            await self._document_repo.update_stages(document_id, doc_stages)
+            raise
 
         # 删除记录
         await self._document_repo.delete(document_id)

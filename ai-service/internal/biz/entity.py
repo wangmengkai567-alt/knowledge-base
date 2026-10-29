@@ -84,6 +84,7 @@ class Document:
     updated_at: datetime | None = None
     # 分块（向量）数量 — 由 data 层在 list_by_kb 时聚合注入，
     # 避免前端逐文档请求 chunks 接口触发限流（heavy 限额 10/分钟）。
+    stages: dict = field(default_factory=dict)
     chunk_count: int = 0
     embedding_pending_count: int = 0
     embedding_failed_count: int = 0

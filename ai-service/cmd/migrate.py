@@ -11,6 +11,7 @@ import os
 
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from internal.data.ingestion_migration import migrate_ingestion_stages
 from internal.data.models import Base
 from internal.data.vector_store.pgvector import ensure_pgvector_schema
 from internal.server.http import _drop_unused_shell_columns
@@ -31,6 +32,7 @@ async def migrate() -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+        await migrate_ingestion_stages(engine)
         await _drop_unused_shell_columns(engine)
         if engine.dialect.name == "postgresql":
             await ensure_pgvector_schema(engine, dimension=dimension)
