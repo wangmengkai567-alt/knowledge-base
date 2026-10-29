@@ -54,6 +54,8 @@ class InMemoryVectorStore(VectorStore):
         query_vector: list[float],
         top_k: int = 10,
         filter_metadata: dict | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
         """暴力余弦相似度搜索。
 
@@ -63,8 +65,11 @@ class InMemoryVectorStore(VectorStore):
         if not self._store:
             return []
 
+        allowed_documents = set(document_ids) if document_ids is not None else None
         results: list[tuple[int, float]] = []
         for cid, (vec, meta) in self._store.items():
+            if allowed_documents is not None and meta.get("document_id") not in allowed_documents:
+                continue
             # 过滤条件检查
             if filter_metadata:
                 match = all(meta.get(k) == v for k, v in filter_metadata.items())

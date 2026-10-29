@@ -285,6 +285,8 @@ class Retriever(ABC):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[RetrievedChunk]:
         """相似度检索。
 
@@ -296,6 +298,7 @@ class Retriever(ABC):
                         纯向量实现可忽略。
             keyword_query: 可选的 BM25 查询（自然语言场景为抽词结果）；
                            未传时混合检索回退 query_text。
+            document_ids: 各路召回取 top_k 前限制文档范围；None 不限制，空列表无候选。
 
         返回:
             RetrievedChunk 列表，包含分数类型、计算方式与各路评分
@@ -342,11 +345,14 @@ class KeywordStore(ABC):
         query: str,
         top_k: int = 10,
         filter_metadata: dict | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
-        """关键词相似度搜索。
+        """关键词相似度搜索，文档范围在评分与截断前生效。
 
         参数:
             query: 原始查询文本
+            document_ids: None 不限制，空列表无候选；与 metadata 条件取交集。
             top_k: 返回最相似的 k 个结果
             filter_metadata: 过滤条件（如 knowledge_base_id）
 
@@ -518,11 +524,14 @@ class VectorStore(ABC):
         query_vector: list[float],
         top_k: int = 10,
         filter_metadata: dict | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
-        """相似度搜索。
+        """相似度搜索，文档范围在评分与截断前生效。
 
         参数:
             query_vector: 查询向量
+            document_ids: None 不限制，空列表无候选；与 metadata 条件取交集。
             top_k: 返回最相似的 k 个结果
             filter_metadata: 过滤条件（如 knowledge_base_id）
 

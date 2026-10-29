@@ -181,27 +181,42 @@ class PGVectorStore(VectorStore):
         query_vector: list[float],
         top_k: int = 10,
         filter_metadata: dict | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
         """余弦相似度搜索（pgvector 原生）。
 
         在不引入额外依赖的情况下，支持按 JSONB 元数据做简单等值过滤：
         使用 `metadata @> :filter::jsonb` 进行包含匹配（键全等）。
+        先按文档范围与元数据筛选，再对合格集合精确排序，避免 ANN 过滤后候选不足。
         """
         vec_str = "[" + ",".join(str(v) for v in query_vector) + "]"
 
-        where_clause = ""
+        if document_ids == []:
+            return []
+
+        predicates = []
         params = {"query": vec_str, "top_k": top_k}
+        if document_ids is not None:
+            predicates.append("document_id = ANY(:document_ids)")
+            params["document_ids"] = document_ids
         if filter_metadata:
             filter_json = json.dumps(filter_metadata, separators=(",", ":"), ensure_ascii=False)
             # 同 upsert：必须用 CAST(:filter AS jsonb) 避免 text() 误解析 ::jsonb
-            where_clause = " WHERE metadata @> CAST(:filter AS jsonb)"
+            predicates.append("metadata @> CAST(:filter AS jsonb)")
             params["filter"] = filter_json
+        where_clause = "WHERE " + " AND ".join(predicates) if predicates else ""
 
         async with self._session_factory() as session:
+            # 先物化可用集合，再精确排序。直接在 HNSW 扫描后过滤仍可能耗尽候选。
             sql = f"""
+                WITH eligible AS MATERIALIZED (
+                    SELECT chunk_id, embedding
+                    FROM {self._table_name}
+                    {where_clause}
+                )
                 SELECT chunk_id, 1 - (embedding <=> CAST(:query AS vector)) AS score
-                FROM {self._table_name}
-                {where_clause}
+                FROM eligible
                 ORDER BY embedding <=> CAST(:query AS vector)
                 LIMIT :top_k
             """

@@ -168,6 +168,8 @@ class BM25KeywordStore(KeywordStore):
         query: str,
         top_k: int = 10,
         filter_metadata: dict | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
         """BM25 相关性搜索。
 
@@ -196,6 +198,15 @@ class BM25KeywordStore(KeywordStore):
 
         if not candidates:
             return []
+
+        if document_ids is not None:
+            allowed_documents = set(document_ids)
+            candidates = {
+                cid for cid in candidates
+                if self._metadata.get(cid, {}).get("document_id") in allowed_documents
+            }
+            if not candidates:
+                return []
 
         # metadata 过滤
         if filter_metadata:

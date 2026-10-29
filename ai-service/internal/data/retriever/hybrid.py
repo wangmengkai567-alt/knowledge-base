@@ -51,6 +51,8 @@ class HybridRetriever(Retriever):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[RetrievedChunk]:
         """两路检索 + RRF 融合。
 
@@ -69,12 +71,14 @@ class HybridRetriever(Retriever):
             query_vector=query_vector,
             top_k=candidate_k,
             filter_metadata=filter_metadata,
+            document_ids=document_ids,
         )
 
         keyword_results = await self._keyword_store.search(
             query=bm25_query,
             top_k=candidate_k,
             filter_metadata=filter_metadata,
+            document_ids=document_ids,
         ) if bm25_query else []
 
         fused = reciprocal_rank_fusion(

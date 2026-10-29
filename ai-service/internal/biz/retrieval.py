@@ -122,11 +122,21 @@ class RetrievalBiz:
             logger.warning("empty_query_skip_retrieval")
             return []
 
+        # 各路召回在 top-k 前限定就绪文档，避免保留的旧索引耗尽候选。
+        documents = await self._document_repo.list_by_kb(knowledge_base_id)
+        document_ids = [
+            doc.id for doc in documents
+            if doc.id is not None and ingestion_status(doc.stages) == "ready"
+        ]
+        if not document_ids:
+            return []
+
         filter_metadata = {"knowledge_base_id": knowledge_base_id}
         raw_results = await self._multi_retrieve(
             plan=plan,
             top_k=top_k,
             filter_metadata=filter_metadata,
+            document_ids=document_ids,
         )
 
         if not raw_results:
@@ -232,6 +242,7 @@ class RetrievalBiz:
         plan: QueryPlan,
         top_k: int,
         filter_metadata: dict,
+        document_ids: list[int],
     ) -> list[RetrievedChunk]:
         """对查询变体做 embedding，并行检索，再用 RRF 融合。"""
         embed_result = await self._embedding_provider.embed(plan.embed_texts)
@@ -244,6 +255,7 @@ class RetrievalBiz:
                 query_vector=vector,
                 top_k=branch_k,
                 filter_metadata=filter_metadata,
+                document_ids=document_ids,
                 query_text=text,
                 keyword_query=plan.lexical,
             )

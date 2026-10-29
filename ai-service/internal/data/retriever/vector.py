@@ -28,6 +28,8 @@ class VectorRetriever(Retriever):
         filter_metadata: dict | None = None,
         query_text: str | None = None,
         keyword_query: str | None = None,
+        *,
+        document_ids: list[int] | None = None,
     ) -> list[RetrievedChunk]:
         """委托 VectorStore.search 执行相似度检索。
 
@@ -37,6 +39,7 @@ class VectorRetriever(Retriever):
             query_vector=query_vector,
             top_k=top_k,
             filter_metadata=filter_metadata,
+            document_ids=document_ids,
         )
 
         logger.debug(
