@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "verified_at": "2026-10-29T22:40:03.280367+08:00",
+  "all_passed": true,
+  "original_input_files_unchanged": 201,
+  "original_run_snapshots_unchanged": 105,
+  "archive_entries_exact": 105,
+  "indexed_questions": 105,
+  "model_calls_reconciled": 289,
+  "unknown_usage_calls": 0,
+  "baseline_scenario_counts_including_expected_refusals": {
+    "golden": 69,
+    "web": 1,
+    "cross_source": 0
+  },
+  "historical_baseline_quality_not_accepted": true,
+  "existing_checks": {
+    "path": "docs/implementation/evidence/rag-quality-phase-0-checks.json",
+    "passed": 3394
+  },
+  "git_diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "warning: in the working copy of 'docs/implementation/rag-quality-optimization-report.md', LF will be replaced by CRLF the next time Git touches it\n"
+  },
+  "new_text_git_diff_checks": [
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-cases.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-cases.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-checks.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-checks.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-inputs.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-inputs.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-runtime.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-runtime.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-sources.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-sources.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-usage.json",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\evidence\\rag-quality-phase-0-usage.json', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-0-report.md",
+      "exit_code": 1,
+      "passed": true,
+      "stdout": "",
+      "stderr": "warning: in the working copy of 'docs\\implementation\\rag-quality-phase-0-report.md', LF will be replaced by CRLF the next time Git touches it\n",
+      "note": "--no-index exit 1 indicates content differs from empty /dev/null; no whitespace diagnostic. Existing Git autocrlf warning retained, configuration unchanged."
+    }
+  ],
+  "new_text_formats": [
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-cases.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-checks.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-inputs.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-runtime.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-sources.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-usage.json",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-0-report.md",
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "trailing_whitespace": false
+    }
+  ],
+  "preexisting_user_file_formats": [
+    {
+      "path": "docs/implementation/rag-quality-optimization-report.md",
+      "crlf_count": 0,
+      "lf_only_count": 193,
+      "sha256_unchanged": true,
+      "note": "Pre-existing bytes preserved, including any mixed line endings."
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "crlf_count": 0,
+      "lf_only_count": 268,
+      "sha256_unchanged": true,
+      "note": "Pre-existing bytes preserved, including any mixed line endings."
+    }
+  ],
+  "artifact_fingerprints": [
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-cases.json",
+      "bytes": 431049,
+      "sha256": "d3b29eff2fd51681b7b1e0b4ca8059d8adc68c7cd574b55a24be9cf6fcf0e7c9"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-checks.json",
+      "bytes": 312143,
+      "sha256": "4bef5e4673faf1c71daddca51856e8471c49f900fcb187f58088c579d0d6733e"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-inputs.json",
+      "bytes": 35828,
+      "sha256": "86a767ee70d4360dcf40b2f5450ecaedc336d6dc3f4b3b6ec0f15169c709f2e7"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-runtime.json",
+      "bytes": 330116,
+      "sha256": "a47b533d4e57129ea57932f67936f24e6be9d4c89ef21f63e68ef06931a026c9"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-snapshots.zip",
+      "bytes": 790176,
+      "sha256": "ae28797837cbbd5fa26cef75a526f508e4cd1b4569b2106090e15aece5b6ebd2"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-sources.json",
+      "bytes": 367536,
+      "sha256": "06b00fcc2606718fc0b1f73cd5bfa45e06556a5000fe0330031d7676f1a43858"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-0-usage.json",
+      "bytes": 327232,
+      "sha256": "3e8bd6d5077abf58058aa5a9c3cefa40914a00d9e9426ca8bb6c34ff1625d566"
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-0-report.md",
+      "bytes": 15144,
+      "sha256": "831cc6bd113737725dbf0ddd11a0b47b566122e193fa1044340705194546cfa7"
+    }
+  ],
+  "self_fingerprint_note": "This verification file excludes its own digest; UTF-8 without BOM, LF.",
+  "scope": "No business/configuration/test/database changes; no model/embedding/rerank/web requests; no git staging or commits."
+}

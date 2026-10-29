@@ -1,0 +1,1016 @@
+{
+  "git_head": "4fbceb186821dd328dde5dc4f8cd937f6982c236",
+  "initial_worktree": [
+    " M docs/implementation/rag-quality-optimization-report.md",
+    "?? docs/implementation/evidence/rag-quality-phase-0-inputs.json",
+    "?? docs/plans/rag-quality-remediation-plan.md"
+  ],
+  "files": [
+    {
+      "path": "ai-service/api/__init__.py",
+      "bytes": 20,
+      "sha256": "31a1f2661d6686243fd44a8967a21def9c21eee20882df7970e7d0bf879fad7f"
+    },
+    {
+      "path": "ai-service/api/openapi/__init__.py",
+      "bytes": 24,
+      "sha256": "32a9a17d26e7abdf37d381b64ca8ebca123e1319d78a1244a3b1b4b9d1bf16e2"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/__init__.py",
+      "bytes": 24,
+      "sha256": "e069fc269f3b79109e27ff600f665f84c13b8c132b86bfac00bd6d5b0f6a1878"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/auth.py",
+      "bytes": 2209,
+      "sha256": "e8c94519355a25011ee80751ebbed77b2d11d7120f3c8e68bea5c694795807b6"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/chunk.py",
+      "bytes": 1530,
+      "sha256": "33965b846883dd78eab7aa482c9bc42aae8cff3324d2b218b0925e522135a21f"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/document.py",
+      "bytes": 3298,
+      "sha256": "947703c62dab1ff17210c3eeff7f86eb64a60c82198cdad8b277c76fac61618f"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/knowledge_base.py",
+      "bytes": 2717,
+      "sha256": "052675e93def4a4d194ffb20eb99a3eb9c6c985489cd94ed83e1f646ecbc6401"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/rag.py",
+      "bytes": 3174,
+      "sha256": "610e702bf9715822792fc8375c274f46d472354ecc42a3af317594bfbfca3f5a"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/retrieval.py",
+      "bytes": 1770,
+      "sha256": "866aebe7a9f4e32a8b0555100d4787696c553566df5ec35c25da9d3c4786f1c6"
+    },
+    {
+      "path": "ai-service/cmd/__init__.py",
+      "bytes": 140,
+      "sha256": "4b0257cf3b3c3830a930e9a2cbbaae26d00f5469d1fcee6761584213b04d831b"
+    },
+    {
+      "path": "ai-service/cmd/main.py",
+      "bytes": 1017,
+      "sha256": "7710e60ccd526d621e81648e9be3d89958ad0196617d58f6b23b6edb8d0abe24"
+    },
+    {
+      "path": "ai-service/cmd/migrate.py",
+      "bytes": 1488,
+      "sha256": "ccefdcbfb8edd03ea3ab49b055ad42a21215fc3fbf718a1d9166b625d2d3d972"
+    },
+    {
+      "path": "ai-service/cmd/wire.py",
+      "bytes": 14612,
+      "sha256": "916fe6321ce4cf4b43d732720ff5a7df6079e300b80d9f0ade47e4a0db1d1cc5"
+    },
+    {
+      "path": "ai-service/configs/config.yaml",
+      "bytes": 2058,
+      "sha256": "e7d0484175b644ed210722e94ff9b574c5619c59480de7752926fb5a3e55deed"
+    },
+    {
+      "path": "ai-service/internal/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ai-service/internal/biz/__init__.py",
+      "bytes": 20,
+      "sha256": "ef8f71817f85a8982275ef1622b99b4b6c47b2e2e652d65e8290b3f51151cb10"
+    },
+    {
+      "path": "ai-service/internal/biz/answer_run.py",
+      "bytes": 3331,
+      "sha256": "e91554d884fc27dc6f2a45fde7e72a0855e4adc12784cd37a83754ea6861013f"
+    },
+    {
+      "path": "ai-service/internal/biz/auth.py",
+      "bytes": 9590,
+      "sha256": "a35473ef9836ca41d5566efdff2a7dd4f47afa5e25b4b181a3b63c02f07ec1bd"
+    },
+    {
+      "path": "ai-service/internal/biz/chunk.py",
+      "bytes": 2972,
+      "sha256": "77e6919952d1ba283e14085099df2b2bd14ed5aaec183ad39eebb86f38f74ab6"
+    },
+    {
+      "path": "ai-service/internal/biz/constants.py",
+      "bytes": 857,
+      "sha256": "b3c7f15a6e968b0645135966bd1cce5efaada03e81f256def0de19a77b328584"
+    },
+    {
+      "path": "ai-service/internal/biz/document.py",
+      "bytes": 9154,
+      "sha256": "2ee9a2115199ce60f8f91b310499a4332721aac0fc22b4623137fb2a918368d3"
+    },
+    {
+      "path": "ai-service/internal/biz/embedding.py",
+      "bytes": 4865,
+      "sha256": "ce0d421e9d075a19b9b29127b64f5d70c76fec3a24cf84e5bb89e0bf6e564161"
+    },
+    {
+      "path": "ai-service/internal/biz/entity.py",
+      "bytes": 6692,
+      "sha256": "618656cb6e3431c017cc4cc6dce698d8fe1d74f2617645d338adad67685744a8"
+    },
+    {
+      "path": "ai-service/internal/biz/ingestion.py",
+      "bytes": 11911,
+      "sha256": "d157c2e3748a57f7e0f6a26434ca3d6f0e12fdc2266f7fcb4b3cd82851419b94"
+    },
+    {
+      "path": "ai-service/internal/biz/ingestion_state.py",
+      "bytes": 1056,
+      "sha256": "aaef318c549307f8455786ea2c757c57ca496350e1113d7f25c014519cbb9c50"
+    },
+    {
+      "path": "ai-service/internal/biz/knowledge_base.py",
+      "bytes": 8439,
+      "sha256": "6f7e36e0a0c776fd991b2c5367f37d1a1da3dd105175ff7367556070ddaba089"
+    },
+    {
+      "path": "ai-service/internal/biz/materials.py",
+      "bytes": 11396,
+      "sha256": "629203b36c9617fa320effd853eff7672f7bf3c246e5a2e4812a014e6c9d6ab9"
+    },
+    {
+      "path": "ai-service/internal/biz/query_plan.py",
+      "bytes": 10844,
+      "sha256": "970f03e0bb7e7a887c0eae3141413d0bb41aa5efeb16eaea311d4e5d9014f4ab"
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "bytes": 21072,
+      "sha256": "944771becccc1e1becf58f573662dde65d3a91ee2097ed9ad282fb93cb3b67ec"
+    },
+    {
+      "path": "ai-service/internal/biz/relevance.py",
+      "bytes": 2303,
+      "sha256": "d95356cb9fe99f9d3e8a104e540f6ce0cfe0000a153b7b7b538cb34a550e94c0"
+    },
+    {
+      "path": "ai-service/internal/biz/repo.py",
+      "bytes": 15859,
+      "sha256": "9d8be079eaa360d98bed2a51db6ebf85f4f8444b2f656cb024c9027f6569d29b"
+    },
+    {
+      "path": "ai-service/internal/biz/retrieval.py",
+      "bytes": 12424,
+      "sha256": "0bc1eb6d58831c07d784c883504a8ef268ceae7695fb9eae4637e23d5e066100"
+    },
+    {
+      "path": "ai-service/internal/biz/rrf.py",
+      "bytes": 832,
+      "sha256": "bced13774a36222d2aa664905efdffdcd997c41e74e10c2d8e52e9cf65e38336"
+    },
+    {
+      "path": "ai-service/internal/biz/table_meta.py",
+      "bytes": 1105,
+      "sha256": "aab479278a4b5f669c6abfc30f45c7e1fece7d4093de0ffd72eb2c6ff46e89b3"
+    },
+    {
+      "path": "ai-service/internal/biz/tokenizer.py",
+      "bytes": 715,
+      "sha256": "da8901b4e6cf72cb622f09968f3c1efb374dd83c272dfbe622770ac08ea1db78"
+    },
+    {
+      "path": "ai-service/internal/biz/tool_model.py",
+      "bytes": 6274,
+      "sha256": "75a643959904c05cf943108bf7d8d1651803bcc0e388e32067af23ee2e83832c"
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "bytes": 2392,
+      "sha256": "b1b6477d3531be512c30249d873314ed643d9166dfaa72523ccb9d0767bf55e6"
+    },
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "bytes": 13522,
+      "sha256": "98de78a9861e86d864421bcd7ff85a01201e3a5d657149f89ada2e80cdff91cb"
+    },
+    {
+      "path": "ai-service/internal/biz/web_access.py",
+      "bytes": 2512,
+      "sha256": "56e72b3eca7bdad3e9d612141c7b92f298917e4307c41dae43449c1e3fe81e8b"
+    },
+    {
+      "path": "ai-service/internal/conf/__init__.py",
+      "bytes": 53,
+      "sha256": "e2a8845183ef988104c7324a61a13fb4d1529a3e95ca03040c1925590db36664"
+    },
+    {
+      "path": "ai-service/internal/conf/config.py",
+      "bytes": 23291,
+      "sha256": "0fe3e4cf5be323f36554dcbcaf19529a2ea91f5f4deb1bd22267239b54a82b40"
+    },
+    {
+      "path": "ai-service/internal/conf/logging.py",
+      "bytes": 3461,
+      "sha256": "06657773d6d09adbd3a56fd0e451af79b5ee286f5afaa8b88d2bc0f71ec456dc"
+    },
+    {
+      "path": "ai-service/internal/data/__init__.py",
+      "bytes": 21,
+      "sha256": "f58613fa25749a656e1f2683e4bd5ec14e6b29ae6eaf2d1d9c75a176c51ee009"
+    },
+    {
+      "path": "ai-service/internal/data/answer_runs.py",
+      "bytes": 1787,
+      "sha256": "c930d35cdc721a25b2870bec6c7b8622380a272eae372088be301eca0eb1377d"
+    },
+    {
+      "path": "ai-service/internal/data/chunk/__init__.py",
+      "bytes": 93,
+      "sha256": "1c510ebf94c7c1b9f2e4aa19b8097176023f1c7f1756d7d299c3a1f1b727e1c8"
+    },
+    {
+      "path": "ai-service/internal/data/chunk/factory.py",
+      "bytes": 568,
+      "sha256": "fc32a0488219eb23cb5e0812598641bfce7bcaae72efcc4721cf7f54c8cead7b"
+    },
+    {
+      "path": "ai-service/internal/data/chunk/sqlalchemy.py",
+      "bytes": 4781,
+      "sha256": "ac988497a70edfac751a831a2131ad683f9d45ba9e1d0c645dfa6297d556e38e"
+    },
+    {
+      "path": "ai-service/internal/data/chunker/__init__.py",
+      "bytes": 218,
+      "sha256": "ae3b5af76489a4e7ba9b3b280e62ea35542b117609bd7c2a3ed5f24292bb0c3e"
+    },
+    {
+      "path": "ai-service/internal/data/chunker/factory.py",
+      "bytes": 662,
+      "sha256": "7e6d8609736ba7fa53c54c90503cbd460b4dc9e8ceb9d1771ec94f1d1fd553b4"
+    },
+    {
+      "path": "ai-service/internal/data/chunker/recursive.py",
+      "bytes": 3414,
+      "sha256": "3e0a4b8c140852b32364a3325de425a1e4820deea4889281161c249aebd67be0"
+    },
+    {
+      "path": "ai-service/internal/data/chunker/tokenizer.py",
+      "bytes": 715,
+      "sha256": "da8901b4e6cf72cb622f09968f3c1efb374dd83c272dfbe622770ac08ea1db78"
+    },
+    {
+      "path": "ai-service/internal/data/converter.py",
+      "bytes": 3761,
+      "sha256": "70a636f83a95d5b26f7b396a8a57ad18799294ee2d8d7bf1340e2bc93724d873"
+    },
+    {
+      "path": "ai-service/internal/data/database.py",
+      "bytes": 1210,
+      "sha256": "268d6120dbc51748e0e08e4194c1645b80005b06514a4c434a068932810205ca"
+    },
+    {
+      "path": "ai-service/internal/data/document/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ai-service/internal/data/document/factory.py",
+      "bytes": 644,
+      "sha256": "6b39bc4fad5a412850985794cee7514b8c26e2621040d6b6757efd28f59183a5"
+    },
+    {
+      "path": "ai-service/internal/data/document/sqlalchemy.py",
+      "bytes": 6711,
+      "sha256": "bc814341130fd2eee3af5d6f1b7524084b98d860797aad4a56497d488e48877b"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/__init__.py",
+      "bytes": 117,
+      "sha256": "d44b6fddf376a672dac3834b23e6abc00465516853e5243dac4b4276ad92e088"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/cache.py",
+      "bytes": 3774,
+      "sha256": "099a96952636e56736a7adca8a7072a57ed39ff63eabb3778a1319d9f7cb63b2"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/factory.py",
+      "bytes": 2154,
+      "sha256": "9fca502642b60fe0a275e4b5c22fce8b967773c6d724d0e86d4e05c84edc5a51"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/local.py",
+      "bytes": 6884,
+      "sha256": "d2ce61177e66ac6a12277695788c5ee3055c804c3fea565582337aa888a907ec"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/memory.py",
+      "bytes": 3770,
+      "sha256": "a80f33b457b6dfc08bd63555a1a21dd29a2eea697c8c992205e78318acb07f08"
+    },
+    {
+      "path": "ai-service/internal/data/embedding/openai.py",
+      "bytes": 6506,
+      "sha256": "a765c81933bb647f6f1a12bb98b135fae768ea72d98a2ba59aac14b5ee82232b"
+    },
+    {
+      "path": "ai-service/internal/data/ingestion_migration.py",
+      "bytes": 2886,
+      "sha256": "4e1d3ae21ba9396a526ea26cf24a4dd2010f5e32272c79922953eeb5e05608b5"
+    },
+    {
+      "path": "ai-service/internal/data/keyword/__init__.py",
+      "bytes": 79,
+      "sha256": "29fdc64d8c0a724949880c029caad9657a6400da837b1f01295d329b555657d8"
+    },
+    {
+      "path": "ai-service/internal/data/keyword/bm25.py",
+      "bytes": 9748,
+      "sha256": "55aa779f986600c7c689451f37a4a9176422e2132ad601a824a1df022adf807f"
+    },
+    {
+      "path": "ai-service/internal/data/keyword/factory.py",
+      "bytes": 369,
+      "sha256": "b8684e7a31c00f19f1dac2aa32a65afdc5714405434f7b31279d0853c2e8fb6c"
+    },
+    {
+      "path": "ai-service/internal/data/knowledge_base/__init__.py",
+      "bytes": 105,
+      "sha256": "8b5cc7485203fdc67da517552d655253444872d1e4e9dfaf4645fc018a5e139b"
+    },
+    {
+      "path": "ai-service/internal/data/knowledge_base/factory.py",
+      "bytes": 587,
+      "sha256": "2511e21da63c61971754facc638238dfe6a512f171e50d765ee715744faf3616"
+    },
+    {
+      "path": "ai-service/internal/data/knowledge_base/sqlalchemy.py",
+      "bytes": 6190,
+      "sha256": "fdd54f02810eecc838311ae1162c21be5f1f3497c413b12f3a97b1155581a2f6"
+    },
+    {
+      "path": "ai-service/internal/data/llm/__init__.py",
+      "bytes": 200,
+      "sha256": "bddb1148c643ac2acfe3aa31cf51230744cfac68618ef0e8b2b05a43d02bb8db"
+    },
+    {
+      "path": "ai-service/internal/data/llm/factory.py",
+      "bytes": 2091,
+      "sha256": "af81734770a2002064b8ba6333790bb263869486c3641760e503375006e27d65"
+    },
+    {
+      "path": "ai-service/internal/data/llm/local.py",
+      "bytes": 5541,
+      "sha256": "1bbce1aa21e9bcf49295db2ec208ce0903a1be0049be7ebaa62075e3c4747a3a"
+    },
+    {
+      "path": "ai-service/internal/data/llm/memory.py",
+      "bytes": 2720,
+      "sha256": "d4aea4531d6415ea533914502340cc2f37ebc8bc089c6ed152a0d335c9eb25c1"
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "bytes": 7837,
+      "sha256": "6c82d2fb95548d89c858400b947d5a3eb8b2570aa32c6b022c348804d64cbf1d"
+    },
+    {
+      "path": "ai-service/internal/data/models.py",
+      "bytes": 6052,
+      "sha256": "2fc4b0029098a095955250bf621899ba4f5f50d040f7602c10e722ecea5ab6db"
+    },
+    {
+      "path": "ai-service/internal/data/parser/__init__.py",
+      "bytes": 198,
+      "sha256": "6c13a7155332b886477bfb3bcbd69a99c89298fc58747e21362c3c70be58d51e"
+    },
+    {
+      "path": "ai-service/internal/data/parser/base.py",
+      "bytes": 1606,
+      "sha256": "95c0902f367bc43119994df25acb0cd6280e795e46894049ae689a1a30cfcf3a"
+    },
+    {
+      "path": "ai-service/internal/data/parser/factory.py",
+      "bytes": 981,
+      "sha256": "14309ca948b39de7745140f2a4755a8ffa768cb3704f54f2d061087f61d2c26b"
+    },
+    {
+      "path": "ai-service/internal/data/parser/markdown.py",
+      "bytes": 845,
+      "sha256": "c83d8d7e1eb73c52a4b908279aa8b48affa9761fb210a9c58955a0c13cd264fd"
+    },
+    {
+      "path": "ai-service/internal/data/parser/ocr.py",
+      "bytes": 5937,
+      "sha256": "ca2cf0e8ca3ea33e8c8fc9c84302f963e12d38381f82027b72dcde0719551ad9"
+    },
+    {
+      "path": "ai-service/internal/data/parser/pdf.py",
+      "bytes": 6340,
+      "sha256": "c9bd0ca5f13d516da7ce63b4d39b8d0575b2b964583a7046ef51ce38e09c9aa4"
+    },
+    {
+      "path": "ai-service/internal/data/parser/table_struct.py",
+      "bytes": 13841,
+      "sha256": "b551792fa5a7e4f8d0abe50c17a0dc7b70a9653c89ecfb5018224d210faba73b"
+    },
+    {
+      "path": "ai-service/internal/data/parser/text.py",
+      "bytes": 831,
+      "sha256": "96f4ea562d3371fd42aaf463eb7cb15aeecf1512ebc26a2da515fce9a08e2654"
+    },
+    {
+      "path": "ai-service/internal/data/reranker/__init__.py",
+      "bytes": 160,
+      "sha256": "7bd9408a693731a0c4743b85b24a0257ba41679a79fd72131a7c96e88f3e6109"
+    },
+    {
+      "path": "ai-service/internal/data/reranker/factory.py",
+      "bytes": 1961,
+      "sha256": "e2acf1623b157ce9ad44d1ad2776feb370b05fa8810885cec64a50a1bd362ba8"
+    },
+    {
+      "path": "ai-service/internal/data/reranker/memory.py",
+      "bytes": 5015,
+      "sha256": "040da6b121568cb2f694e2fcc26404cc765ecc94cd71d9762fdd761b4895d1d8"
+    },
+    {
+      "path": "ai-service/internal/data/reranker/qwen.py",
+      "bytes": 7256,
+      "sha256": "35360245273b092e6708a01f3fd13b86391178d783e8ba2579613a4fb06df9bf"
+    },
+    {
+      "path": "ai-service/internal/data/reranker/zhipu.py",
+      "bytes": 7662,
+      "sha256": "209066ab55868af7b3d7f56163b9ab71fb4dfaf6b9fc3c09666b709c3b511d63"
+    },
+    {
+      "path": "ai-service/internal/data/retriever/__init__.py",
+      "bytes": 106,
+      "sha256": "76e34d8f0ef7b100a17b1368ea87fea3078a34eeb23b538a37e8bf24335fbb00"
+    },
+    {
+      "path": "ai-service/internal/data/retriever/factory.py",
+      "bytes": 1444,
+      "sha256": "365720fa31ac6f258b5e503ec3c611afa406fbd57c037a4b8d10c7b40d382ab7"
+    },
+    {
+      "path": "ai-service/internal/data/retriever/hybrid.py",
+      "bytes": 4255,
+      "sha256": "1be07107ac9c255d4d0e2991cd6416d07da0894f3ff54d5f5d0e51e4e0a1dfc3"
+    },
+    {
+      "path": "ai-service/internal/data/retriever/vector.py",
+      "bytes": 1690,
+      "sha256": "20a2340a6c86b28a2af0c7498add98d58f7a225abec0921b8c8a691b696c7667"
+    },
+    {
+      "path": "ai-service/internal/data/storage/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ai-service/internal/data/storage/factory.py",
+      "bytes": 386,
+      "sha256": "62cae3044cddf90da16788921bdf96f98547c59ddb3d3f3aa0b59726d5a7cf13"
+    },
+    {
+      "path": "ai-service/internal/data/storage/local.py",
+      "bytes": 2097,
+      "sha256": "d8c53ce2ae00a9130d7ee3d7c8897ceaa28a58cb742ac1ebbbde0d2b73948d3d"
+    },
+    {
+      "path": "ai-service/internal/data/user/__init__.py",
+      "bytes": 21,
+      "sha256": "88848f36ee0a3bf1238719353d354896972d1ac567be61754d3dea74f65dc9bc"
+    },
+    {
+      "path": "ai-service/internal/data/user/factory.py",
+      "bytes": 613,
+      "sha256": "8138302378650f27e2c4b9e7feea374762fe4f9e3df60cabd73ac67899baeb29"
+    },
+    {
+      "path": "ai-service/internal/data/user/sqlalchemy.py",
+      "bytes": 2227,
+      "sha256": "943d6012cbb08b2abadaa587f6fc2e5420e8cf02a1a2a09bbeaefc6d476edf04"
+    },
+    {
+      "path": "ai-service/internal/data/vector_store/__init__.py",
+      "bytes": 114,
+      "sha256": "5580ee7cbbedc5ebb139e3e1539dae3b9da1dd1bc5e2f298a1b93b8de55bece4"
+    },
+    {
+      "path": "ai-service/internal/data/vector_store/factory.py",
+      "bytes": 1202,
+      "sha256": "269c0e0c936c7b30fca395168c7859d6adff958706db2cfb0688c711616dd04a"
+    },
+    {
+      "path": "ai-service/internal/data/vector_store/memory.py",
+      "bytes": 3489,
+      "sha256": "af0b686e9a53a8aa331ca11aa4abeb9f3b32e332b4cf4eb4ead1091c9ebe52d5"
+    },
+    {
+      "path": "ai-service/internal/data/vector_store/pgvector.py",
+      "bytes": 8944,
+      "sha256": "28724a5e73e1431a45cd7923436758192762d08d072f40193a327cf1f0a01367"
+    },
+    {
+      "path": "ai-service/internal/data/web/__init__.py",
+      "bytes": 40,
+      "sha256": "3687cd81a27dc788c34fac5821f67dc737a909dc24e1bb6be085fde75f67e0f8"
+    },
+    {
+      "path": "ai-service/internal/data/web/tavily.py",
+      "bytes": 7232,
+      "sha256": "3f63bbe8e54ca9a309c57c56ab5c9e434ea0ffaef04a5780fac621479e2133a2"
+    },
+    {
+      "path": "ai-service/internal/prompt/__init__.py",
+      "bytes": 407,
+      "sha256": "593c94cbc0ea8d21f2dfc1df9da56b2ec0c15ed37f55ca2cc022d850794f5b74"
+    },
+    {
+      "path": "ai-service/internal/prompt/base.py",
+      "bytes": 3759,
+      "sha256": "f613351b8180bbbd38a6f3afc06ab21a1063653190c024755996626b455d76a2"
+    },
+    {
+      "path": "ai-service/internal/prompt/manager.py",
+      "bytes": 4972,
+      "sha256": "bcf1348a6dfbd13ada37f340ae1530531e1e271c43cc397426021cfdba4ee038"
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "bytes": 1956,
+      "sha256": "c63cb92f262e93aa97e90d7fc26ca48bb8cdc9b6f4bc06ec2536ab3d527b528f"
+    },
+    {
+      "path": "ai-service/internal/server/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ai-service/internal/server/http.py",
+      "bytes": 27012,
+      "sha256": "4b25dfdb3064efad2548e44766e78b3a9c70a25a4453ad7a3262f7dde8337220"
+    },
+    {
+      "path": "ai-service/internal/server/middleware/__init__.py",
+      "bytes": 27,
+      "sha256": "309b5fcb87278127d90ef3dfca15418f9eb3b9adcb8d3ab5603462744d9809ee"
+    },
+    {
+      "path": "ai-service/internal/server/middleware/auth.py",
+      "bytes": 3213,
+      "sha256": "51d43cbf8d3b092c7a40340dcd683823dc96547d9e397084ebdb58fcd804672a"
+    },
+    {
+      "path": "ai-service/internal/server/middleware/metrics.py",
+      "bytes": 5693,
+      "sha256": "e750b98661cf59d143354d868a2e022f9fbb9238ff55665e827a5187c0bd5a1b"
+    },
+    {
+      "path": "ai-service/internal/server/middleware/rate_limit.py",
+      "bytes": 11080,
+      "sha256": "2bb858908913dc54f402bd19de1bcf62bd6e9118f96f92229bdb1c4086f8f395"
+    },
+    {
+      "path": "ai-service/internal/server/middleware/security.py",
+      "bytes": 1375,
+      "sha256": "ee945df4d6cb5b0d362a133d3f90c491640035c717fc4d612d85ad515307302d"
+    },
+    {
+      "path": "ai-service/internal/service/__init__.py",
+      "bytes": 24,
+      "sha256": "04473505d4e0c3daba7e2a6a46e1e79834c7fe238d2df7bb72c93f322a8494dd"
+    },
+    {
+      "path": "ai-service/internal/service/auth.py",
+      "bytes": 2310,
+      "sha256": "1257d3c292a1c2716fc2c1c42fa9d61c9bde45a7448ef7234dc1b1192c773faf"
+    },
+    {
+      "path": "ai-service/internal/service/chunk.py",
+      "bytes": 1254,
+      "sha256": "116c52deb2d5c233d2766d35f64c3ae45a8e44248ae7aee08b8d68a9ff6d68f7"
+    },
+    {
+      "path": "ai-service/internal/service/document.py",
+      "bytes": 2743,
+      "sha256": "793484851ed311751887b14479257af2264ce9b02ca38af06181b32e11d94a85"
+    },
+    {
+      "path": "ai-service/internal/service/knowledge_base.py",
+      "bytes": 2080,
+      "sha256": "95056057fef595e7143752f653f417a2eba6327df713ea3d8955c0d80a5db82f"
+    },
+    {
+      "path": "ai-service/internal/service/rag.py",
+      "bytes": 7002,
+      "sha256": "3aa2167b1b25ed7e43d4b1c0a129e83df1702bde393e8336d8e54cf8c9490316"
+    },
+    {
+      "path": "ai-service/internal/service/retrieval.py",
+      "bytes": 1941,
+      "sha256": "0b21a612f742975bb3ad9a10d7c6ac5d32f6a0255876977c7dfa8fa32357b567"
+    },
+    {
+      "path": "ai-service/internal/streaming/__init__.py",
+      "bytes": 162,
+      "sha256": "d7cb5bd0a094300e4c997324ddf0aa28ec50c1dd41f0f8b4b4715ddc5ad6d398"
+    },
+    {
+      "path": "ai-service/internal/streaming/sse.py",
+      "bytes": 709,
+      "sha256": "43edb9794aae3868888362c5437aa1723e09ca4552df2aa92b7b6f464aa9967f"
+    },
+    {
+      "path": "ai-service/pkg/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ai-service/pkg/errors/__init__.py",
+      "bytes": 597,
+      "sha256": "8a4dc8d723987d17a2cd7d6e6f5b5e646cbf5e563ff9e83c0a538003a1c200ed"
+    },
+    {
+      "path": "ai-service/pkg/errors/base.py",
+      "bytes": 3889,
+      "sha256": "99f47a5e0a0946b8a9f3c030ed5abdbd2c713b5b1c3849dae296774055cb8e44"
+    },
+    {
+      "path": "ai-service/pkg/errors/codes.py",
+      "bytes": 1957,
+      "sha256": "241e6e8d39962aa52337faa13fd1b9e511d28e65588cf5d797bb162b2c9ea27d"
+    },
+    {
+      "path": "ai-service/pkg/errors/fastapi.py",
+      "bytes": 3250,
+      "sha256": "c46b51b4c827d2b5580116a1b7b037a9e4b44feee4b5bf4cc682245d05075b8d"
+    },
+    {
+      "path": "ai-service/pkg/session.py",
+      "bytes": 8440,
+      "sha256": "e7901a7e033b742965e0c897a52522c2b5328b9ccbb81e0e7d4a423ce14a3c13"
+    },
+    {
+      "path": "ai-service/pyproject.toml",
+      "bytes": 2070,
+      "sha256": "7e334279e073e800da48d6747151f1fb28b7cf13858047099fc159d44677c901"
+    },
+    {
+      "path": "ai-service/tests/test_context_block.py",
+      "bytes": 2090,
+      "sha256": "c53f774f034a57ccf87404828eeee3c8a337bb1a91fc893033e631c15f0a0859"
+    },
+    {
+      "path": "ai-service/tests/test_model_protocol.py",
+      "bytes": 1953,
+      "sha256": "c8c2171ac5dc59ebd522ff646336a24d1d1e3010bec10100679ecc04eaabcc05"
+    },
+    {
+      "path": "ai-service/tests/test_qwen_reranker.py",
+      "bytes": 4422,
+      "sha256": "fe000ea1c2af046e8053b4471ff6b4a825e8c601801e586f337bad0a6428523b"
+    },
+    {
+      "path": "ai-service/tests/test_rag_grounded_answer.py",
+      "bytes": 12035,
+      "sha256": "74f00bdc12bae0529856042c9fca9be436d4648640f24733448b42e468974671"
+    },
+    {
+      "path": "ai-service/tests/test_read_only_tools.py",
+      "bytes": 4550,
+      "sha256": "aca8165ac5509c20ebe29fbf8817a3c66c9acd72a2b5c4fffe6ce435ffee4963"
+    },
+    {
+      "path": "ai-service/tests/test_relevance_gate.py",
+      "bytes": 3399,
+      "sha256": "7758200075676ee25d580d6cba634aa470d5b5dbc06c7743580d93aafea8aad1"
+    },
+    {
+      "path": "ai-service/tests/test_rerank_relevance.py",
+      "bytes": 4521,
+      "sha256": "f8f883d6397100a5aba722a4fd329531351a8e2b10d028a3bcd521440684b58d"
+    },
+    {
+      "path": "ai-service/uv.lock",
+      "bytes": 469850,
+      "sha256": "365ec15a4b51c69821406bdbb4b69207822314e6188fea80fe6cb63597532441"
+    },
+    {
+      "path": "deployments/docker/Dockerfile",
+      "bytes": 2205,
+      "sha256": "d6b9ceb4c9f373cfddc1f5a1f48567f93ddc0ebb4c6cf6b35d5d2c29b9e7207a"
+    },
+    {
+      "path": "deployments/docker/docker-compose.yaml",
+      "bytes": 5874,
+      "sha256": "a48a5168f34e2539a6cd08b71e19c4d6b72098267fac33f2a8a869b6387576d8"
+    },
+    {
+      "path": "docs/implementation/evidence/keyword-review-after.json",
+      "bytes": 244114,
+      "sha256": "83a5c9eb6917bc410bb7a66aa9667fc40fa8404efa98a16a3ac50d4a6c316071"
+    },
+    {
+      "path": "docs/implementation/evidence/keyword-review-before.json",
+      "bytes": 1867,
+      "sha256": "655ebee5dcfb7b15745ffdc8206ae0b1491138b7a21e8d398e62d7c971b73b3b"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-checks.json",
+      "bytes": 1087,
+      "sha256": "f97fad7568f822012d8a92e5a8ed1e340434a90c88f65376be122943a3e598e8"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-deployment-smoke.json",
+      "bytes": 107335,
+      "sha256": "e88cddba2629d53e86c0f53939b3c1f038840d742eebc0a1567c1c06bafbe855"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-deployment.json",
+      "bytes": 13047,
+      "sha256": "d4fbe01bc42a27b30537051f7d4d7a9823d16319b0ca5a16a194092408cf5cfc"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-file-format.json",
+      "bytes": 10741,
+      "sha256": "6b0270e9eae2d193650d4e35a07e1808e5af34cc3083fabf2e641c67967d75db"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-headroom-regression.json",
+      "bytes": 1380,
+      "sha256": "d31398b7b60c66634d0660deaa98e767284bb1a8622464554b39a689cb235bca"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-offline-rescore.json",
+      "bytes": 836,
+      "sha256": "ccc2d15f466eea090984e37af20b3af645ad2ec4f6c2cfef04810920054d5418"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-old-cache-check.json",
+      "bytes": 262,
+      "sha256": "b8ab8df89d6f314b28cea0245ed86d511b1ffd8019d0fdf27240be12d7d52000"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-old-cache.json",
+      "bytes": 48828,
+      "sha256": "c092ae746b76cefaeab358ad0cadbcde0d291052adcc593678a09c6ee365a73b"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-restart-check.json",
+      "bytes": 1678,
+      "sha256": "f9931570db5df9b1d93a63dd10425284ad78063a917152fb6038b736ce04e8e7"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-secret-exclusion.json",
+      "bytes": 102,
+      "sha256": "65dfc1c53245c14c9d50fca618113d954072c6f1c0c56dc7443c882a5705c4ac"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-ui-answer.json",
+      "bytes": 49696,
+      "sha256": "6b7506931bb5607cfb14f21b2e73217942f8436d68fa1e99c2ec0bb741daaf9c"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-ui-cancel.json",
+      "bytes": 45900,
+      "sha256": "ca2df8ef6ba08e7460d98e5dcbbdee0dda22a9f454cf53377ba4a90639b62a19"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-upload-integrity.json",
+      "bytes": 2984,
+      "sha256": "381892e8028a0bb3a90b2aedd1adb0e9a35a34e14c4f6058846580f8f6af711d"
+    },
+    {
+      "path": "docs/implementation/evidence/phase-6-usage-inventory.json",
+      "bytes": 4901,
+      "sha256": "897d748321767ccab0d0e6d2c518dfdd5a37653a31061d73c4c91b942bd8d750"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-before.json",
+      "bytes": 17089,
+      "sha256": "52cb042742fc61b48d9ec8e058ebd4f307625285e13533f02ad8d019d6e69835"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-capability-check.json",
+      "bytes": 388,
+      "sha256": "defcea37d81776577e1a523d45c8b7e8ca6e815de05d3de2f6bb0240d518f7fd"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-comparison.json",
+      "bytes": 143844,
+      "sha256": "6a450fc90c2368fb6964ecebec0b7efbf3fbda10e3dec3ea85f5accabd9130c6"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-diagnosis.json",
+      "bytes": 3841,
+      "sha256": "5f9e4889ece1240f6b48f6f42e848bede123b41a51c84ee9aa66beae2262d045"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-integrity.json",
+      "bytes": 13675,
+      "sha256": "226e90508375ae04a7b0b950e6dbcccff72fa4b58204eab7395b4072a6246a2e"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-protocol-probes.json",
+      "bytes": 693,
+      "sha256": "13c7932f57b57c48d989c1c45273d5da95f259141c3c1259e48c30d89ea2bc37"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-semantic-review.json",
+      "bytes": 2632,
+      "sha256": "d285b26f0c75be775b26346ca383874a533422ef0a616b929d96f7ceb3a8eeb2"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-usage-inventory.json",
+      "bytes": 51272,
+      "sha256": "226f8d390dba886dd56f2bfa74d561320b397b11b721e1535d51b90793a97261"
+    },
+    {
+      "path": "docs/implementation/rag-quality-optimization-report.md",
+      "bytes": 19281,
+      "sha256": "d47f1c643d68dbb1f14078d20c249f9e5fad54fd6332f816465f0cc2be04deb4"
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "bytes": 22199,
+      "sha256": "337fe5d3e1677dcf4667ebbe6c5000d2809decebbe753b7d2ca2bfde024a0c66"
+    },
+    {
+      "path": "eval/audit_sources.py",
+      "bytes": 3466,
+      "sha256": "3389e05c72807dfe4ccbeb0a4a820f83c43cf473af326d1b0b841edc42b9750c"
+    },
+    {
+      "path": "eval/compare_quality.py",
+      "bytes": 5114,
+      "sha256": "357bd000b4218f4587f977f2c5fbfa52828b28ee2cabcaed4fadae1f4d7f2f9b"
+    },
+    {
+      "path": "eval/cross_source_scenarios.json",
+      "bytes": 751,
+      "sha256": "dfb96809906e705fd8014f497ddfafb6d170570860b83eee6759b718d3ef7fe1"
+    },
+    {
+      "path": "eval/faithfulness.py",
+      "bytes": 6908,
+      "sha256": "debf390cec0a3a3041396ad15c50501ce976e880731dcb06de8e778a1af6ccae"
+    },
+    {
+      "path": "eval/golden_set.json",
+      "bytes": 84908,
+      "sha256": "5cfedd76f29dd32336e6bf44b73211a877a7ee9f6bcebada71a0108f3670caf8"
+    },
+    {
+      "path": "eval/keyword_scoring.py",
+      "bytes": 1594,
+      "sha256": "9cde90e94552378d51e9d88bc97976946d1ea626631ddd6de14a8ff47fb87af2"
+    },
+    {
+      "path": "eval/last_run.json",
+      "bytes": 176255,
+      "sha256": "a6a1b0d7657cefb51f21e7a93413bcc52a8501d56795d4d3a60b6c92489bfb53"
+    },
+    {
+      "path": "eval/phase-6-cross-source-results.json",
+      "bytes": 959987,
+      "sha256": "bf229ae08c731da9a3ab033ec23bf7285a2e37737055a1dd4e25e27e8393536c"
+    },
+    {
+      "path": "eval/phase-6-diagnostic-after.json",
+      "bytes": 277553,
+      "sha256": "8fb7a86400107a49b2dd451b88d0c15af1bd359a99b90239fea939058542d90e"
+    },
+    {
+      "path": "eval/phase-6-diagnostic-results.json",
+      "bytes": 14829,
+      "sha256": "860b5b566914805f82fc2b98c208adac8fcec3569c5d1a9ac61bb8902d9a43eb"
+    },
+    {
+      "path": "eval/phase-6-final-golden-results.json",
+      "bytes": 11315677,
+      "sha256": "ee472e488af44cbc1fef34fe79cb5344304fdeece825fa893504654f2c4975ad"
+    },
+    {
+      "path": "eval/phase-6-final-source-audit.json",
+      "bytes": 1947572,
+      "sha256": "4e032b71a5a0b003b292b56787b71821721d692b7fc4449b273adfbbb40e0f09"
+    },
+    {
+      "path": "eval/phase-6-final-web-results.json",
+      "bytes": 951916,
+      "sha256": "502f872bef6db899b294ae3181056957b1ddfa2a595a2eb24ed1ec388bdfadfa"
+    },
+    {
+      "path": "eval/phase-6-golden-results.json",
+      "bytes": 8843604,
+      "sha256": "0af0c9eecd966958e19f66dc0412d16fca9849eb661aca98c59a3fcd8ae5a831"
+    },
+    {
+      "path": "eval/phase-6-source-audit.json",
+      "bytes": 1830982,
+      "sha256": "24b014186c91f081d34a69142f4df4d2b5c45d8aafda7c85a4fc2fdb56830969"
+    },
+    {
+      "path": "eval/phase-6-web-results.json",
+      "bytes": 886285,
+      "sha256": "7b29c4cec9a72ef6428e8b5f48d0125b4773718ccdee38436daf9cdfbe607d51"
+    },
+    {
+      "path": "eval/phase-6-web-source-audit.json",
+      "bytes": 68679,
+      "sha256": "376720d032b1d74127da1c43935a0c05bde46714f807cca2c5cdd5fc2ea2c498"
+    },
+    {
+      "path": "eval/rag-quality-diagnostic-refined-results.json",
+      "bytes": 1692561,
+      "sha256": "d1c64ea5397f9e67e2f07e5834e064c53a478ac2387b508072faab21de20b2fb"
+    },
+    {
+      "path": "eval/rag-quality-diagnostic-results.json",
+      "bytes": 1614687,
+      "sha256": "2ba873aa9fed1e12300f7c32009e259c19f71088523e629e9c4c7cf1a9b8f4ba"
+    },
+    {
+      "path": "eval/rag-quality-diagnostic-set.json",
+      "bytes": 10055,
+      "sha256": "c94050b123b831e6eeb734fa7978ea0736c976c3af32e52daa65164807963070"
+    },
+    {
+      "path": "eval/rag-quality-optimized-cross-source-audit.json",
+      "bytes": 123770,
+      "sha256": "d7a2b949dee76514c46f3b3ebac87a4a452785f56d2a93c4e3c956fa2cb0e35f"
+    },
+    {
+      "path": "eval/rag-quality-optimized-cross-source-results.json",
+      "bytes": 1034638,
+      "sha256": "f7d069fef468ea49bf534b25cc686f75579dbf7016ebefb0984fc6395d014cc3"
+    },
+    {
+      "path": "eval/rag-quality-optimized-golden-results.json",
+      "bytes": 12197427,
+      "sha256": "762c123b12fefaa1a501dfbf3764de0c0d6c73c8fd1d7e840656810414e23f6d"
+    },
+    {
+      "path": "eval/rag-quality-optimized-source-audit.json",
+      "bytes": 1976013,
+      "sha256": "e30c2f5ae80919fab37ad0c450a1e6b56c995fc4013bb35af0d803c393789965"
+    },
+    {
+      "path": "eval/rag-quality-optimized-web-results.json",
+      "bytes": 918951,
+      "sha256": "f50035f0a8b636235a7f8f84457ac2b3b752b1b7ab62843b441607d89f713cef"
+    },
+    {
+      "path": "eval/rag-quality-optimized-web-source-audit.json",
+      "bytes": 70314,
+      "sha256": "e6b5a3598f120380f6156fbcc46543b827b3c7d9a61dbdbc9ea59124ed5be383"
+    },
+    {
+      "path": "eval/review_keywords.py",
+      "bytes": 6800,
+      "sha256": "d3135cdd4e31a2c1a46663968c804391a44c76b0f01a8641d4b038aefc681915"
+    },
+    {
+      "path": "eval/run_eval.py",
+      "bytes": 16350,
+      "sha256": "c5c3fdcde6241fc149df31e31cfcee3a3cb646448775408edab4d2c0216ee8b5"
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "bytes": 8123,
+      "sha256": "ed1bcac5cc762332fb7e6f4041f178f6172f4ad370fd6a379874665152ee0a7c"
+    },
+    {
+      "path": "eval/test_faithfulness.py",
+      "bytes": 5003,
+      "sha256": "706f3d71ac70f46e47ed59297c48f293af7e2b258c6e1c44397b2fb5cd75b95e"
+    },
+    {
+      "path": "eval/test_quota_abort.py",
+      "bytes": 1389,
+      "sha256": "262bb1e96580de3f3ea9b4c6269a5f9a52aefbb3c7c7e1a2c3d23a30848f7ad3"
+    },
+    {
+      "path": "eval/test_run_lock.py",
+      "bytes": 2125,
+      "sha256": "4d73c87dec3f75a09ebf66c1161ed2ea77e777320d3b81bad083653a62a0d9de"
+    },
+    {
+      "path": "eval/test_run_metrics.py",
+      "bytes": 4393,
+      "sha256": "107ef451fde0ba2e81f73a6655d1e108bf0cbc86635bdb8bbff9d53de7007e6f"
+    },
+    {
+      "path": "eval/web_scenarios.json",
+      "bytes": 2200,
+      "sha256": "2d697c38163bf6aa523b7e9a742506fe9162d52f8ccd9adc5c2de10cc4559631"
+    }
+  ],
+  "usage_note": "Input bytes at phase-0 entry. Datasets, original results/snapshots/audits and content-scoring rules are frozen comparison inputs. Runtime code/configuration fingerprints identify the reference implementation and are expected to change only in their authorized later phase. Plan/report fingerprints record existing user changes, which this stage leaves untouched."
+}
