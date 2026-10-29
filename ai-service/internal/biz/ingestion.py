@@ -50,6 +50,26 @@ class IngestionBiz:
     def new_stages(self) -> dict:
         return initial_stages(self._embeddings.keyword_required)
 
+    async def _record_failure(self, doc: Document, name: str, error: str, parse_error: str) -> None:
+        """同文档锁内等待失败状态写完；重复取消不让收尾留在后台。"""
+        doc.stages[name] = stage_state("failed", error)
+
+        async def persist() -> None:
+            await self._documents.update_stages(doc.id, doc.stages)
+            if name == "parse":
+                await self._documents.update_status(doc.id, DocumentStatus.ERROR, parse_error)
+
+        task = asyncio.create_task(persist())
+        cancelled = None
+        while not task.done():
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError as exc:
+                cancelled = exc
+        task.result()
+        if cancelled is not None:
+            raise cancelled
+
     async def _step(
         self,
         doc: Document,
@@ -64,21 +84,15 @@ class IngestionBiz:
         try:
             await self._documents.update_stages(doc.id, doc.stages)
             await action()
-        except asyncio.CancelledError:
-            doc.stages[name] = stage_state("failed", "处理被中断，请重试此阶段")
+            doc.stages[name] = stage_state("completed")
             await self._documents.update_stages(doc.id, doc.stages)
-            if name == "parse":
-                await self._documents.update_status(doc.id, DocumentStatus.ERROR, "解析被中断")
+        except asyncio.CancelledError:
+            await self._record_failure(doc, name, "处理被中断，请重试此阶段", "解析被中断")
             raise
         except Exception as exc:
-            doc.stages[name] = stage_state("failed", str(exc) or type(exc).__name__)
-            await self._documents.update_stages(doc.id, doc.stages)
-            if name == "parse":
-                await self._documents.update_status(doc.id, DocumentStatus.ERROR, str(exc)[:1000])
+            await self._record_failure(doc, name, str(exc) or type(exc).__name__, str(exc)[:1000])
             logger.error("ingestion_stage_failed", document_id=doc.id, stage=name, error=str(exc))
             return False
-        doc.stages[name] = stage_state("completed")
-        await self._documents.update_stages(doc.id, doc.stages)
         return True
 
     async def process(
