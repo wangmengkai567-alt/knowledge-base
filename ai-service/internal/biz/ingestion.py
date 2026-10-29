@@ -176,29 +176,28 @@ class IngestionBiz:
         for doc in documents:
             async with self.lock(doc.id):
                 old = doc.stages
+                if any(name not in old for name in ("parse", "chunk")):
+                    raise ValueError("文档入库阶段未迁移，请先运行 cmd.migrate 再启动服务")
                 doc.stages = self.new_stages()
                 for name in ("parse", "chunk"):
-                    if old.get(name, {}).get("status") in ("failed", "running"):
-                        doc.stages[name] = stage_state(
-                            "failed", old[name].get("error") or "上次处理被中断"
-                        )
-                if doc.stages["parse"]["status"] != "failed":
-                    if doc.parsed_content and doc.parsed_content.strip():
-                        doc.stages["parse"] = stage_state("completed")
-                    elif doc.status in (
-                        DocumentStatus.ERROR,
-                        DocumentStatus.PROCESSING,
-                        DocumentStatus.PARSED,
-                    ):
-                        doc.stages["parse"] = stage_state(
-                            "failed", doc.error_message or "缺少有效解析文本"
-                        )
+                    doc.stages[name] = dict(old[name])
+                    if old[name]["status"] == "running":
+                        doc.stages[name] = stage_state("failed", "上次处理被中断，请重试此阶段")
+                # 当前轮次的完成标记是权威，不能以旧正文或旧分块存在推断新轮完成。
+                if doc.stages["parse"]["status"] == "completed" and (
+                    not doc.parsed_content or not doc.parsed_content.strip()
+                ):
+                    doc.stages["parse"] = stage_state("failed", "缺少有效解析文本")
                 await self._documents.update_stages(doc.id, doc.stages)
                 if doc.stages["parse"]["status"] != "completed":
                     if doc.stages["parse"]["status"] == "failed":
                         await self._documents.update_status(
                             doc.id, DocumentStatus.ERROR, doc.stages["parse"].get("error")
                         )
+                    continue
+
+                # 只有实际替换完成的分块才可核实索引；pending 可能仍保留上一轮分块。
+                if doc.stages["chunk"]["status"] != "completed":
                     continue
 
                 async def verify_chunks(doc: Document = doc) -> None:
@@ -210,9 +209,7 @@ class IngestionBiz:
                     ):
                         raise ValueError("缺少有效的连续分块，请重试分块")
 
-                if doc.stages["chunk"]["status"] == "failed" or not await self._step(
-                    doc, "chunk", verify_chunks
-                ):
+                if not await self._step(doc, "chunk", verify_chunks):
                     continue
 
                 async def verify_vectors(doc: Document = doc) -> None:
