@@ -1,0 +1,299 @@
+{
+  "scope": "Four web scenarios; scoped agent review, not independent/full-corpus semantic rating",
+  "scenario_pass_count": 1,
+  "scenario_count": 4,
+  "automatic_outcomes_pass_count": 2,
+  "phase_acceptance_passed": false,
+  "rows": [
+    {
+      "id": "W01",
+      "run_id": "601731ca-bd48-4f1e-a287-5df5bafc5232",
+      "status": "completed",
+      "error": null,
+      "actual_total_tokens": 11860,
+      "model_calls": 4,
+      "tool_calls": 2,
+      "elapsed_seconds": 15.406,
+      "all_event_snapshot_diagnostics_match": true,
+      "provider_requests": [
+        {
+          "endpoint": "extract",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 5.241,
+          "http_status": 200,
+          "request_id": "469b1e11-ba58-4052-b122-45eb9ef8d03a",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": 15
+        },
+        {
+          "endpoint": "search",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 3.692,
+          "http_status": 200,
+          "request_id": "4cc66581-4dee-46b0-bbf7-a95e0d394b06",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": null
+        }
+      ],
+      "checks": {
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "web_pages": [
+        {
+          "citation_id": 0,
+          "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+          "content_chars": 5000,
+          "truncated": true
+        }
+      ],
+      "manual_review": {
+        "scenario_passed": false,
+        "transport_passed": true,
+        "semantic_review": "Official body explains copying binaries from the distroless image but its COPY examples lose arguments. The complete answer command is supported by a search summary, not the requested official page. Automated completion/keywords do not satisfy the scenario.",
+        "official_body_has_complete_COPY": false
+      }
+    },
+    {
+      "id": "W02",
+      "run_id": "e4b71366-ced2-4dad-92df-0b9c9e657423",
+      "status": "tool_failed",
+      "error": "tool_failed: tool_error (URL_NOT_APPROVED)",
+      "actual_total_tokens": 6932,
+      "model_calls": 3,
+      "tool_calls": 3,
+      "elapsed_seconds": 11.266,
+      "all_event_snapshot_diagnostics_match": true,
+      "provider_requests": [
+        {
+          "endpoint": "search",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 3.724,
+          "http_status": 200,
+          "request_id": "cd569e7a-eb09-4c21-b3f0-fbbe137e7ccf",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": null
+        },
+        {
+          "endpoint": "search",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 3.442,
+          "http_status": 200,
+          "request_id": "ffe81090-d651-4155-98e9-7d370e88615f",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": null
+        }
+      ],
+      "checks": {
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": false
+      },
+      "web_pages": [],
+      "manual_review": {
+        "scenario_passed": false,
+        "semantic_review": "Both searches succeeded. The subsequent read batch included an official endpoint URL that was absent from the bounded returned sources; the entire read was correctly rejected before a provider extract request. The separate fixed search/read probe is not a successful W02 answer.",
+        "unapproved_url": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+      }
+    },
+    {
+      "id": "W03",
+      "run_id": "7ab82106-01d4-4a88-93f3-b5aaf1fad792",
+      "status": "tool_failed",
+      "error": "tool_failed: tool_error (INVALID_TOOL_ARGUMENTS)",
+      "actual_total_tokens": 11617,
+      "model_calls": 4,
+      "tool_calls": 4,
+      "elapsed_seconds": 10.016,
+      "all_event_snapshot_diagnostics_match": true,
+      "provider_requests": [
+        {
+          "endpoint": "extract",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 3.299,
+          "http_status": 200,
+          "request_id": "7ba42acb-270a-42b5-a475-3c38b699be67",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": 15
+        }
+      ],
+      "checks": {
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "web_pages": [
+        {
+          "citation_id": 0,
+          "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/",
+          "content_chars": 5000,
+          "truncated": true
+        }
+      ],
+      "manual_review": {
+        "scenario_passed": false,
+        "transport_passed": true,
+        "semantic_review": "Docker official body contains isolated-process/environment and shared-kernel explanations, and knowledge-base sources were obtained. A later 77-character search keyword violated maxLength=64; execution stopped without publishing an answer.",
+        "invalid_keyword_length": 77
+      }
+    },
+    {
+      "id": "W04",
+      "run_id": "b399e648-d02d-4aee-ae5b-e5f27ead1a4e",
+      "status": "insufficient",
+      "error": null,
+      "actual_total_tokens": 13582,
+      "model_calls": 5,
+      "tool_calls": 3,
+      "elapsed_seconds": 19.594,
+      "all_event_snapshot_diagnostics_match": true,
+      "provider_requests": [
+        {
+          "endpoint": "search",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 4.651,
+          "http_status": 200,
+          "request_id": "277de4da-bdf0-4c99-856e-215a1e8de8d9",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": null
+        },
+        {
+          "endpoint": "search",
+          "phase": "complete",
+          "category": "success",
+          "elapsed_seconds": 4.455,
+          "http_status": 200,
+          "request_id": "98893bfc-ffc1-474d-a7d5-d5c50771a5ce",
+          "exception_type": null,
+          "timeout_layer": null,
+          "client_timeout_seconds": 20.0,
+          "extract_timeout_seconds": null
+        }
+      ],
+      "checks": {
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "web_pages": [],
+      "manual_review": {
+        "scenario_passed": true,
+        "semantic_review": "Two real public searches returned unrelated public review regulations, not this project internal conclusion. Answer explicitly states lack of verifiable project original and does not substitute other project conclusions."
+      }
+    }
+  ],
+  "summary": {
+    "ran_at": "2026-10-30T04:20:19.460833+00:00",
+    "n_items": 4,
+    "expected_items": 4,
+    "n_errors": 2,
+    "hit_at_5": null,
+    "hit_at_10": null,
+    "mrr": null,
+    "answer_correctness": 0.3333,
+    "hallucination_rate": 0.0,
+    "n_answered": 1,
+    "refusal_accuracy": 1.0,
+    "missed_recall_rate": 0.0,
+    "hallucination_judge": "historical_heuristic_actual_model_materials",
+    "statuses": {
+      "completed": 1,
+      "tool_failed": 2,
+      "insufficient": 1
+    },
+    "stop_reasons": {
+      "answer_completed": 1,
+      "tool_error": 2,
+      "insufficient_material": 1
+    },
+    "protocol_versions": {
+      "5": 4
+    },
+    "exploration_stop_reasons": {
+      "repeated_call": 1,
+      "": 2,
+      "model_finished_exploration": 1
+    },
+    "actual_total_tokens": 43991,
+    "usage_note": "settled_tokens is known consumption only; null actual totals cannot be certified.",
+    "latency_p50_seconds": 11.266,
+    "latency_p95_seconds": 19.594,
+    "latency_max_seconds": 19.594,
+    "usage_totals": {
+      "model_calls": 16,
+      "tool_calls": 12,
+      "prompt_tokens": 42813,
+      "completion_tokens": 1178,
+      "estimated_input_tokens": 166752,
+      "unreported_model_calls": 0,
+      "settled_tokens": 43991
+    },
+    "repeated_executions": 0,
+    "semantic_review_pending": 4,
+    "cost_currency": null,
+    "cost_note": "Only model usage is recorded; no unverified prices or currency costs.",
+    "gates": {
+      "complete": true,
+      "no_errors": false,
+      "valid_evidence": true,
+      "within_budget": true,
+      "valid_citations": true,
+      "ordered_events": true,
+      "no_repeat_execution": true,
+      "expected_tools": false,
+      "usage_ledger": true,
+      "generation_protocol": true,
+      "scenario_outcomes": false,
+      "scenario_keywords": false
+    },
+    "automated_gates_passed": false,
+    "semantic_acceptance": "requires_manual_review"
+  },
+  "unchanged_failed_rules": [
+    "64 character keyword item limit",
+    "120 character combined query limit",
+    "only user-provided or returned URLs may be read"
+  ],
+  "additional_probes": {
+    "baseline": 3,
+    "fixed_search_read": 2,
+    "markdown": 1,
+    "advanced": 1,
+    "model_calls": 0
+  }
+}

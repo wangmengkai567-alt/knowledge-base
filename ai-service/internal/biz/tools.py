@@ -19,7 +19,7 @@ from pydantic import (
 from pydantic_core import PydanticCustomError
 
 from internal.biz.materials import InputBudget, MaterialProcessor, pack_sources
-from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult
+from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult, WebDiagnostic
 from internal.biz.web_access import normalize_public_url, validate_public_url
 from pkg.errors.base import APIError
 
@@ -240,11 +240,23 @@ class ReadOnlyToolExecutor:
         ]
 
     async def execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
+        started = monotonic()
         try:
             return await run_scoped(lambda: self._execute(call, session), session, self._timeout)
         except ToolError as exc:
+            diagnostic = exc.diagnostics
+            if diagnostic is None and exc.code == "TOOL_TIMEOUT" and call.name in ("web_search", "web_read"):
+                diagnostic = WebDiagnostic(
+                    endpoint="search" if call.name == "web_search" else "extract",
+                    phase="tool_execution", category="timeout",
+                    elapsed_seconds=round(monotonic() - started, 3),
+                    exception_type=type(exc).__name__,
+                    timeout_layer="run" if session.deadline <= started + self._timeout else "tool",
+                )
             return ToolResult(
-                call.id, call.name, "error", errors=[ToolFailure(exc.code, exc.message)]
+                call.id, call.name, "error",
+                errors=[ToolFailure(exc.code, exc.message, diagnostics=diagnostic)],
+                diagnostics=[diagnostic] if diagnostic is not None else [],
             )
         except APIError as exc:
             return ToolResult(
@@ -309,7 +321,8 @@ class ReadOnlyToolExecutor:
         elif isinstance(arguments, WebSearchArguments):
             web = await self._web.search(" ".join(arguments.keywords), arguments.max_results)
             result = ToolResult(
-                call.id, call.name, "success", sources=web.sources, errors=web.errors
+                call.id, call.name, "success", sources=web.sources, errors=web.errors,
+                diagnostics=web.diagnostics,
             )
         else:
             urls = list(dict.fromkeys(normalize_public_url(url) for url in arguments.urls))
@@ -319,7 +332,8 @@ class ReadOnlyToolExecutor:
             for source in web.sources:
                 source.title = source.title or session.readable_urls[source.url]
             result = ToolResult(
-                call.id, call.name, "success", sources=web.sources, errors=web.errors
+                call.id, call.name, "success", sources=web.sources, errors=web.errors,
+                diagnostics=web.diagnostics,
             )
         self._bound_result(result)
         if call.name == "web_search":

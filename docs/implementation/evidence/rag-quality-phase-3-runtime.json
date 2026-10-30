@@ -1,0 +1,29 @@
+{
+  "model": "qwen3.8-flash",
+  "service_host": "maas.qianwenaiapi.com",
+  "embedding_model": "qwen3.7-text-embedding-flash",
+  "reranker_model": "qwen3.7-text-rerank",
+  "limits": {
+    "model_calls": 6,
+    "tool_calls": 10,
+    "total_tokens": 64000,
+    "timeout": 120
+  },
+  "timeouts": {
+    "tavily_client_io_and_total": 20,
+    "extract": 15,
+    "tool": 30,
+    "run": 120
+  },
+  "extract_depth": "basic",
+  "extract_format": "text",
+  "page_chars": 5000,
+  "source_sha256": {
+    "internal/data/web/tavily.py": "eb018b72589a267b6e6e8523bf8cfb1b49dd967af7e7747edbf3a2bcbb3cfc09",
+    "internal/biz/tool_types.py": "e0fdd32422672b16770c40d9aae8ef73b241a5fa823b31dd9f45dcbd1a673ba3",
+    "internal/biz/tools.py": "ca518db400a6b499037b9709fe527b96be5ba2cab92c0e22f1b9cfa03ae31c7e",
+    "internal/biz/rag.py": "8866dcdd7d3ed419483657ee21a8bb3ab6e43fdf763dc4db1d97bc33c6948a96",
+    "internal/service/rag.py": "deb7d8004fac7bdef83d1e2582bb6fb3a12f6e0e6e1db526f65ba74d4444ecab",
+    "internal/conf/config.py": "a8dbad14afe28cde42b40ca2959930b148719d2ba5027405e954eb472cf56ba7"
+  }
+}

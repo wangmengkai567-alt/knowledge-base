@@ -2,7 +2,7 @@
 
 日期：2026-10-29（中国标准时间）。
 
-状态：第 0、1 阶段已执行，见[第 1 阶段实施记录](../implementation/rag-quality-phase-1-report.md)。第 2 阶段代码改造与小样本验证已执行，见[第 2 阶段实施记录](../implementation/rag-quality-phase-2-report.md)。后续按用户确认将单项关键词上限放宽至 64 字符，W02 成功搜索和读取网页，但后续生成 71 字符短语仍被拒绝，工具参数契约验收未通过，见[长度调整记录](../implementation/rag-quality-phase-2-keyword-limit-report.md)；第 3—5 阶段未执行。本文承接 [上一轮优化报告](../implementation/rag-quality-optimization-report.md)，不替代原重构计划或历史评测记录。
+状态：第 0、1 阶段已执行，见[第 1 阶段实施记录](../implementation/rag-quality-phase-1-report.md)。第 2 阶段代码改造与小样本验证已执行，见[第 2 阶段实施记录](../implementation/rag-quality-phase-2-report.md)。后续按用户确认将单项关键词上限放宽至 64 字符，W02 成功搜索和读取网页，但后续生成 71 字符短语仍被拒绝，工具参数契约验收未通过，见[长度调整记录](../implementation/rag-quality-phase-2-keyword-limit-report.md)。第 3 阶段诊断改造与四道联网题验证已执行，正文代码缺失、网址选择与超长参数问题使阶段验收仍未通过，见[第 3 阶段实施记录](../implementation/rag-quality-phase-3-report.md)；第 4、5 阶段未执行。本文承接 [上一轮优化报告](../implementation/rag-quality-optimization-report.md)，不替代原重构计划或历史评测记录。
 
 ## 一、要解决的问题
 
@@ -186,6 +186,8 @@ W04 已实际搜索成功。W01、W03 的正文读取出现 HTTP 连接或传输
 ### 验证与完成标准
 
 重新执行全部 4 道联网场景。W01、W03 必须取得可支撑问题的正文并有来源映射；W02 应发出合法查询并完成场景要求的搜索与读取；W04 真实检索后正确说明资料不足。失败必须能定位类别。若仍有外部连接故障，明确记录未通过，不用知识库题集的改善替代联网验收。
+
+本次执行范围调整（2026-10-30）：按用户要求仅做必要的少量问题测试，运行 W01—W04 各一次，不运行完整知识库题集；另用临时诊断和固定公开端点探针定位异常、时限与正文缺失。原结果不覆盖，未通过项保持未通过，详见[实施记录](../implementation/rag-quality-phase-3-report.md)。
 
 ## 八、阶段 4：跨库证据覆盖与问题相关压缩
 

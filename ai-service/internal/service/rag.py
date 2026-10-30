@@ -123,6 +123,7 @@ class RAGService:
                                 "call_id": result.call_id, "tool": result.name,
                                 "status": result.status,
                                 "errors": [asdict(error) for error in result.errors],
+                                "web_diagnostics": [asdict(item) for item in result.diagnostics],
                                 "sources": [source_dto(source).model_dump() for source in result.sources],
                             }
                             for result in observed.tool_results

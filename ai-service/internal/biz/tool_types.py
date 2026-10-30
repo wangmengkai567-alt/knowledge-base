@@ -39,23 +39,42 @@ class ToolCall:
 
 
 @dataclass(frozen=True)
+class WebDiagnostic:
+    endpoint: str
+    phase: str
+    category: str
+    elapsed_seconds: float
+    http_status: int | None = None
+    request_id: str | None = None
+    exception_type: str | None = None
+    timeout_layer: str | None = None
+    client_timeout_seconds: float | None = None
+    extract_timeout_seconds: float | None = None
+
+
+@dataclass(frozen=True)
 class ToolFailure:
     code: str
     message: str
     url: str | None = None
+    diagnostics: WebDiagnostic | None = None
 
 
 class ToolError(Exception):
-    def __init__(self, code: str, message: str) -> None:
+    def __init__(
+        self, code: str, message: str, *, diagnostics: WebDiagnostic | None = None
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
+        self.diagnostics = diagnostics
 
 
 @dataclass
 class WebResult:
     sources: list[WebSource] = field(default_factory=list)
     errors: list[ToolFailure] = field(default_factory=list)
+    diagnostics: list[WebDiagnostic] = field(default_factory=list)
 
 
 @dataclass
@@ -65,6 +84,7 @@ class ToolResult:
     status: Literal["success", "empty", "partial", "error"]
     sources: list[AnswerSource | WebSource] = field(default_factory=list)
     errors: list[ToolFailure] = field(default_factory=list)
+    diagnostics: list[WebDiagnostic] = field(default_factory=list)
 
     def to_message(self) -> dict:
         sources = []

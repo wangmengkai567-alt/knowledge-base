@@ -1,0 +1,367 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "ConnectError",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "connect",
+        "category": "connection",
+        "elapsed_seconds": 2.11,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ConnectError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "ReadError",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "read",
+        "category": "read",
+        "elapsed_seconds": 1.515,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ReadError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "WriteError",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "write",
+        "category": "write",
+        "elapsed_seconds": 1.235,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "WriteError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "ProxyError",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "connect",
+        "category": "proxy",
+        "elapsed_seconds": 1.171,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ProxyError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "RemoteProtocolError",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "request",
+        "category": "remote_protocol",
+        "elapsed_seconds": 1.157,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "RemoteProtocolError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "ConnectTimeout",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "connect",
+        "category": "timeout",
+        "elapsed_seconds": 1.25,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ConnectTimeout",
+        "timeout_layer": "client_io",
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "ReadTimeout",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "read",
+        "category": "timeout",
+        "elapsed_seconds": 1.172,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ReadTimeout",
+        "timeout_layer": "client_io",
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "WriteTimeout",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "write",
+        "category": "timeout",
+        "elapsed_seconds": 1.14,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "WriteTimeout",
+        "timeout_layer": "client_io",
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "PoolTimeout",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "pool",
+        "category": "timeout",
+        "elapsed_seconds": 1.344,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "PoolTimeout",
+        "timeout_layer": "client_io",
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "TLS",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "tls",
+        "category": "tls",
+        "elapsed_seconds": 1.453,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ConnectError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "HTTP status",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "response_headers",
+        "category": "http_status",
+        "elapsed_seconds": 1.109,
+        "http_status": 503,
+        "request_id": "safe-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "bad results",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "response_format",
+        "category": "invalid_response",
+        "elapsed_seconds": 0.984,
+        "http_status": 200,
+        "request_id": "safe-trace-1",
+        "exception_type": "ValueError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "missing failed results",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "response_format",
+        "category": "invalid_response",
+        "elapsed_seconds": 0.985,
+        "http_status": 200,
+        "request_id": "safe-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "missing URL",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "response_format",
+        "category": "invalid_response",
+        "elapsed_seconds": 1.015,
+        "http_status": 200,
+        "request_id": "safe-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "empty content",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "extract_result",
+        "category": "empty_content",
+        "elapsed_seconds": 1.0,
+        "http_status": 200,
+        "request_id": "safe-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "per URL failure",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "extract_result",
+        "category": "extract_failed",
+        "elapsed_seconds": 0.985,
+        "http_status": 200,
+        "request_id": "safe-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "success",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "complete",
+        "category": "success",
+        "elapsed_seconds": 0.984,
+        "http_status": 200,
+        "request_id": "body-trace-1",
+        "exception_type": null,
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "response-body interruption retains HTTP 200",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "read",
+        "category": "read",
+        "elapsed_seconds": 1.75,
+        "http_status": 200,
+        "request_id": "stream-trace",
+        "exception_type": "ReadError",
+        "timeout_layer": null,
+        "client_timeout_seconds": 20,
+        "extract_timeout_seconds": 15
+      }
+    },
+    {
+      "case": "request wall timeout",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "search",
+        "phase": "request",
+        "category": "timeout",
+        "elapsed_seconds": 1.297,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "TimeoutError",
+        "timeout_layer": "client_total",
+        "client_timeout_seconds": 0.01,
+        "extract_timeout_seconds": null
+      }
+    },
+    {
+      "case": "preflight DNS",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "extract",
+        "phase": "url_validation",
+        "category": "dns",
+        "elapsed_seconds": 0.0,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "OSError",
+        "timeout_layer": null,
+        "client_timeout_seconds": null,
+        "extract_timeout_seconds": null
+      }
+    },
+    {
+      "case": "tool deadline",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "search",
+        "phase": "tool_execution",
+        "category": "timeout",
+        "elapsed_seconds": 0.0,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ToolError",
+        "timeout_layer": "tool",
+        "client_timeout_seconds": null,
+        "extract_timeout_seconds": null
+      }
+    },
+    {
+      "case": "run deadline",
+      "passed": true,
+      "diagnostics": {
+        "endpoint": "search",
+        "phase": "tool_execution",
+        "category": "timeout",
+        "elapsed_seconds": 0.0,
+        "http_status": null,
+        "request_id": null,
+        "exception_type": "ToolError",
+        "timeout_layer": "run",
+        "client_timeout_seconds": null,
+        "extract_timeout_seconds": null
+      }
+    },
+    {
+      "case": "trace ID allowlist",
+      "passed": true,
+      "diagnostics": null
+    },
+    {
+      "case": "invalid extract/client timeout configuration",
+      "passed": true,
+      "diagnostics": null
+    }
+  ]
+}

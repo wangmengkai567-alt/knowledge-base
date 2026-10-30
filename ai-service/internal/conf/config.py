@@ -495,7 +495,7 @@ class TavilyConfig(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", env_prefix="TAVILY_", extra="ignore"
     )
     api_key: str = Field(default="", repr=False)
-    timeout: float = Field(default=20, gt=0, le=20)
+    timeout: float = Field(default=20, ge=2, le=20)
     search_limit: int = Field(default=5, ge=1, le=5)
     summary_chars: int = Field(default=1200, ge=100, le=1200)
     page_chars: int = Field(default=5000, ge=100, le=5000)

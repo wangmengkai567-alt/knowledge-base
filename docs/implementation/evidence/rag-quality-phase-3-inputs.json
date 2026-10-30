@@ -1,0 +1,78 @@
+{
+  "git_status": "",
+  "files": [
+    {
+      "path": "ai-service/internal/data/web/tavily.py",
+      "crlf": 0,
+      "lf": 169,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "crlf": 0,
+      "lf": 94,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "crlf": 0,
+      "lf": 344,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "crlf": 500,
+      "lf": 0,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/service/rag.py",
+      "crlf": 168,
+      "lf": 0,
+      "bom": false
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "crlf": 0,
+      "lf": 270,
+      "bom": false
+    },
+    {
+      "path": "eval/README.md",
+      "crlf": 138,
+      "lf": 0,
+      "bom": false
+    }
+  ],
+  "live_before": [
+    {
+      "case": "search",
+      "seconds": 3.076,
+      "sources": 2
+    },
+    {
+      "case": "W01",
+      "seconds": 2.452,
+      "sources": 1,
+      "COPY_present": true
+    },
+    {
+      "case": "W03",
+      "seconds": 3.908,
+      "sources": 1,
+      "container_present": true
+    }
+  ],
+  "reproduced_diagnostic_defect": {
+    "exception": "ReadError",
+    "code": "TOOL_DEPENDENCY_FAILED",
+    "diagnostics": null,
+    "assertion": "transport exception loses endpoint, phase, category and elapsed time"
+  },
+  "timeouts": {
+    "client": 20,
+    "extract": 15,
+    "tool": 30,
+    "run": 120
+  }
+}

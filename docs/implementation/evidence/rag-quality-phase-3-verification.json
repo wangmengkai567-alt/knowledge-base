@@ -1,0 +1,180 @@
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "name": "encoding_and_BOM:ai-service/internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings:ai-service/internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:ai-service/internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings:ai-service/internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:ai-service/internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings:ai-service/internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "encoding_and_BOM:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "config_CRLF",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches:internal/conf/config.py",
+      "passed": true
+    },
+    {
+      "name": "no_test_changes",
+      "passed": true
+    },
+    {
+      "name": "index_untouched",
+      "passed": true
+    },
+    {
+      "name": "only_phase_3_artifacts_added",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-advanced-probe.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-markdown-probe.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-review.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-runtime.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-search-read-probe.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-3-source-audit.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/rag-quality-phase-3-report.md",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:eval/rag-quality-phase-3-web-results.json",
+      "passed": true
+    },
+    {
+      "name": "git_diff_check",
+      "passed": true
+    }
+  ],
+  "existing_read_only_tool_checks": 8,
+  "existing_eval_checks": 24,
+  "temporary_diagnostics": 24,
+  "kb_source_checks": 19,
+  "ruff_business_files": "passed",
+  "ruff_config": "pre-existing SIM102 reproduced on HEAD",
+  "live_questions": 4,
+  "model_calls": 16,
+  "actual_total_tokens": 43991,
+  "unknown_usage_calls": 0,
+  "phase_acceptance_passed": false,
+  "modified_files": [
+    "ai-service/internal/biz/rag.py",
+    "ai-service/internal/biz/tool_types.py",
+    "ai-service/internal/biz/tools.py",
+    "ai-service/internal/conf/config.py",
+    "ai-service/internal/data/web/tavily.py",
+    "ai-service/internal/service/rag.py",
+    "docs/plans/rag-quality-remediation-plan.md",
+    "eval/README.md"
+  ],
+  "new_artifacts": [
+    "docs/implementation/evidence/rag-quality-phase-3-advanced-probe.json",
+    "docs/implementation/evidence/rag-quality-phase-3-diagnostics.json",
+    "docs/implementation/evidence/rag-quality-phase-3-inputs.json",
+    "docs/implementation/evidence/rag-quality-phase-3-markdown-probe.json",
+    "docs/implementation/evidence/rag-quality-phase-3-review.json",
+    "docs/implementation/evidence/rag-quality-phase-3-runtime.json",
+    "docs/implementation/evidence/rag-quality-phase-3-search-read-probe.json",
+    "docs/implementation/evidence/rag-quality-phase-3-source-audit.json",
+    "docs/implementation/rag-quality-phase-3-report.md",
+    "eval/rag-quality-phase-3-web-results.json"
+  ],
+  "git_diff_check_exit_code": 0,
+  "line_ending_notice": "Git core.autocrlf predicts LF-to-CRLF on future Git writes; current files retain their original line endings. No normalization or config change performed."
+}

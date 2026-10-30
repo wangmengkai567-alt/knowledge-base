@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import replace
+from dataclasses import asdict, replace
 from time import monotonic
 from typing import TYPE_CHECKING
 
@@ -307,8 +307,8 @@ class RAGBiz:
                     status=result_tool.status,
                     source_count=len(result_tool.sources),
                     errors=[error.code for error in result_tool.errors],
-                    error_summaries=[{"code": error.code, "message": error.message}
-                                     for error in result_tool.errors],
+                    error_summaries=[asdict(error) for error in result_tool.errors],
+                    web_diagnostics=[asdict(item) for item in result_tool.diagnostics],
                 )
                 self._check_active(run, session)
                 if result_tool.errors or result_tool.status in ("error", "partial"):

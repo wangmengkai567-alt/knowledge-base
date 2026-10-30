@@ -136,3 +136,11 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 ```
 
 放宽前的第 2 阶段测试覆盖 5 道不同问题、7 次运行，分清初轮和最终实现。放宽前的最终 A22 正常完成；当时 W02 即使请求严格工具模式仍生成 37 字符关键词，被 32 字符的本地限制拒绝。放宽至 64 字符后的独立结果见[长度调整记录](../docs/implementation/rag-quality-phase-2-keyword-limit-report.md)。单题子集未覆盖的基线指标可能仍显示未满足；保留原始摘要，不为小样本改分或将其当作完整质量评估。结果、服务能力缺口与检查详见[第 2 阶段实施记录](../docs/implementation/rag-quality-phase-2-report.md)。
+
+## 问答质量整改第 3 阶段：联网诊断
+
+网页请求诊断随 `tool_finished.web_diagnostics` 与快照 `tool_results.web_diagnostics` 保存；错误项的 `diagnostics` 保留端点、发生阶段、类别、异常类名、耗时、HTTP 状态和经白名单检查的 request_id。未收到响应时状态为 null。HTTP 200 后仍分别检查逐网址提取失败、空正文和格式错误；成功传输不代表取得了完整可答正文。
+
+默认时限为供应商提取 15 秒、客户端阶段及请求总时限 20 秒、工具 30 秒、单题 120 秒；外层可能按单题剩余时间提前终止，记录具体超时层级。无自动重试、直接抓取或供应商切换。
+
+本次按用户要求只运行 W01—W04 四题各一次，结果另存 `rag-quality-phase-3-web-results.json`。W01 正文取得但 COPY 代码参数缺失；W02 选择未授权网址；W03 正文读取成功后生成超长关键词；W04 正确说明资料不足。阶段验收未通过，自动 completed 不能替代正文支撑核对。改动、有限探针及逐题复核见[第 3 阶段实施记录](../docs/implementation/rag-quality-phase-3-report.md)。
