@@ -1,0 +1,906 @@
+{
+  "cases": [
+    {
+      "id": "A01",
+      "run_id": "05cf8778-5246-460f-905c-a82858245b7a",
+      "actual_tokens": 13464,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A02",
+      "run_id": "0f7ebce5-656d-4902-8034-aae25a0423f1",
+      "actual_tokens": 3385,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A03",
+      "run_id": "fef0fa4d-7d9e-42cd-ad9e-858770e943b7",
+      "actual_tokens": 3334,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A04",
+      "run_id": "0a6684ad-71cf-4393-85d0-335c4d981824",
+      "actual_tokens": 934,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A05",
+      "run_id": "0a9be0f9-4189-449f-81bf-a504b576fa0f",
+      "actual_tokens": 947,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A06",
+      "run_id": "5d7cbed3-e986-411f-b8a0-6ef3df64f67a",
+      "actual_tokens": 2778,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A07",
+      "run_id": "6e6dfc75-fe56-4668-89b8-c6268c07cd4f",
+      "actual_tokens": 3449,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A08",
+      "run_id": "a27c1bf3-8051-4bbb-9d6f-1b00733b7906",
+      "actual_tokens": 6621,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A09",
+      "run_id": "64a68452-fe7c-4e40-8208-09953375e809",
+      "actual_tokens": 10135,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A10",
+      "run_id": "8814a2c4-3b11-4d17-ac1a-b5f6df16546c",
+      "actual_tokens": 6523,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A11",
+      "run_id": "ed237b51-3bb8-4aac-af1e-ed0bbcf505ed",
+      "actual_tokens": 6518,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A12",
+      "run_id": "5968d806-0af9-4231-bb55-53dd58e241f4",
+      "actual_tokens": 6458,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A13",
+      "run_id": "83d20033-3239-4e4c-8682-d636473405a4",
+      "actual_tokens": 3389,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A14",
+      "run_id": "75325f1c-9a02-4fec-b0e2-8a4d7bb779d2",
+      "actual_tokens": 6470,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A15",
+      "run_id": "a0bea979-bb52-4d4a-943b-51ba09de7602",
+      "actual_tokens": 17252,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A16",
+      "run_id": "fc1ccaf8-b0ef-4499-ab80-45303fe5a483",
+      "actual_tokens": 6524,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A17",
+      "run_id": "4f98b903-e1bf-48e6-afe2-e1d8bcfcb7b5",
+      "actual_tokens": 6611,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A18",
+      "run_id": "d6112e11-1671-40f0-87cc-f38a4e112ab4",
+      "actual_tokens": 3469,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A19",
+      "run_id": "096cba02-6f75-44d9-904c-51a838628f83",
+      "actual_tokens": 3413,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A20",
+      "run_id": "69b24ef8-a396-44f9-b475-ac78c807a0d6",
+      "actual_tokens": 13420,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A21",
+      "run_id": "264c2490-60d3-4e08-80c1-2240e406a910",
+      "actual_tokens": 12864,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A22",
+      "run_id": "d2f0552e-a933-4b18-85f5-ed9a3b2a4c27",
+      "actual_tokens": 3380,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A23",
+      "run_id": "767c9601-d5f0-45b0-8576-b44103c90216",
+      "actual_tokens": 3340,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A24",
+      "run_id": "d31215a4-d8a6-4c8a-a66a-960b36f4932c",
+      "actual_tokens": 6260,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A25",
+      "run_id": "91d7f7eb-3a2b-4fc5-8224-d60e9f6f5466",
+      "actual_tokens": 6444,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A26",
+      "run_id": "c9fd6aed-4dbe-46bd-a895-99669643f54f",
+      "actual_tokens": 12667,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A27",
+      "run_id": "7faa6d76-a115-4af1-bd46-48fecf7f63fd",
+      "actual_tokens": 3393,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "A28",
+      "run_id": "6ebddcce-0065-4d12-b1b7-3503c190d66f",
+      "actual_tokens": 6394,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B01",
+      "run_id": "c87cbe0a-58a1-47c6-846b-6581a94495b7",
+      "actual_tokens": 6911,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B02",
+      "run_id": "0eb9b39c-9bee-4997-b42f-bc56db19e07a",
+      "actual_tokens": 3537,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B03",
+      "run_id": "b33e4ab8-d333-49f6-84a6-5d41f46d1030",
+      "actual_tokens": 12593,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B04",
+      "run_id": "d3b1ca2d-2f92-4938-b15f-4af187ef616f",
+      "actual_tokens": 951,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B05",
+      "run_id": "ddf2f035-c49b-42ec-83b7-920177ea87be",
+      "actual_tokens": 930,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B06",
+      "run_id": "3e153507-0ccf-4139-b042-3900ca0d34f9",
+      "actual_tokens": 6825,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B07",
+      "run_id": "15d49d1a-fd55-4fd5-929f-694f46689148",
+      "actual_tokens": 3286,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B08",
+      "run_id": "ca03cfc1-841f-403c-a928-97d22848bb31",
+      "actual_tokens": 3438,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B09",
+      "run_id": "2a2c2dce-132f-486e-a744-7a00aaa2105c",
+      "actual_tokens": 3505,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B10",
+      "run_id": "fe9cd0ae-6a60-40af-8cd9-40876d90e202",
+      "actual_tokens": 6842,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B11",
+      "run_id": "cfd06bf4-7ae7-4eca-a574-5d7a042c1ee8",
+      "actual_tokens": 2859,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B12",
+      "run_id": "08736c13-e6bb-4fd4-9c61-ee065a272ca3",
+      "actual_tokens": 3542,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B13",
+      "run_id": "a0b8606b-fdab-4415-a42c-03b92235bc94",
+      "actual_tokens": 3608,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B14",
+      "run_id": "959762e5-12e3-48e9-ab41-4c8e96ade2a2",
+      "actual_tokens": 13048,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B15",
+      "run_id": "cac70ecf-ce59-4e93-b3ff-b8e5183f4c3c",
+      "actual_tokens": 3419,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B16",
+      "run_id": "6ed62b23-4452-46b1-9ee3-cf05f40efe0a",
+      "actual_tokens": 6613,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B17",
+      "run_id": "00eb5013-8c88-4d00-8e0e-e8113f85eee9",
+      "actual_tokens": 3528,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B18",
+      "run_id": "74597934-d292-4513-8eb3-fee6d171aee9",
+      "actual_tokens": 3708,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B19",
+      "run_id": "de646d26-d547-4f48-bfdf-6714829d8d50",
+      "actual_tokens": 3685,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B20",
+      "run_id": "24a65606-a4e0-438d-826a-c43572eddc3a",
+      "actual_tokens": 2975,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "B21",
+      "run_id": "5b71c839-793f-4eb9-9afd-77ad4996019d",
+      "actual_tokens": 3461,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C01",
+      "run_id": "4e919cdf-8365-4da9-b976-0e9056c05b79",
+      "actual_tokens": 3431,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C02",
+      "run_id": "b4aca28b-c0bb-4544-9c5c-3377d47d90df",
+      "actual_tokens": 2936,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C03",
+      "run_id": "25192424-f331-4b8a-933c-8bf0046c3e86",
+      "actual_tokens": 6396,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C04",
+      "run_id": "e7a179ca-415f-440d-b4b1-4bc059de53a1",
+      "actual_tokens": 3266,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C05",
+      "run_id": "2eae9570-4d24-433f-af12-2d380f926e17",
+      "actual_tokens": 7697,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C06",
+      "run_id": "6b9cf2a6-84b0-4e3f-a9bb-f8115292db70",
+      "actual_tokens": 10000,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C07",
+      "run_id": "acb226fb-7d71-425c-92d2-55bbb244aa17",
+      "actual_tokens": 3323,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C08",
+      "run_id": "fbe4cf0b-f976-4b75-b331-b3b03235e7df",
+      "actual_tokens": 6224,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C09",
+      "run_id": "169487a3-64b8-4747-a2e5-0fd3a0e427ab",
+      "actual_tokens": 3263,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "C10",
+      "run_id": "cf2af69f-5013-456b-b20e-e2d0ba66ab40",
+      "actual_tokens": 2931,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D01",
+      "run_id": "09aab560-278d-401f-b766-809900bd548a",
+      "actual_tokens": 3638,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D02",
+      "run_id": "464b6e47-d4c3-40ab-b6d9-ab685ef35a40",
+      "actual_tokens": 6592,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D03",
+      "run_id": "46744392-49d9-4b4c-b91c-116251bafe3b",
+      "actual_tokens": 2556,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D04",
+      "run_id": "ea600ba6-c6e7-412e-9d05-ea8e2914a24d",
+      "actual_tokens": 3660,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D05",
+      "run_id": "a3f312ff-b7e7-40dd-af8a-e31c5853bf34",
+      "actual_tokens": 6855,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D06",
+      "run_id": "529439db-10a3-460c-9e85-0b1d82c00252",
+      "actual_tokens": 3713,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D07",
+      "run_id": "0267cbd6-81b5-4838-a8a0-879df0100a07",
+      "actual_tokens": 951,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D08",
+      "run_id": "3007c480-da19-4079-89fa-b5b229267101",
+      "actual_tokens": 17097,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D09",
+      "run_id": "33c7cdfe-5379-4c45-8fdd-ffda3b8bc55d",
+      "actual_tokens": 14091,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D10",
+      "run_id": "41228bd3-85f9-44e3-b509-4925c2b14442",
+      "actual_tokens": 3014,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D11",
+      "run_id": "522820cf-757b-4513-bda8-b10a3f6a321f",
+      "actual_tokens": 9477,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "D12",
+      "run_id": "7b8d01a2-9443-46fb-bb14-41d3cd67c24e",
+      "actual_tokens": 17112,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E01",
+      "run_id": "1dda15fe-c2fa-4de8-a694-198d005bb040",
+      "actual_tokens": 6959,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E02",
+      "run_id": "9c52aebc-3a81-45ce-8d66-9879ce24df9b",
+      "actual_tokens": 3397,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E03",
+      "run_id": "87afb1de-cdfd-4ce7-8f06-fc15210ef6ef",
+      "actual_tokens": 3515,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E04",
+      "run_id": "d805469e-b01c-4ce4-a85c-34d5d212f482",
+      "actual_tokens": 3828,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E05",
+      "run_id": "2eacdb1f-8df9-47ee-93c4-4f9470bbb122",
+      "actual_tokens": 3713,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E06",
+      "run_id": "1ffa8491-79d5-4d2b-8392-cd38804743ee",
+      "actual_tokens": 9232,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E07",
+      "run_id": "0a00e5a6-4fcd-4c98-a7c1-84d03307f094",
+      "actual_tokens": 3428,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E08",
+      "run_id": "ffff6b10-438f-4da5-85de-fa81e6a7d47a",
+      "actual_tokens": 3393,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E09",
+      "run_id": "730056ec-b8e9-42b9-9b47-e03e4328a3cc",
+      "actual_tokens": 3225,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E10",
+      "run_id": "6377d04e-e31a-4c85-b01b-17425bee3d1d",
+      "actual_tokens": 3203,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E11",
+      "run_id": "4df38037-b4f9-451c-bc10-86b17fcf7abf",
+      "actual_tokens": 3398,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E12",
+      "run_id": "e4609f83-b1ae-4108-a3f8-6b197f28dfdf",
+      "actual_tokens": 10116,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E13",
+      "run_id": "0b2d5ac6-0f08-4df2-85fc-e48422c00e98",
+      "actual_tokens": 3400,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E14",
+      "run_id": "ba49d127-5257-40c7-a1a2-cd06343a125c",
+      "actual_tokens": 9926,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E15",
+      "run_id": "a32983db-eacb-4b46-a05f-d914f33de331",
+      "actual_tokens": 16607,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "E16",
+      "run_id": "592f3ed8-9a3d-4156-b98a-895879f7560f",
+      "actual_tokens": 3327,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "F01",
+      "run_id": "d79ad833-135d-4fc9-bfb3-b5ff7015b221",
+      "actual_tokens": 13231,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "F02",
+      "run_id": "bbd6042d-1264-47d9-acde-e55debd50a3b",
+      "actual_tokens": 933,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "F03",
+      "run_id": "7e93b6c0-5f85-47f4-ace5-ea70591207e0",
+      "actual_tokens": 16835,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G01",
+      "run_id": "78839748-86cd-4b03-b872-effa279add7a",
+      "actual_tokens": 2815,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G02",
+      "run_id": "80722e81-6026-4b86-bbd2-de42416d47c5",
+      "actual_tokens": 2753,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G03",
+      "run_id": "c94e0f72-77a3-46b8-9e8e-0ba6ea6270e4",
+      "actual_tokens": 2734,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G04",
+      "run_id": "e94032cc-f5b3-4b17-ae18-603192527171",
+      "actual_tokens": 2689,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G05",
+      "run_id": "21c20293-adc4-4038-add0-43e944dda9e5",
+      "actual_tokens": 2753,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G06",
+      "run_id": "cb527fa6-c50f-4b51-a611-fe4d19d58234",
+      "actual_tokens": 2770,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G07",
+      "run_id": "6237fe55-82f1-4b38-aebf-8888abfbe1a4",
+      "actual_tokens": 2724,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G08",
+      "run_id": "03c1ffa9-890a-41bb-bc3b-d3deeb4033de",
+      "actual_tokens": 2783,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G09",
+      "run_id": "2d7ff29a-9f63-4955-aa9e-eab85bc48c80",
+      "actual_tokens": 2792,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    },
+    {
+      "id": "G10",
+      "run_id": "1337c9fd-0b9d-4ad8-8f61-5a6a3d1ff2d9",
+      "actual_tokens": 2766,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "precall_reservations_fit": true,
+      "saved_snapshot_matches": true
+    }
+  ],
+  "frozen_files_unchanged": 47,
+  "all_passed": true
+}

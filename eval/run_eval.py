@@ -234,6 +234,8 @@ def summary(rows: list[dict], baseline: dict, expected: int) -> dict:
         no_repeat_execution=not result["repeated_executions"],
         expected_tools=all(r.get("tool_selection_ok") is True for r in rows),
     )
+    if any(r.get("protocol_version") == 5 for r in rows):
+        gates["usage_ledger"] = all(r.get("ledger_valid") is True for r in rows)
     if not baseline:
         gates["scenario_outcomes"] = all(
             r.get("status") == ("completed" if r["answerable"] else "insufficient") for r in rows
@@ -257,15 +259,20 @@ def main() -> None:
     parser.add_argument("--baseline", type=Path, default=ROOT / "last_run.json")
     parser.add_argument("--run-dir", type=Path, default=ROOT.parent / "ai-service/data/answer-runs")
     parser.add_argument("--rescore", action="store_true")
+    parser.add_argument("--ids", nargs="+", help="只复测指定题号；保留原题集与请求范围")
     args = parser.parse_args()
     lock_fd = acquire_run_lock()
     try:
         if args.rescore:
+            if args.ids:
+                raise SystemExit("--ids 只用于新实测，不得改变保存结果的离线评分范围")
             # 此分支在登录、读配置、列库或任何网络操作之前完成。
             payload = json.loads(args.out.read_text(encoding="utf-8"))
             if payload.get("version") != 6:
                 raise SystemExit("only version 6 evidence snapshots support offline rescoring")
             items = {item["id"]: item for item in payload["dataset"]["items"]}
+            if "selected_ids" in payload:
+                items = {key: items[key] for key in payload["selected_ids"]}
             payload.setdefault("scoring_history", []).append(payload["summary"])
             payload["rows"] = [score_record(row, items[row["id"]]) for row in payload["rows"]]
             payload["summary"] = summary(payload["rows"], payload["baseline_summary"], len(items))
@@ -279,9 +286,14 @@ def main() -> None:
         baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
         previous = {row["id"]: row for row in baseline["rows"]}
         items = golden["items"]
+        if args.ids:
+            unknown = set(args.ids) - {item["id"] for item in items}
+            if unknown or len(set(args.ids)) != len(args.ids):
+                raise SystemExit(f"未知或重复题号：{args.ids}")
+            items = [item for item in items if item["id"] in args.ids]
         for item in items:
             keyword_matches("", item)
-        baseline_scores = score_keyword_baseline(baseline, items) if args.dataset.resolve() == GOLDEN.resolve() else {}
+        baseline_scores = score_keyword_baseline(baseline, golden["items"]) if args.dataset.resolve() == GOLDEN.resolve() else {}
         token = login()
         kbs = http_json("GET", "/api/v1/knowledge/bases", token)["knowledge_bases"]
         uploaded = {}
@@ -295,6 +307,7 @@ def main() -> None:
             "baseline_summary": baseline_scores,
             "baseline_recorded_summary": baseline["summary"] if baseline_scores else {},
             "knowledge_bases": kbs, "documents_before": uploaded, "rows": [],
+            "selected_ids": [item["id"] for item in items],
         }
         for index, item in enumerate(items, 1):
             kid = resolve_kb(item, kbs, previous)

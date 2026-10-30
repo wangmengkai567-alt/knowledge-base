@@ -18,6 +18,7 @@ const props = defineProps<{
   runId: string
   status: RunStatus | null
   stopReason: string
+  explorationStopReason: string
   events: RunEvent[]
   usage: RunUsage | null
 }>()
@@ -31,20 +32,23 @@ const answerTitle = computed(() => props.query.replace(/[？?]+$/g, '').trim() |
 const generatedLabel = computed(() => props.generatedAt ? formatDate(props.generatedAt, true) : '')
 const labels: Record<RunStatus, string> = {
   running: '正在处理', completed: '回答完成', insufficient: '资料不足',
-  budget_exhausted: '已达到执行上限', repeated_call: '查询重复，已停止',
+  budget_exhausted: '已达到执行上限', usage_unknown: '实际用量未知，已停止',
   tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过引用检查',
   timeout: '执行超时', cancelled: '已取消',
 }
 const reasons: Record<string, string> = {
   model_call_limit: '已达到模型调用次数上限', tool_call_limit: '已达到工具调用次数上限',
-  token_budget: '已达到累计用量上限', input_budget: '资料已达到输入上限',
+  token_budget: '剩余额度不足以继续取证', input_budget: '资料已达到输入上限',
+  no_new_evidence: '连续查找未获得新资料', model_returned_answer: '模型结束取证并作答',
+  usage_unknown: '服务未返回完整用量，本次执行已停止',
+  actual_usage_exceeded: '服务报告的实际用量超出执行上限',
   output_limit: '回答超出输出长度上限', repeated_call: '重复查询未取得新资料',
   insufficient_material: '现有资料不足以完整回答', user_cancelled: '已停止本次提问',
   invalid_citation_or_format: '回答的引用或格式不符合要求，未发布答案',
 }
 const statusLabel = computed(() => props.status ? labels[props.status] : '')
 const noticeType = computed(() => props.status === 'cancelled' ? 'info' :
-  ['insufficient', 'budget_exhausted', 'repeated_call'].includes(props.status || '') ? 'warning' : 'error')
+  ['insufficient', 'budget_exhausted'].includes(props.status || '') ? 'warning' : 'error')
 const toolLabels: Record<string, string> = {
   knowledge_base_search: '正在查知识库', web_search: '正在搜索网页', web_read: '正在读取网页',
 }
@@ -54,6 +58,7 @@ function eventLabel(event: RunEvent): string {
   if (event.kind === 'tool_started') return toolLabels[String(event.data.tool)] || '正在读取资料'
   if (event.kind === 'tool_finished') return event.data.status === 'empty' ? '本次查找未取得资料' :
     ['error', 'partial'].includes(String(event.data.status)) ? '资料获取失败' : '已取得 ' + event.data.source_count + ' 份资料'
+  if (event.kind === 'exploration_stopped') return '停止取证：' + (reasons[String(event.data.reason)] || String(event.data.reason))
   if (event.kind === 'sources_updated') return '已准备回答依据'
   if (event.kind === 'answer_check_started') return '正在检查回答引用'
   if (event.kind === 'run_finished') return labels[event.data.status as RunStatus]
@@ -122,10 +127,12 @@ async function copyAnswer() {
         <p class="text-xs text-ink-400">回答将在引用检查后显示</p>
         <div class="skeleton h-4 w-3/4" /><div class="skeleton h-4 w-full" />
       </div>
+      <p v-if="!loading && explorationStopReason" class="mb-2 text-xs text-ink-500">停止取证：{{ reasons[explorationStopReason] || explorationStopReason }}</p>
       <div v-if="answer" class="rag-answer" @click="clickCitation" v-html="answerHtml" />
       <p v-if="usage" class="mt-3 text-xs text-ink-400">
         模型 {{ usage.model_calls }} 次 · 工具 {{ usage.tool_calls }} 次 ·
-        已报告用量 {{ usage.prompt_tokens + usage.completion_tokens }} tokens
+        已结算用量 {{ usage.settled_tokens }} tokens
+        <span v-if="usage.actual_total_tokens === null"> · 总用量未知</span>
         <span v-if="usage.unreported_model_calls"> · {{ usage.unreported_model_calls }} 次调用用量未返回</span>
       </p>
       <p v-if="runId" class="mt-1 break-all text-xs text-ink-400">运行编号：{{ runId }}</p>

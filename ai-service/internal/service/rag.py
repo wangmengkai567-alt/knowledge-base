@@ -61,6 +61,7 @@ def response_dto(run: AnswerRun) -> RAGQueryResponse:
     sources = [source_dto(source) for source in run.sources]
     return RAGQueryResponse(
         run_id=run.run_id, status=run.status, stop_reason=run.stop_reason,
+        exploration_stop_reason=run.exploration_stop_reason,
         error_code=run.error_code, usage=asdict(run.usage),
         events=[asdict(event) for event in run.events], answer=run.answer, model=run.model,
         sources=sources, source_count=len(sources),
@@ -112,7 +113,7 @@ class RAGService:
             finally:
                 if observed is not None:
                     snapshot = {
-                        "version": 4, "query": kwargs["query"],
+                        "version": 5, "query": kwargs["query"],
                         "final_response": observed.final_response,
                         "started_at": observed.started_at,
                         "scope": asdict(observed.scope), "limits": asdict(observed.limits),
@@ -138,7 +139,7 @@ class RAGService:
         queue: asyncio.Queue[dict | None] = asyncio.Queue()
 
         def emit(run: AnswerRun, event: RunEvent) -> None:
-            payload = {"type": "event", "version": 4, "run_id": run.run_id, **asdict(event)}
+            payload = {"type": "event", "version": 5, "run_id": run.run_id, **asdict(event)}
             if event.kind == "sources_updated":
                 payload["data"] = {
                     **event.data,

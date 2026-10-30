@@ -61,7 +61,7 @@ export interface WebSource extends SourceBase {
 
 export type RagSource = KnowledgeSource | WebSource
 export type RunStatus = 'running' | 'completed' | 'insufficient' | 'budget_exhausted' |
-  'repeated_call' | 'tool_failed' | 'model_failed' | 'invalid_answer' | 'timeout' | 'cancelled'
+  'usage_unknown' | 'tool_failed' | 'model_failed' | 'invalid_answer' | 'timeout' | 'cancelled'
 
 export interface RunUsage {
   model_calls: number
@@ -69,7 +69,14 @@ export interface RunUsage {
   prompt_tokens: number
   completion_tokens: number
   estimated_input_tokens: number
-  charged_tokens: number
+  settled_tokens: number
+  actual_total_tokens: number | null
+  reserved_tokens: number
+  final_reserved_tokens: number
+  calls: { run_id: string; call: number; phase: 'exploration' | 'final';
+    estimated_input_tokens: number; output_limit: number; reservation: number;
+    state: 'reserved' | 'settled' | 'unknown'; prompt_tokens: number | null;
+    completion_tokens: number | null; provider_total_tokens: number | null; unknown_reason: string | null }[]
   unreported_model_calls: number
 }
 
@@ -84,6 +91,7 @@ export interface RunResult {
   runId: string
   status: RunStatus
   stopReason: string
+  explorationStopReason: string
   errorCode: string | null
   answer: string
   model: string

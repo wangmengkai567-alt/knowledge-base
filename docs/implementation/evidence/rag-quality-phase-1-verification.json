@@ -1,0 +1,215 @@
+{
+  "all_checks_passed": true,
+  "formats": [
+    {
+      "path": "ai-service/api/openapi/schemas/rag.py",
+      "bytes": 3725,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "1699b410aee5ce7f1460dee5c97f9a3f26e2c1fbd62cc24d4c99f69ed5f8809c"
+    },
+    {
+      "path": "ai-service/internal/biz/answer_run.py",
+      "bytes": 6711,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "b3c12ee8c2f6419444f9acf3ae466dc7f52c7af327c515d5907f1dd09153983f"
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "bytes": 23127,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "decc5c162417c787b9c624978fc3c33d80fb40fe7b83b78a2f72002ece662729"
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "bytes": 8699,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "bfe93e6f064b6c14fe888ea7087b5dc660e0fd1bc43d6706a9c64bf3f42b4928"
+    },
+    {
+      "path": "ai-service/internal/service/rag.py",
+      "bytes": 7064,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "0446ec73463cbb6380f188b035b0902afe6fa25573579e23a8b1733f8069d8bd"
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "bytes": 22291,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "c531f94d3557dc83cb813f724c8d7daecd87e74ae62189271962ec4119e39c56"
+    },
+    {
+      "path": "eval/README.md",
+      "bytes": 12273,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "5053a5de79a2c54494bc0038599dc96efa7f0750faacf2344a8cac23cc075804"
+    },
+    {
+      "path": "eval/compare_quality.py",
+      "bytes": 8285,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "6044496a79377ccae311ab963626a939300919bdadba7798b2a2e4663474cfb8"
+    },
+    {
+      "path": "eval/run_eval.py",
+      "bytes": 17228,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "c1b7c364ca3b23b3d4654404337714ba6f07eaba847125238c11d1965d3966fa"
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "bytes": 11453,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "1534c74e8c508daa965eaca6befdd2247aefbd2cd963ce0a2dce1249187c8fad"
+    },
+    {
+      "path": "web/src/api/search.ts",
+      "bytes": 6250,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "5609c2292c98b5372527dbb555696c78600cd9d2b6fdd1664528845559f1fed5"
+    },
+    {
+      "path": "web/src/components/Search/SummaryPanel.vue",
+      "bytes": 13032,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "1c17799fd10c3ca1c415697bd13ec3799300131a3f47a012c5314069bbb9658a"
+    },
+    {
+      "path": "web/src/hooks/useSearch.ts",
+      "bytes": 6416,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "ea79a348000f449728c32063e24cf8ed7ced9aaea10d2cc58ba0d7bec750911d"
+    },
+    {
+      "path": "web/src/types/search.ts",
+      "bytes": 3391,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "000ef72723985edf3b1652e2429f8516b9bdcfb0761477ed9d2fac9aeff4d37b"
+    },
+    {
+      "path": "web/src/views/SearchResults.vue",
+      "bytes": 10180,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "CRLF",
+      "sha256": "6590d50bb6f179d9b1dc24ff185ee303648ad4903d69c300620ed00cb680e4d2"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-accounting-audit.json",
+      "bytes": 24184,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "7b27423440b22ffe5161405ee53d4643ad0ba7cc2f109129123d00f869d323d9"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-budget-source-audit.json",
+      "bytes": 1127858,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "8da5022e0f55e7cf2a41095d237a2a76c2e51c89b525481cab3a19d61d4313fc"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-checks.json",
+      "bytes": 1674,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "b971206ffab4208e8dde25cd7da50535d2e4ce2dceb0cae4294a4d01ff2fad12"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-classification.json",
+      "bytes": 7304,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "f269e6a981b2c7149f8d3a75ddcc68bbf51d300a7793dd0445f2cfad607b9f9c"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-comparison.json",
+      "bytes": 301400,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "b7be992c3e5a055262709937db22a402bfb40294bc80252cba7f4761c2a7f867"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-diagnostics.json",
+      "bytes": 20919,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "239633a672081a110b3af7672e7b43d4b5fbe384965aa1dc492e59ad281a6cf8"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-runtime.json",
+      "bytes": 3814,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "c59278b6cb6320d292ba24eaf1e206b1718d25dc4e479f2a508011a31ac826a4"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-semantic-review.json",
+      "bytes": 11971,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "16bdbec4d4fc5ad566a7cc2d4772ce142ab301e43965960b590cb0f1cf613188"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-source-audit.json",
+      "bytes": 1720264,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "06287d01cceb4f45b880793541654a5da2abdee7f59d1858cad6befc8d25b743"
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1a-ledger.json",
+      "bytes": 26466,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "fff3862d424d6b426f074c0260773e93b404bb14b1b2be8fd712b6162268cd99"
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-1-report.md",
+      "bytes": 11439,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "2a3860ec8fa162b73c4d642f665588f1506df78ee30b4538b57e2753e68720c7"
+    },
+    {
+      "path": "eval/rag-quality-phase-1-budget-results.json",
+      "bytes": 4480219,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "308dc6505c9e739a44c4ac05657b46e698d49b8d25c8d63618d7e9032be7233e"
+    },
+    {
+      "path": "eval/rag-quality-phase-1-golden-results.json",
+      "bytes": 12783275,
+      "encoding": "UTF-8 without BOM",
+      "line_endings": "LF",
+      "sha256": "cd90b40b506011636349c66b0c7b31b0bc776c0bd65c8dfdac7c1fb4bc447b73"
+    }
+  ],
+  "git_diff_check": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "warning: in the working copy of 'ai-service/internal/biz/answer_run.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/plans/rag-quality-remediation-plan.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'eval/compare_quality.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'eval/run_metrics.py', LF will be replaced by CRLF the next time Git touches it\n",
+    "note": "LF warnings refer to originally LF files under existing Git configuration; original styles preserved."
+  },
+  "frozen_historical_files_unchanged": 47,
+  "code_and_fixed_input_fingerprints_match": true,
+  "test_files_modified": [],
+  "complete_golden_cases": 100,
+  "all_100_ledgers_valid": true,
+  "all_100_budgets_valid": true,
+  "new_source_versions_and_segments_valid": true,
+  "no_automatic_commit_or_push": true
+}

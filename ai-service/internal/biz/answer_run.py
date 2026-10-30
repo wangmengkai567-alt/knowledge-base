@@ -20,7 +20,7 @@ RunStatus = Literal[
     "completed",
     "insufficient",
     "budget_exhausted",
-    "repeated_call",
+    "usage_unknown",
     "tool_failed",
     "model_failed",
     "invalid_answer",
@@ -47,14 +47,32 @@ class RunLimits:
 
 
 @dataclass
+class ModelCallUsage:
+    run_id: str
+    call: int
+    phase: Literal["exploration", "final"]
+    estimated_input_tokens: int
+    output_limit: int
+    reservation: int
+    state: Literal["reserved", "settled", "unknown"] = "reserved"
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    provider_total_tokens: int | None = None
+    unknown_reason: str | None = None
+
+
+@dataclass
 class RunUsage:
     model_calls: int = 0
     tool_calls: int = 0
     estimated_input_tokens: int = 0
     prompt_tokens: int = 0
     completion_tokens: int = 0
-    # 按每次 max(估算输入, 实际输入) + 实际输出扣减；实际与估算另存。
-    charged_tokens: int = 0
+    settled_tokens: int = 0
+    actual_total_tokens: int | None = 0
+    reserved_tokens: int = 0
+    final_reserved_tokens: int = 0
+    calls: list[ModelCallUsage] = field(default_factory=list)
     unreported_model_calls: int = 0
 
 
@@ -76,6 +94,7 @@ class AnswerRun:
     started: float = field(default_factory=monotonic)
     status: RunStatus = "running"
     stop_reason: str = ""
+    exploration_stop_reason: str = ""
     error_code: str | None = None
     answer: str = ""
     final_response: str = ""  # 仅最终响应，用于本机验收；不发布未通过检查的答案。
@@ -86,6 +105,60 @@ class AnswerRun:
     tool_results: list[ToolResult] = field(default_factory=list)
     events: list[RunEvent] = field(default_factory=list)
     on_event: Callable[[AnswerRun, RunEvent], None] | None = field(default=None, repr=False)
+
+    def reserve_model(self, estimate: int, output_limit: int, final: bool) -> int:
+        usage = self.usage
+        if usage.unreported_model_calls:
+            raise ValueError("不能在用量未知或调用未完成时继续执行")
+        call = usage.model_calls + 1
+        reservation = estimate + output_limit
+        if final:
+            usage.final_reserved_tokens = 0
+        if usage.settled_tokens + reservation + usage.final_reserved_tokens > self.limits.total_tokens:
+            raise ValueError("调用及收尾预留超过剩余额度")
+        usage.calls.append(ModelCallUsage(self.run_id, call, "final" if final else "exploration",
+                                         estimate, output_limit, reservation))
+        usage.model_calls = call
+        usage.estimated_input_tokens += estimate
+        usage.reserved_tokens += reservation
+        usage.unreported_model_calls += 1
+        usage.actual_total_tokens = None
+        return call
+
+    def settle_model(self, call: int, prompt: int, completion: int, total: int) -> bool:
+        usage = self.usage
+        entry = usage.calls[call - 1]
+        if entry.state == "settled":
+            if (entry.prompt_tokens, entry.completion_tokens, entry.provider_total_tokens) != (prompt, completion, total):
+                raise ValueError("同一调用不能使用不同用量重复结算")
+            return False
+        if entry.state != "reserved":
+            raise ValueError("未知用量不能静默补记")
+        if not all(type(value) is int and value >= 0 for value in (prompt, completion, total)):
+            raise ValueError("用量必须是非负整数")
+        entry.state = "settled"
+        entry.prompt_tokens, entry.completion_tokens, entry.provider_total_tokens = prompt, completion, total
+        usage.reserved_tokens -= entry.reservation
+        usage.unreported_model_calls -= 1
+        usage.prompt_tokens += prompt
+        usage.completion_tokens += completion
+        usage.settled_tokens += prompt + completion
+        usage.actual_total_tokens = usage.settled_tokens if not usage.unreported_model_calls else None
+        return True
+
+    def unknown_model(self, call: int, reason: str) -> None:
+        entry = self.usage.calls[call - 1]
+        if entry.state != "reserved":
+            return
+        entry.state, entry.unknown_reason = "unknown", reason
+        self.usage.reserved_tokens -= entry.reservation
+        self.usage.actual_total_tokens = None
+        self.emit("model_usage_unknown", call=call, reason=reason)
+
+    def stop_exploration(self, reason: str) -> None:
+        if not self.exploration_stop_reason:
+            self.exploration_stop_reason = reason
+            self.emit("exploration_stopped", reason=reason)
 
     def emit(self, kind: str, **data) -> None:
         self.events.append(
@@ -103,5 +176,7 @@ class AnswerRun:
     def finish(self, status: RunStatus, reason: str, error_code: str | None = None) -> None:
         if self.status != "running":
             return
+        self.usage.final_reserved_tokens = 0
         self.status, self.stop_reason, self.error_code = status, reason, error_code
-        self.emit("run_finished", status=status, stop_reason=reason, error_code=error_code)
+        self.emit("run_finished", status=status, stop_reason=reason, error_code=error_code,
+                  exploration_stop_reason=self.exploration_stop_reason)

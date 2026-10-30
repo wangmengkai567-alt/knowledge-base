@@ -25,6 +25,7 @@ export function useSearch() {
   const runId = ref('')
   const status = ref<RunStatus | null>(null)
   const stopReason = ref('')
+  const explorationStopReason = ref('')
   const events = ref<RunEvent[]>([])
   const usage = ref<RunUsage | null>(null)
   const filters = reactive<SearchFilters>({ kbIds: [], fileTypes: [], timeRange: '' })
@@ -86,6 +87,7 @@ export function useSearch() {
     runId.value = ''
     status.value = 'running'
     stopReason.value = ''
+    explorationStopReason.value = ''
     events.value = []
     usage.value = null
     recompute()
@@ -99,6 +101,7 @@ export function useSearch() {
           if (message.event.kind === 'run_finished') {
             status.value = message.event.data.status as RunStatus
             stopReason.value = String(message.event.data.stop_reason)
+            explorationStopReason.value = String(message.event.data.exploration_stop_reason)
           }
           if (message.sources) {
             sources.value = message.sources
@@ -110,6 +113,7 @@ export function useSearch() {
           runId.value = result.runId
           status.value = result.status
           stopReason.value = result.stopReason
+          explorationStopReason.value = result.explorationStopReason
           answer.value = result.answer
           model.value = result.model
           sources.value = result.sources
@@ -145,6 +149,7 @@ export function useSearch() {
     runId.value = ''
     status.value = null
     stopReason.value = ''
+    explorationStopReason.value = ''
     events.value = []
     usage.value = null
     recompute()
@@ -155,5 +160,5 @@ export function useSearch() {
   watch(pageSize, refreshPage)
   onUnmounted(() => abort?.abort())
   return { loading, query, hits, rawHits, allHits, answer, sources, model, error, generatedAt,
-    allowWeb, runId, status, stopReason, events, usage, cancel, filters, sort, terms, page, pageSize, total, totalPages, run, clear, setPage, changeSize }
+    allowWeb, runId, status, stopReason, explorationStopReason, events, usage, cancel, filters, sort, terms, page, pageSize, total, totalPages, run, clear, setPage, changeSize }
 }

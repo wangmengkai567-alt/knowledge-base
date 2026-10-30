@@ -1,0 +1,805 @@
+{
+  "kind": "offline_usage_replay_only",
+  "rows": [
+    {
+      "id": "A01",
+      "original_run_id": "9a6a14f1-0cd1-4b21-b152-6a00afbe953b",
+      "historical_charged_tokens": 12642,
+      "settled_tokens": 3557,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A02",
+      "original_run_id": "8a4e0184-6a77-4ce2-b125-9a0fc8cb297d",
+      "historical_charged_tokens": 12407,
+      "settled_tokens": 3397,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A03",
+      "original_run_id": "9e216ee2-c2e4-48eb-acf5-4280a0d850f1",
+      "historical_charged_tokens": 12497,
+      "settled_tokens": 3403,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A04",
+      "original_run_id": "0ce9cf50-1d1f-44c5-9341-94e2e9418fb6",
+      "historical_charged_tokens": 12513,
+      "settled_tokens": 3573,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A05",
+      "original_run_id": "77a1e398-de25-4767-a023-9365be0e0e2f",
+      "historical_charged_tokens": 12381,
+      "settled_tokens": 3222,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A06",
+      "original_run_id": "296a2042-344f-4af9-8dcb-c49b82451ae4",
+      "historical_charged_tokens": 10095,
+      "settled_tokens": 2701,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A07",
+      "original_run_id": "8452cd81-ab43-4024-b65b-7a4ec7467051",
+      "historical_charged_tokens": 12442,
+      "settled_tokens": 3439,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A08",
+      "original_run_id": "a5db3f63-eb12-467a-8c2a-3f4f6c99fda6",
+      "historical_charged_tokens": 12474,
+      "settled_tokens": 3463,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A09",
+      "original_run_id": "29e10729-18f6-4edb-a5e1-717162d818f2",
+      "historical_charged_tokens": 51217,
+      "settled_tokens": 12934,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A10",
+      "original_run_id": "71cba0c9-f3ce-4f69-a398-939c8e1373e8",
+      "historical_charged_tokens": 24462,
+      "settled_tokens": 6570,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A11",
+      "original_run_id": "7c1c20ee-9f50-4732-a3ed-fd5838941237",
+      "historical_charged_tokens": 24051,
+      "settled_tokens": 6509,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A12",
+      "original_run_id": "944db8e8-88c5-432b-a482-4313453a0506",
+      "historical_charged_tokens": 24369,
+      "settled_tokens": 6732,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A13",
+      "original_run_id": "fe2e7667-eebb-4b9e-9210-865e6d6ff06a",
+      "historical_charged_tokens": 51017,
+      "settled_tokens": 12824,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A14",
+      "original_run_id": "2f846be7-7d32-46b2-b8ed-44d50fa8d446",
+      "historical_charged_tokens": 24398,
+      "settled_tokens": 6537,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A15",
+      "original_run_id": "5bd0c31a-400a-4c0f-b97d-52ab417f912d",
+      "historical_charged_tokens": 51161,
+      "settled_tokens": 13469,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A16",
+      "original_run_id": "7058df26-3cf0-4c8f-827f-d6362450b388",
+      "historical_charged_tokens": 50552,
+      "settled_tokens": 12728,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A17",
+      "original_run_id": "e4c998d8-a3e2-49e5-a44a-a24a8b0eec53",
+      "historical_charged_tokens": 3466,
+      "settled_tokens": 933,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "A18",
+      "original_run_id": "51a35edf-49f4-4d18-ac11-b7b08d075e5e",
+      "historical_charged_tokens": 3614,
+      "settled_tokens": 1091,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "A19",
+      "original_run_id": "ec953350-21a5-40a1-a2d7-b750b847cbe3",
+      "historical_charged_tokens": 12504,
+      "settled_tokens": 3427,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "A20",
+      "original_run_id": "00095b8c-2c78-4680-8bbb-83e568bb2cc2",
+      "historical_charged_tokens": 51174,
+      "settled_tokens": 13449,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A21",
+      "original_run_id": "f4bb395e-53d0-4a58-b7d1-88a121008589",
+      "historical_charged_tokens": 50855,
+      "settled_tokens": 12574,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A22",
+      "original_run_id": "8581d8f4-2e1f-4069-8b7c-e42c2e9ac997",
+      "historical_charged_tokens": 50908,
+      "settled_tokens": 12972,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A23",
+      "original_run_id": "9065df33-60d9-4997-b8f4-2c9ef3f1767a",
+      "historical_charged_tokens": 12438,
+      "settled_tokens": 3357,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A24",
+      "original_run_id": "dfa63a4d-8468-4c3d-8824-173d4b48fcc3",
+      "historical_charged_tokens": 24087,
+      "settled_tokens": 6256,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A25",
+      "original_run_id": "16a9f15d-be50-4ac3-998e-bfaed32a0260",
+      "historical_charged_tokens": 51245,
+      "settled_tokens": 13011,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "A26",
+      "original_run_id": "d07082e2-7cc4-4f0b-ab96-a8fd92234344",
+      "historical_charged_tokens": 12714,
+      "settled_tokens": 3554,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "A27",
+      "original_run_id": "5925616b-078c-4697-9fcc-d36e109c5e82",
+      "historical_charged_tokens": 3417,
+      "settled_tokens": 905,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "A28",
+      "original_run_id": "e17efa09-bac6-42fa-be0c-62d79edd6da5",
+      "historical_charged_tokens": 12553,
+      "settled_tokens": 3312,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B01",
+      "original_run_id": "6aa76c62-b8fb-4678-ba96-a0dbeaf6ed81",
+      "historical_charged_tokens": 12729,
+      "settled_tokens": 3735,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B02",
+      "original_run_id": "9e50c0cd-fbb2-4006-96f7-f24a0a04ae87",
+      "historical_charged_tokens": 3450,
+      "settled_tokens": 934,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "B03",
+      "original_run_id": "c366704b-5112-4f34-acee-1b1f0ee65b49",
+      "historical_charged_tokens": 12534,
+      "settled_tokens": 3629,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B04",
+      "original_run_id": "4637aa27-4e63-440a-ba67-dca000fd41a5",
+      "historical_charged_tokens": 37047,
+      "settled_tokens": 10773,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B05",
+      "original_run_id": "ef540607-973a-4733-a0de-542bbaef65cd",
+      "historical_charged_tokens": 3415,
+      "settled_tokens": 910,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "B06",
+      "original_run_id": "7aed3e59-d009-43a3-b66c-0095ae27f914",
+      "historical_charged_tokens": 50791,
+      "settled_tokens": 13032,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "B07",
+      "original_run_id": "6fd36ce6-cf2b-4d3d-8d4d-d01cfed1a311",
+      "historical_charged_tokens": 12432,
+      "settled_tokens": 3348,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B08",
+      "original_run_id": "7e27db23-d616-4962-826b-c486d64ae44e",
+      "historical_charged_tokens": 12460,
+      "settled_tokens": 3548,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B09",
+      "original_run_id": "3b6f1a38-9ef9-4da1-b3ab-c37afdeec8ac",
+      "historical_charged_tokens": 12538,
+      "settled_tokens": 3519,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B10",
+      "original_run_id": "8adf998c-606a-4e89-8d5c-78a688914f15",
+      "historical_charged_tokens": 12593,
+      "settled_tokens": 3526,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "B11",
+      "original_run_id": "a73f17ca-71c1-45f0-95bc-3bbf65d38749",
+      "historical_charged_tokens": 10822,
+      "settled_tokens": 2859,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B12",
+      "original_run_id": "65af5d97-dafb-4b9e-8f01-40d641decbc5",
+      "historical_charged_tokens": 50166,
+      "settled_tokens": 12845,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "B13",
+      "original_run_id": "8250a045-cf0a-4e49-a433-7c6f4cb4093a",
+      "historical_charged_tokens": 12648,
+      "settled_tokens": 3663,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B14",
+      "original_run_id": "67e5b09f-af89-4a46-9807-153311463506",
+      "historical_charged_tokens": 50931,
+      "settled_tokens": 13110,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "B15",
+      "original_run_id": "4726515d-3aed-4bd0-a584-cff997b38761",
+      "historical_charged_tokens": 12563,
+      "settled_tokens": 3446,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "B16",
+      "original_run_id": "41bf3189-c83c-4d1c-80d3-3ee090176246",
+      "historical_charged_tokens": 24343,
+      "settled_tokens": 6675,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B17",
+      "original_run_id": "d0e03d4b-af5c-4e6f-982e-317177d4c8e2",
+      "historical_charged_tokens": 12602,
+      "settled_tokens": 3533,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B18",
+      "original_run_id": "67bec20f-8562-47b1-bfee-4846c33634a9",
+      "historical_charged_tokens": 12658,
+      "settled_tokens": 3668,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B19",
+      "original_run_id": "3cbbb9fe-d688-40a1-83ae-117fc4f51bab",
+      "historical_charged_tokens": 12714,
+      "settled_tokens": 3662,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B20",
+      "original_run_id": "648e0b14-23c7-47ee-b94f-132149dfd384",
+      "historical_charged_tokens": 10434,
+      "settled_tokens": 2927,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "B21",
+      "original_run_id": "ed40913f-a907-4785-87db-865c0c6d1548",
+      "historical_charged_tokens": 12460,
+      "settled_tokens": 3381,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C01",
+      "original_run_id": "abca4808-59be-46ad-941d-aa48680e43af",
+      "historical_charged_tokens": 12542,
+      "settled_tokens": 3467,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C02",
+      "original_run_id": "3768d787-1337-49ad-b6ac-5d18c9371d0a",
+      "historical_charged_tokens": 11017,
+      "settled_tokens": 2903,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C03",
+      "original_run_id": "8d8c99f9-b7d6-49ef-84a9-6a52c92dcad6",
+      "historical_charged_tokens": 24356,
+      "settled_tokens": 6458,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C04",
+      "original_run_id": "7cf8a219-535c-4b6e-9c38-15ae2958af65",
+      "historical_charged_tokens": 3526,
+      "settled_tokens": 970,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "C05",
+      "original_run_id": "640c4f96-b312-42ca-80a1-8a496d452bf8",
+      "historical_charged_tokens": 12665,
+      "settled_tokens": 3363,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C06",
+      "original_run_id": "d6e6e115-fa73-47c0-b1d7-ca9e548363b0",
+      "historical_charged_tokens": 12679,
+      "settled_tokens": 3592,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C07",
+      "original_run_id": "44183bb6-ae7d-4c79-b54d-77e8b802ab3b",
+      "historical_charged_tokens": 12583,
+      "settled_tokens": 3315,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "C08",
+      "original_run_id": "b455d72b-8836-45c7-8523-27febb3f7c44",
+      "historical_charged_tokens": 50786,
+      "settled_tokens": 12272,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "C09",
+      "original_run_id": "df876272-5e2b-4188-b4e1-a655405eb24a",
+      "historical_charged_tokens": 49369,
+      "settled_tokens": 12164,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "C10",
+      "original_run_id": "15550049-dc3a-4aba-ae0a-3f6448b3deed",
+      "historical_charged_tokens": 11013,
+      "settled_tokens": 2854,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D01",
+      "original_run_id": "94680bee-d5e3-4224-9f1b-eedc16880ff7",
+      "historical_charged_tokens": 12582,
+      "settled_tokens": 3644,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D02",
+      "original_run_id": "4dccaf09-7738-47dd-bd16-4f368da69e81",
+      "historical_charged_tokens": 23916,
+      "settled_tokens": 6514,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D03",
+      "original_run_id": "17cda954-f8ba-4c24-b14e-a68f47de5b51",
+      "historical_charged_tokens": 9403,
+      "settled_tokens": 2560,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D04",
+      "original_run_id": "23d06078-023e-4acd-8929-5ee4ac4d8ee0",
+      "historical_charged_tokens": 12571,
+      "settled_tokens": 3680,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D05",
+      "original_run_id": "6dba6979-cc3b-4d8d-a6d9-81a8178c205b",
+      "historical_charged_tokens": 23703,
+      "settled_tokens": 6852,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D06",
+      "original_run_id": "a7546735-c30e-4e26-8fbc-889a44b01859",
+      "historical_charged_tokens": 12650,
+      "settled_tokens": 3702,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D07",
+      "original_run_id": "5bf0c1e0-f02f-484b-8e42-c6ccded65f3b",
+      "historical_charged_tokens": 3450,
+      "settled_tokens": 913,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "D08",
+      "original_run_id": "716d899f-29d0-46d6-97cc-90a81e2a3212",
+      "historical_charged_tokens": 50919,
+      "settled_tokens": 13611,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "D09",
+      "original_run_id": "51388ef5-9739-4038-903e-49f1d03f765d",
+      "historical_charged_tokens": 50942,
+      "settled_tokens": 13792,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "D10",
+      "original_run_id": "4e0977cd-8e8e-4e5a-90cf-21828fe294e0",
+      "historical_charged_tokens": 10960,
+      "settled_tokens": 3018,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D11",
+      "original_run_id": "13d4252b-22c4-472e-8071-27147561a0d1",
+      "historical_charged_tokens": 34221,
+      "settled_tokens": 9548,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "D12",
+      "original_run_id": "cbb5c9a8-c193-4053-a88d-776a0cfa36ef",
+      "historical_charged_tokens": 24144,
+      "settled_tokens": 6919,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E01",
+      "original_run_id": "0acfff2a-bf98-44ba-99c6-50d7ff01d41b",
+      "historical_charged_tokens": 24165,
+      "settled_tokens": 6932,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E02",
+      "original_run_id": "a726754d-9ea8-4033-b9ff-60ffecd3af59",
+      "historical_charged_tokens": 3399,
+      "settled_tokens": 899,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "E03",
+      "original_run_id": "afa9e0a0-7139-4732-9b65-ac9a3099f123",
+      "historical_charged_tokens": 12493,
+      "settled_tokens": 3506,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E04",
+      "original_run_id": "887cd980-2a2d-409e-a8e7-cf9d33fe6be0",
+      "historical_charged_tokens": 12693,
+      "settled_tokens": 3812,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E05",
+      "original_run_id": "1d27a68c-4869-442c-9f41-194aaa3a4658",
+      "historical_charged_tokens": 12656,
+      "settled_tokens": 3713,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E06",
+      "original_run_id": "4b14bdf5-0651-46c3-b676-d5c8c9e58f3a",
+      "historical_charged_tokens": 37296,
+      "settled_tokens": 9451,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "E07",
+      "original_run_id": "77599b6f-5f05-4e5a-afce-3f61a04611ad",
+      "historical_charged_tokens": 12651,
+      "settled_tokens": 3418,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E08",
+      "original_run_id": "c065227a-120a-47ff-a2fb-0bc3554653ec",
+      "historical_charged_tokens": 24323,
+      "settled_tokens": 6497,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E09",
+      "original_run_id": "8d6a4024-f91e-4d23-b324-e183fdbb9f0a",
+      "historical_charged_tokens": 24087,
+      "settled_tokens": 6175,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E10",
+      "original_run_id": "12ba3a76-c6c3-4bf1-9cb2-9699a66eb6ec",
+      "historical_charged_tokens": 12341,
+      "settled_tokens": 3126,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E11",
+      "original_run_id": "350b04da-214f-4ac6-a0b1-4bf224b7b2e6",
+      "historical_charged_tokens": 10957,
+      "settled_tokens": 2772,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E12",
+      "original_run_id": "741d63dc-d378-4ed8-910d-d044556dbefe",
+      "historical_charged_tokens": 24189,
+      "settled_tokens": 6603,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E13",
+      "original_run_id": "128b9596-9bb9-4b97-a6a4-8c60219a34e3",
+      "historical_charged_tokens": 12475,
+      "settled_tokens": 3377,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "invalid_answer"
+    },
+    {
+      "id": "E14",
+      "original_run_id": "b1e86b18-5249-4110-8f74-e26b5b2229d6",
+      "historical_charged_tokens": 24136,
+      "settled_tokens": 6424,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "E15",
+      "original_run_id": "9c6b04e3-5a06-4ca5-a448-fa9519751fc4",
+      "historical_charged_tokens": 50696,
+      "settled_tokens": 12863,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "E16",
+      "original_run_id": "a45dbe70-c9e6-45dc-ac6c-508bfdd6c0d1",
+      "historical_charged_tokens": 12361,
+      "settled_tokens": 3361,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "F01",
+      "original_run_id": "5012d79c-9d17-4fa5-aafe-a409d158bed0",
+      "historical_charged_tokens": 24302,
+      "settled_tokens": 6615,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "F02",
+      "original_run_id": "459e617d-0a00-48e9-9c7f-5092965839d0",
+      "historical_charged_tokens": 24319,
+      "settled_tokens": 6732,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "completed"
+    },
+    {
+      "id": "F03",
+      "original_run_id": "f878bdb0-0392-40e9-86a6-798beedfe152",
+      "historical_charged_tokens": 50167,
+      "settled_tokens": 13388,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "budget_exhausted"
+    },
+    {
+      "id": "G01",
+      "original_run_id": "904e42a8-c1d9-4297-8eea-919c55f246c5",
+      "historical_charged_tokens": 11926,
+      "settled_tokens": 2778,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G02",
+      "original_run_id": "950905e6-e47e-48ab-a0f6-a78795725e25",
+      "historical_charged_tokens": 11813,
+      "settled_tokens": 2698,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G03",
+      "original_run_id": "9c897b01-f53b-489a-8d65-2b56e3096b6c",
+      "historical_charged_tokens": 12047,
+      "settled_tokens": 2849,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G04",
+      "original_run_id": "4ab88974-e4c8-4060-ad5b-62b70ec2bc55",
+      "historical_charged_tokens": 11791,
+      "settled_tokens": 2696,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G05",
+      "original_run_id": "82c6f904-3fad-4ce6-8499-2bcd4149cd3e",
+      "historical_charged_tokens": 11927,
+      "settled_tokens": 2779,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G06",
+      "original_run_id": "1d696e03-842f-4ee3-af82-69757e5aa2d2",
+      "historical_charged_tokens": 12015,
+      "settled_tokens": 2775,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G07",
+      "original_run_id": "7dfb9aaa-d3f7-40eb-b3a0-70030fdd9b1a",
+      "historical_charged_tokens": 11866,
+      "settled_tokens": 2714,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G08",
+      "original_run_id": "24cf05e9-5a84-41c7-a63e-418a61220f7f",
+      "historical_charged_tokens": 11990,
+      "settled_tokens": 2766,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G09",
+      "original_run_id": "9e7c7827-6c0d-4a3b-860e-352c6108120a",
+      "historical_charged_tokens": 12054,
+      "settled_tokens": 2809,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    },
+    {
+      "id": "G10",
+      "original_run_id": "417a49e7-289e-4fad-8bc5-3634b14790ae",
+      "historical_charged_tokens": 11987,
+      "settled_tokens": 2758,
+      "duplicate_settlement_ignored": true,
+      "historical_status_unchanged": "insufficient"
+    }
+  ]
+}

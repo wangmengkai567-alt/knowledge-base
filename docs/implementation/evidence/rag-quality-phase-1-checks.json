@@ -1,0 +1,41 @@
+{
+  "new_or_modified_test_files": [],
+  "service_checks": {
+    "command": "uv run --project ai-service --no-sync python -m unittest discover -s ai-service/tests",
+    "ran": 47,
+    "passed": 44,
+    "failed": 3,
+    "failure_kind": "Assertions of replaced v4 terminal statuses; tests left unchanged as required.",
+    "failures": {
+      "test_last_model_call_cannot_start_new_tools": "expected budget_exhausted; actual insufficient after valid final answer",
+      "test_repeat_query_with_different_call_id_is_not_executed_again": "expected repeated_call; actual insufficient; repeated tool still not executed",
+      "test_tool_limit_reserves_final_answer_and_stops_tools": "expected budget_exhausted; actual insufficient after valid final answer"
+    }
+  },
+  "eval_checks": {
+    "command": "uv run --project ai-service --no-sync python -m unittest discover -s eval",
+    "ran": 24,
+    "passed": 24
+  },
+  "temporary_diagnostics": {
+    "file": "docs/implementation/evidence/rag-quality-phase-1-diagnostics.json",
+    "passed": 23
+  },
+  "phase_1a_offline_usage_replay": {
+    "file": "docs/implementation/evidence/rag-quality-phase-1a-ledger.json",
+    "cases": 100,
+    "a22_actual_total": 12972,
+    "a22_old_charged": 50908,
+    "historical_outcomes_unchanged": true
+  },
+  "lint": {
+    "command": "uv run --project ai-service --no-sync ruff check --config ai-service/pyproject.toml <changed Python files>",
+    "passed": true
+  },
+  "frontend": {
+    "command": "npm run build",
+    "passed": true,
+    "notes": "Existing third-party PURE annotation notices; Vue typecheck and Vite build passed."
+  },
+  "no_new_real_model_requests_from_offline_checks": true
+}

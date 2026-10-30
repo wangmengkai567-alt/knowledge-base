@@ -100,3 +100,25 @@ uv run --project ai-service --no-sync python eval/compare_quality.py --before ev
 输出文件必须不存在。脚本逐题校验请求、授权范围、运行上限及实际模型一致，除关键词匹配外的所有原始评分字段须保持一致。前后结果不重新调用模型、不覆盖快照。
 
 本轮正确率 50.00% → 65.56%，正常完成且命中全部要点 47.78% → 65.56%，自动幻觉疑点率 9.59% → 1.33%，拒答正确率 30% → 100%。仍有 17 次预算停止和 9 次无效格式，质量门槛未通过；联网和跨库补充场景也单独保留失败。完整原因、参考项目、用量、退步题目与语义核查见 [质量优化报告](../docs/implementation/rag-quality-optimization-report.md)。
+
+## 问答质量整改第 1 阶段：预算与终态协议 v5
+
+本节描述新的线上协议；前文的 `charged_tokens` 和预算终态数值仅是历史记录。
+
+- `usage.calls` 按 `run_id` 与调用序号记录预检估算、请求输出上限、调用预留和供应商实际输入输出。每次只结算一次；`provider_total_tokens` 仅核对，不重复相加。
+- `settled_tokens` 是已知实际输入输出合计，`reserved_tokens` 与 `final_reserved_tokens` 是临时空间。收尾预留按当前完整请求估算；保守输入估算仍采用 UTF-8 字节，不能称为精确词元数。
+- `actual_total_tokens=null` 表示存在未返回用量的调用。已知小计可以为零，但这不表示该运行实际消耗为零；传输失败、超时、取消或缺失用量后停止继续调用。
+- `exploration_stop_reason` 表示停止继续取证的原因；`status`、`stop_reason` 表示回答最终结果。合法收尾回答可结束为 `completed` 或 `insufficient`，次数或空间导致的软停止原因另存。实际超限、故障、格式错误、超时和取消继续失败。
+- API、SSE 和运行快照统一为 v5，前端拒绝其他协议。评测按保存结果的明确版本读取：v4 只解释历史扣减字段，v5 校验实际账本；线上没有两套执行策略。
+
+阶段结果分别另存，不覆盖任何历史文件：
+
+```bash
+uv run --project ai-service --no-sync python eval/run_eval.py --ids A09 A13 A20 A21 A25 D09 A15 A16 A22 B06 B12 B14 C08 C09 D08 E15 F03 --out eval/rag-quality-phase-1-budget-results.json
+uv run --project ai-service --no-sync python eval/run_eval.py --out eval/rag-quality-phase-1-golden-results.json
+uv run --project ai-service --no-sync python eval/compare_quality.py --before eval/rag-quality-optimized-golden-results.json --after eval/rag-quality-phase-1-golden-results.json --out docs/implementation/evidence/rag-quality-phase-1-comparison.json
+```
+
+`--ids` 只筛选本轮实测题号，保留原题集、题干、评分和授权范围，结果标记 `selected_ids`；小样本不能替代完整题集。对照要求题集（含等价表达）、请求、范围、限制和模型一致。旧答案的终态重分类仅另列分析，不修改历史快照，也不等同新运行成功。
+
+本阶段不授权新增或修改测试。已有检查若断言旧的预算/重复调用终态，应原样运行并在实施报告列明冲突；不得修改期望来制造通过。

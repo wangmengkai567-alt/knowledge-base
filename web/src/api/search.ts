@@ -129,7 +129,7 @@ export const searchApi = {
     let sequence = 0
     let terminal = false
     await readSseStream(res, (data) => {
-      if (data.version !== 4) throw new Error('问答协议已更新，请刷新页面')
+      if (data.version !== 5) throw new Error('问答协议已更新，请刷新页面')
       if (data.type === 'error') throw new Error(data.error)
       if (terminal) throw new Error('收到终态之后的问答事件')
       if (!data.run_id || (runId && runId !== data.run_id)) throw new Error('问答运行编号不一致')
@@ -145,7 +145,7 @@ export const searchApi = {
       } else if (data.type === 'result') {
         terminal = true
         onEvent({ type: 'result', result: {
-          runId, status: data.status, stopReason: data.stop_reason, errorCode: data.error_code,
+          runId, status: data.status, stopReason: data.stop_reason, explorationStopReason: data.exploration_stop_reason, errorCode: data.error_code,
           answer: data.answer, model: data.model, usage: data.usage,
           sources: data.sources.map(mapSource), results: data.retrieval_results.map(mapHit),
         } })

@@ -68,13 +68,31 @@ class RAGWebSourceDTO(BaseModel):
     truncated: bool
 
 
+class ModelCallUsageDTO(BaseModel):
+    run_id: str
+    call: int
+    phase: Literal["exploration", "final"]
+    estimated_input_tokens: int
+    output_limit: int
+    reservation: int
+    state: Literal["reserved", "settled", "unknown"]
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    provider_total_tokens: int | None
+    unknown_reason: str | None
+
+
 class RunUsageDTO(BaseModel):
     model_calls: int
     tool_calls: int
     estimated_input_tokens: int
     prompt_tokens: int
     completion_tokens: int
-    charged_tokens: int
+    settled_tokens: int
+    actual_total_tokens: int | None
+    reserved_tokens: int
+    final_reserved_tokens: int
+    calls: list[ModelCallUsageDTO]
     unreported_model_calls: int
 
 
@@ -86,10 +104,11 @@ class RunEventDTO(BaseModel):
 
 
 class RAGQueryResponse(BaseModel):
-    version: Literal[4] = 4
+    version: Literal[5] = 5
     run_id: str
     status: str
     stop_reason: str
+    exploration_stop_reason: str
     error_code: str | None
     usage: RunUsageDTO
     events: list[RunEventDTO]

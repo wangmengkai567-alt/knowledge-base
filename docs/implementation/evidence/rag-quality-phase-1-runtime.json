@@ -1,0 +1,110 @@
+{
+  "stage": "1",
+  "protocol_version": 5,
+  "git_head": "248fd68e42821594f025f65f03f8542ac476f093",
+  "initial_worktree_clean": true,
+  "models": {
+    "llm": "qwen3.8-flash",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "reranker": "qwen3.7-text-rerank",
+    "host": "maas.qianwenaiapi.com"
+  },
+  "limits": {
+    "model_calls": 6,
+    "tool_calls": 10,
+    "timeout_seconds": 120,
+    "total_actual_tokens": 64000,
+    "input_preflight_utf8_bytes": 16000,
+    "output_tokens": 2048
+  },
+  "code": [
+    {
+      "path": "ai-service/internal/biz/answer_run.py",
+      "sha256": "b3c12ee8c2f6419444f9acf3ae466dc7f52c7af327c515d5907f1dd09153983f"
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "sha256": "decc5c162417c787b9c624978fc3c33d80fb40fe7b83b78a2f72002ece662729"
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "sha256": "bfe93e6f064b6c14fe888ea7087b5dc660e0fd1bc43d6706a9c64bf3f42b4928"
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/rag.py",
+      "sha256": "1699b410aee5ce7f1460dee5c97f9a3f26e2c1fbd62cc24d4c99f69ed5f8809c"
+    },
+    {
+      "path": "ai-service/internal/service/rag.py",
+      "sha256": "0446ec73463cbb6380f188b035b0902afe6fa25573579e23a8b1733f8069d8bd"
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "sha256": "1534c74e8c508daa965eaca6befdd2247aefbd2cd963ce0a2dce1249187c8fad"
+    },
+    {
+      "path": "eval/run_eval.py",
+      "sha256": "c1b7c364ca3b23b3d4654404337714ba6f07eaba847125238c11d1965d3966fa"
+    },
+    {
+      "path": "eval/compare_quality.py",
+      "sha256": "6044496a79377ccae311ab963626a939300919bdadba7798b2a2e4663474cfb8"
+    },
+    {
+      "path": "web/src/api/search.ts",
+      "sha256": "5609c2292c98b5372527dbb555696c78600cd9d2b6fdd1664528845559f1fed5"
+    },
+    {
+      "path": "web/src/types/search.ts",
+      "sha256": "000ef72723985edf3b1652e2429f8516b9bdcfb0761477ed9d2fac9aeff4d37b"
+    },
+    {
+      "path": "web/src/hooks/useSearch.ts",
+      "sha256": "ea79a348000f449728c32063e24cf8ed7ced9aaea10d2cc58ba0d7bec750911d"
+    },
+    {
+      "path": "web/src/views/SearchResults.vue",
+      "sha256": "6590d50bb6f179d9b1dc24ff185ee303648ad4903d69c300620ed00cb680e4d2"
+    },
+    {
+      "path": "web/src/components/Search/SummaryPanel.vue",
+      "sha256": "1c17799fd10c3ca1c415697bd13ec3799300131a3f47a012c5314069bbb9658a"
+    }
+  ],
+  "fixed_inputs": [
+    {
+      "path": "ai-service/configs/config.yaml",
+      "sha256": "e7d0484175b644ed210722e94ff9b574c5619c59480de7752926fb5a3e55deed"
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "sha256": "c63cb92f262e93aa97e90d7fc26ca48bb8cdc9b6f4bc06ec2536ab3d527b528f"
+    },
+    {
+      "path": "eval/golden_set.json",
+      "sha256": "5cfedd76f29dd32336e6bf44b73211a877a7ee9f6bcebada71a0108f3670caf8"
+    },
+    {
+      "path": "eval/keyword_scoring.py",
+      "sha256": "9cde90e94552378d51e9d88bc97976946d1ea626631ddd6de14a8ff47fb87af2"
+    },
+    {
+      "path": "eval/faithfulness.py",
+      "sha256": "debf390cec0a3a3041396ad15c50501ce976e880731dcb06de8e778a1af6ccae"
+    },
+    {
+      "path": "eval/rag-quality-optimized-golden-results.json",
+      "sha256": "762c123b12fefaa1a501dfbf3764de0c0d6c73c8fd1d7e840656810414e23f6d"
+    },
+    {
+      "path": "eval/rag-quality-optimized-web-results.json",
+      "sha256": "f50035f0a8b636235a7f8f84457ac2b3b752b1b7ab62843b441607d89f713cef"
+    },
+    {
+      "path": "eval/rag-quality-optimized-cross-source-results.json",
+      "sha256": "f7d069fef468ea49bf534b25cc686f75579dbf7016ebefb0984fc6395d014cc3"
+    }
+  ],
+  "deployment": "Existing bind mount; restarted only ai-service; no provider/config/database changes.",
+  "post_run_offline_only_change": "Offline rescore now respects selected_ids; online execution branch unchanged."
+}

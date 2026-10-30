@@ -113,7 +113,18 @@ class OpenAILLM(LLMProvider):
                             else "LLM_DEPENDENCY_ERROR"),
                     message=f"LLM API 返回 HTTP {response.status_code}",
                 )
-            return self._parse_result(response.json(), tools, tool_choice)
+            data = response.json()
+            reported = data.get("usage") if isinstance(data, dict) else None
+            keys = ("prompt_tokens", "completion_tokens", "total_tokens")
+            known = isinstance(reported, dict) and all(type(reported.get(key)) is int and reported[key] >= 0 for key in keys)
+            if tools and not known:
+                raise LLMError(reason="LLM_USAGE_UNKNOWN", message="模型未返回完整实际用量")
+            try:
+                return self._parse_result(data, tools, tool_choice)
+            except (KeyError, IndexError, TypeError, ValueError) as exc:
+                # 错误输出也必须保留已发生的消耗，不重试或修复输出。
+                raise LLMError(reason="INVALID_LLM_RESPONSE", message="模型响应结构无效",
+                               metadata={"reported_usage": {key: reported[key] for key in keys}} if known else {}) from exc
         except httpx.TimeoutException as exc:
             raise LLMError(
                 code=ErrorCode.LLM_TIMEOUT, reason="LLM_TIMEOUT", message="模型请求超时"

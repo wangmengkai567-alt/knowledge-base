@@ -1,0 +1,302 @@
+{
+  "reviewer": "Codex, same implementation task; not independent human review",
+  "scope": "17 original budget cases, all 10 strict-outcome regressions, F01 automatic suspect, D02 lexical miss; additional insufficient outcomes indexed",
+  "all_100_independent_semantic_rating": false,
+  "reviews": [
+    {
+      "id": "A09",
+      "run_id": "64a68452-fe7c-4e40-8208-09953375e809",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "核对权限控制、安全边界与最小权限主要结论；文中资源数字是来源举例，不是本系统运行限制。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "8ca379e02af8a9b109a3b1bc8df09be0e6beea53ed000e932bbf8b09fcf843a9"
+    },
+    {
+      "id": "A13",
+      "run_id": "83d20033-3239-4e4c-8682-d636473405a4",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "对照来源表格核对指令与信息的区别；History/Memory/Tool Result/RAG 属于上下文。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "c156fe43ee0dda4e3a9c66fc7a9b21752e164f247725c68428223807caae8476"
+    },
+    {
+      "id": "A20",
+      "run_id": "69b24ef8-a396-44f9-b475-ac78c807a0d6",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "主要场景有依据；“必然导致更高的 Token 消耗”引用的来源 10 仅为截断的 Token 定义，不能充分支撑该强度。需保留支撑缺口，不能用关键词通过代替真实性。",
+      "support_review": "risk_found",
+      "answer_sha256": "375e541bd1f06ae821130596d40a95c2f960301535a18fe79ec30980e463c65e"
+    },
+    {
+      "id": "A21",
+      "run_id": "264c2490-60d3-4e08-80c1-2240e406a910",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源中的条件分支与回到 Coder 的循环对应两类能力及失败路径。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "81aae1998da97a4fa0580f8021ce3acc243f5f125ed4e11cef3cb2424ee7c660"
+    },
+    {
+      "id": "A25",
+      "run_id": "91d7f7eb-3a2b-4fc5-8224-d60e9f6f5466",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源明确列出最大轮次、review_passed、Supervisor FINISH、task.status completed 等终止条件。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "ba378a47ad0ea38654636004dd6d6d01db620d01425d2e2b612c9c346ae91d41"
+    },
+    {
+      "id": "D09",
+      "run_id": "33c7cdfe-5379-4c45-8fdd-ffda3b8bc55d",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源 8 明确给出大扇出、16KB、三四层、叶子链表与路径稳定；答案把普通二叉树也概括成平衡二叉树，表述过度，保留语义风险。",
+      "support_review": "risk_found",
+      "answer_sha256": "023740db08bc1e93d752f82a5906f8ceaa514e3a7f380e470fde910525aa248a"
+    },
+    {
+      "id": "A15",
+      "run_id": "a0bea979-bb52-4d4a-943b-51ba09de7602",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "核对 Harness 运行控制、Sandbox 执行边界与编排框架的层次区别；示例资源限制不代表当前配置。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "b5036424a3362d5f8745dc5e36a871ef70d92de25b51b34aa7b174e06fecc09b"
+    },
+    {
+      "id": "A16",
+      "run_id": "fc1ccaf8-b0ef-4499-ab80-45303fe5a483",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "核对 Logs/Metrics/Traces 与执行过程、结果质量的区分。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "1394caf4e7a990e59cf608544dc826fe98373b1f19af2611915efe48375605fc"
+    },
+    {
+      "id": "A22",
+      "run_id": "d2f0552e-a933-4b18-85f5-ed9a3b2a4c27",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源 1、4 的原表格直接列出 Sequential / Parallel / Router 三项对应关系。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "c5bf61b4437b5f6736d84264c3076d9901e5b4bb62bb0f40330c36dc8b0e421b"
+    },
+    {
+      "id": "B06",
+      "run_id": "3e153507-0ccf-4139-b042-3900ca0d34f9",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "核对 Pydantic 数据验证、解析和序列化，以及 Depends 注入依赖函数返回值。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "7483432d92cc1984940711612cd2589c48353c24d247c0227733a03c48807837"
+    },
+    {
+      "id": "B12",
+      "run_id": "08736c13-e6bb-4fd4-9c61-ee065a272ca3",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源明确警示挂载 Docker Socket 可使容器控制宿主机 Docker。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "347f26265b916257738d7acb84e0ba50dfd97f6ca000da263b73d43b35e7657d"
+    },
+    {
+      "id": "B14",
+      "run_id": "959762e5-12e3-48e9-ab41-4c8e96ade2a2",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "注册表与快速键值查询有依据；答案自述资料没有复杂度数值后仍补充 O(1)，属于未获当前来源直接支撑的知识补充。",
+      "support_review": "risk_found",
+      "answer_sha256": "7a6b6b0756697ccaabb2b91d86e27228778d58d160fbe7324a38bdeaf3869888"
+    },
+    {
+      "id": "C08",
+      "run_id": "fbe4cf0b-f976-4b75-b331-b3b03235e7df",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源明确描述多查询策略、生成查询变体以捕捉用户需求。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "38a93e77bb2b3c48f433c37777de3af0bd4e098ef708241c840476534e2ce653"
+    },
+    {
+      "id": "C09",
+      "run_id": "169487a3-64b8-4747-a2e5-0fd3a0e427ab",
+      "status": "invalid_answer",
+      "kind": "original_budget_case",
+      "finding": "原始最终响应不符合 JSON 回答协议，未发布答案；不把它判成事实正确或预算失败。",
+      "support_review": "not_complete_answer",
+      "answer_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "D08",
+      "run_id": "3007c480-da19-4079-89fa-b5b229267101",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源明确说明少拷贝、共享物理帧、必须同步，以及共享内存配合信号量/futex。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "1f3e9315cbf03b4ae15e86bf104669c4ccaec4ae61322ff0319134e2ae94afcb"
+    },
+    {
+      "id": "E15",
+      "run_id": "a32983db-eacb-4b46-a05f-d914f33de331",
+      "status": "completed",
+      "kind": "original_budget_case",
+      "finding": "来源 1 明确指出 MQ 是观察者思想的分布式扩展，Kafka 与设计模式属于不同层次。",
+      "support_review": "key_points_checked",
+      "answer_sha256": "cfc7b69098de133646683b9828547f0d019e8ba5959cc6c3647cc4642c1481d4"
+    },
+    {
+      "id": "F03",
+      "run_id": "7e93b6c0-5f85-47f4-ace5-ea70591207e0",
+      "status": "insufficient",
+      "kind": "original_budget_case",
+      "finding": "范围仍仅知识库 3，Docker 256m 有原文；缺少 agent_security 512MB 直接证据，资料不足合理。",
+      "support_review": "not_complete_answer",
+      "answer_sha256": "ebac20e37ff11d351bd05f6b92023e2579cbe73e1cc5f3bc76c42b9d8fc0e288"
+    },
+    {
+      "id": "A02",
+      "run_id": "0f7ebce5-656d-4902-8034-aae25a0423f1",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "A03",
+      "run_id": "fef0fa4d-7d9e-42cd-ad9e-858770e943b7",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "A04",
+      "run_id": "0a6684ad-71cf-4393-85d0-335c4d981824",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "回答使用未登记的来源或缺少必需引用",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "A05",
+      "run_id": "0a9be0f9-4189-449f-81bf-a504b576fa0f",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "回答使用未登记的来源或缺少必需引用",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "B04",
+      "run_id": "d3b1ca2d-2f92-4938-b15f-4af187ef616f",
+      "kind": "regression",
+      "status": "insufficient",
+      "finding": "首轮未检索即返回资料不足；不是已证明知识库无资料。",
+      "semantic_support": "not_established_by_no_retrieval"
+    },
+    {
+      "id": "B19",
+      "run_id": "de646d26-d547-4f48-bfdf-6714829d8d50",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "C10",
+      "run_id": "cf2af69f-5013-456b-b20e-e2d0ba66ab40",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "E03",
+      "run_id": "87afb1de-cdfd-4ce7-8f06-fc15210ef6ef",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "E04",
+      "run_id": "d805469e-b01c-4ce4-a85c-34d5d212f482",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "非 JSON 正文或 JSON 语法不完整",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "F02",
+      "run_id": "bbd6042d-1264-47d9-acde-e55debd50a3b",
+      "kind": "regression",
+      "status": "invalid_answer",
+      "finding": "回答 Schema 字段或状态不符",
+      "semantic_support": "unpublished_not_rated"
+    },
+    {
+      "id": "F01",
+      "run_id": "d79ad833-135d-4fc9-bfb3-b5ff7015b221",
+      "kind": "automatic_suspect",
+      "finding": "逐项核对来源 1 的 2 cores/2 GB、来源 2 的 2 cores/4GB、来源 6 的 512MB、来源 8 的 1 core，数字与文档身份匹配。自动重合率疑点未确认为数字捏造；原自动标记与 1/75 分数原样保留。"
+    },
+    {
+      "id": "D02",
+      "run_id": "464b6e47-d4c3-40ab-b6d9-ab685ef35a40",
+      "kind": "keyword_miss",
+      "finding": "来源 4 原文及答案均为“还没提交”，正确表达未提交修改。沿用冻结词表，不修订匹配规则或加分。"
+    },
+    {
+      "id": "B05",
+      "run_id": "ddf2f035-c49b-42ec-83b7-920177ea87be",
+      "kind": "insufficient_answerable",
+      "finding": "保留资料不足终态；不是完整答对，未扩库或失败重答。"
+    },
+    {
+      "id": "D07",
+      "run_id": "0267cbd6-81b5-4838-a8a0-879df0100a07",
+      "kind": "insufficient_answerable",
+      "finding": "保留资料不足终态；不是完整答对，未扩库或失败重答。"
+    },
+    {
+      "id": "E13",
+      "run_id": "0b2d5ac6-0f08-4df2-85fc-e48422c00e98",
+      "kind": "invalid_output",
+      "finding": "回答格式或引用校验失败，未发布；保留原始最终响应，未修复或重答。"
+    }
+  ],
+  "regression_ids": [
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "B04",
+    "B19",
+    "C10",
+    "E03",
+    "E04",
+    "F02"
+  ],
+  "manual_support_risk_ids": [
+    "A20",
+    "B14",
+    "D09"
+  ],
+  "automatic_scoring_and_snapshots_changed": false,
+  "invalid_answer_ids": [
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "B19",
+    "C09",
+    "C10",
+    "E03",
+    "E04",
+    "E13",
+    "F02"
+  ],
+  "all_invalid_outcomes_indexed": true
+}

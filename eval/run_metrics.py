@@ -12,6 +12,36 @@ from faithfulness import unsupported_sentences
 CITATION = re.compile(r"\[来源\s*([1-9]\d*)\s*\]")
 
 
+def ledger_valid(run: dict, starts: list[dict], finishes: list[dict]) -> bool:
+    """Version 5 only: reservations are not consumption; unknown totals stay null."""
+    usage = run["usage"]
+    calls = usage["calls"]
+    settled = [c for c in calls if c["state"] == "settled"]
+    unknown = [c for c in calls if c["state"] == "unknown"]
+    by_call = {e["data"]["call"]: e["data"] for e in finishes}
+    return (
+        len(calls) == len(starts) == usage["model_calls"]
+        and [c["call"] for c in calls] == list(range(1, len(calls) + 1))
+        and all(c["run_id"] == run["run_id"] for c in calls)
+        and len(settled) + len(unknown) == len(calls)
+        and len(by_call) == len(finishes) == len(settled)
+        and len(unknown) == usage["unreported_model_calls"]
+        and all(c["prompt_tokens"] is None and c["completion_tokens"] is None
+                and c["provider_total_tokens"] is None and c["unknown_reason"] for c in unknown)
+        and all(c["reservation"] == c["estimated_input_tokens"] + c["output_limit"]
+                and c["estimated_input_tokens"] == e["data"]["estimated_input_tokens"]
+                and c["output_limit"] == e["data"]["output_limit"]
+                and c["phase"] == ("final" if e["data"]["final"] else "exploration")
+                for c, e in zip(calls, starts, strict=True))
+        and all(c["call"] in by_call
+                and all(c[k] == by_call[c["call"]][k] for k in
+                        ("prompt_tokens", "completion_tokens", "provider_total_tokens")) for c in settled)
+        and usage["settled_tokens"] == usage["prompt_tokens"] + usage["completion_tokens"]
+        and usage["actual_total_tokens"] == (None if unknown else usage["settled_tokens"])
+        and usage["reserved_tokens"] == usage["final_reserved_tokens"] == 0
+    )
+
+
 def score_run(snapshot: dict, item: dict) -> dict:
     run = snapshot["result"]
     sources, events, usage = run["sources"], run["events"], run["usage"]
@@ -69,10 +99,16 @@ def score_run(snapshot: dict, item: dict) -> dict:
     model_finishes = [e for e in events if e["kind"] == "model_finished"]
     tool_starts = [e for e in events if e["kind"] == "tool_started"]
     limits = snapshot["limits"]
+    current = run.get("version", 4) == 5
+    ledger_ok = ledger_valid(run, model_starts, model_finishes) if current else None
+    usage_consistent = (all(c["provider_total_tokens"] == c["prompt_tokens"] + c["completion_tokens"]
+                            for c in usage["calls"] if c["state"] == "settled") if current else None)
+    consumption = usage["settled_tokens"] if current else usage["charged_tokens"]
     budget_valid = (
         usage["model_calls"] == len(model_starts) <= limits["model_calls"] <= 6
         and usage["tool_calls"] == len(tool_starts) <= limits["tool_calls"] <= 10
-        and usage["charged_tokens"] <= limits["total_tokens"] <= 64000
+        and consumption <= limits["total_tokens"] <= 64000
+        and (not current or (ledger_ok and usage_consistent and usage["actual_total_tokens"] is not None))
         and all(e["data"]["estimated_input_tokens"] <= 16000
                 and e["data"]["output_limit"] <= 2048 for e in model_starts)
         and all(e["elapsed_ms"] < limits["timeout"] * 1000 for e in [*model_starts, *tool_starts])
@@ -87,6 +123,7 @@ def score_run(snapshot: dict, item: dict) -> dict:
         and bool(events) and events[-1]["kind"] == "run_finished"
         and events[-1]["data"]["status"] == run["status"]
         and events[-1]["data"]["stop_reason"] == run["stop_reason"]
+        and (not current or events[-1]["data"]["exploration_stop_reason"] == run["exploration_stop_reason"])
     )
     keys = []
     for event in tool_starts:
@@ -116,6 +153,9 @@ def score_run(snapshot: dict, item: dict) -> dict:
     )
     return {
         "status": run["status"], "stop_reason": run["stop_reason"],
+        **({"protocol_version": 5, "ledger_valid": ledger_ok,
+            "exploration_stop_reason": run["exploration_stop_reason"],
+            "actual_usage_known": usage["actual_total_tokens"] is not None} if current else {}),
         "evidence_valid": valid, "evidence_errors": evidence_errors,
         "citations_valid": citations_valid, "citation_count": len(cited),
         "cited_source_fraction": len(set(cited) & set(ids)) / len(ids) if ids else None,
@@ -136,14 +176,21 @@ def summarize_runs(rows: list[dict]) -> dict:
     def percentile(q: float) -> float | None:
         return durations[max(0, ceil(len(durations) * q) - 1)] if durations else None
 
+    current = [r for r in rows if r.get("protocol_version") == 5]
+    usage_keys = ["model_calls", "tool_calls", "prompt_tokens", "completion_tokens",
+                  "estimated_input_tokens", "unreported_model_calls"]
+    usage_keys += ["settled_tokens"] if current else ["charged_tokens"]
     return {
         "statuses": dict(Counter(r.get("status", "request_error") for r in rows)),
         "stop_reasons": dict(Counter(r.get("stop_reason", "request_error") for r in rows)),
+        **({"protocol_versions": dict(Counter(r.get("protocol_version", "legacy") for r in rows)),
+            "exploration_stop_reasons": dict(Counter(r.get("exploration_stop_reason", "") for r in current)),
+            "actual_total_tokens": (sum(r["usage"]["actual_total_tokens"] for r in current)
+                                    if len(current) == len(rows) and all(r["actual_usage_known"] for r in current) else None),
+            "usage_note": "settled_tokens is known consumption only; null actual totals cannot be certified."} if current else {}),
         "latency_p50_seconds": percentile(0.5), "latency_p95_seconds": percentile(0.95),
         "latency_max_seconds": max(durations) if durations else None,
-        "usage_totals": {key: sum(r.get("usage", {}).get(key, 0) for r in rows) for key in
-                         ("model_calls", "tool_calls", "prompt_tokens", "completion_tokens",
-                          "estimated_input_tokens", "charged_tokens", "unreported_model_calls")},
+        "usage_totals": {key: sum(r.get("usage", {}).get(key, 0) for r in rows) for key in usage_keys},
         "repeated_executions": sum(r.get("repeated_executions", 0) for r in rows),
         "semantic_review_pending": sum(r.get("semantic_review") == "pending" for r in rows),
         "cost_currency": None,
