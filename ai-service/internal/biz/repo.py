@@ -408,6 +408,18 @@ class LLMProvider(ABC):
 
         raise LLMError(reason="TOOL_CALLING_UNSUPPORTED", message="当前模型未配置原生工具调用能力")
 
+    async def generate_answer(
+        self,
+        messages: list[dict],
+        *,
+        temperature: float | None = None,
+        max_tokens: int = 2048,
+    ) -> ChatResult:
+        """无工具定义的严格最终生成；不支持时明确失败。"""
+        from pkg.errors.base import LLMError
+
+        raise LLMError(reason="STRUCTURED_OUTPUT_UNSUPPORTED", message="当前模型未配置严格最终生成能力")
+
     @property
     @abstractmethod
     def model_name(self) -> str:

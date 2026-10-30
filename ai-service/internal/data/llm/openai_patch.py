@@ -11,7 +11,7 @@ import httpx
 
 from internal.biz.entity import ChatResult
 from internal.biz.repo import LLMProvider
-from internal.biz.tool_types import ToolCall
+from internal.biz.tool_types import ANSWER_RESPONSE_FORMAT, ToolCall
 from pkg.errors.base import LLMError
 from pkg.errors.codes import ErrorCode
 
@@ -52,6 +52,15 @@ class OpenAILLM(LLMProvider):
     ) -> ChatResult:
         return await self._complete(messages, temperature, max_tokens)
 
+    async def generate_answer(
+        self,
+        messages: list[dict],
+        *,
+        temperature: float | None = None,
+        max_tokens: int = 2048,
+    ) -> ChatResult:
+        return await self._complete(messages, temperature, max_tokens, structured=True)
+
     async def generate_with_tools(
         self,
         messages: list[dict],
@@ -65,7 +74,7 @@ class OpenAILLM(LLMProvider):
             raise LLMError(
                 reason="TOOL_CALLING_UNSUPPORTED", message="当前模型未确认原生工具调用能力"
             )
-        if not tools or tool_choice not in ("auto", "none", "required"):
+        if not tools or tool_choice not in ("auto", "required"):
             raise LLMError(reason="INVALID_TOOL_REQUEST", message="工具定义或调用方式无效")
         return await self._complete(
             messages, temperature, max_tokens, tools=tools, tool_choice=tool_choice
@@ -79,6 +88,7 @@ class OpenAILLM(LLMProvider):
         *,
         tools: list[dict] | None = None,
         tool_choice: str = "auto",
+        structured: bool = False,
     ) -> ChatResult:
         payload = {
             "model": self._model,
@@ -90,14 +100,9 @@ class OpenAILLM(LLMProvider):
             payload.update(
                 tools=tools, tool_choice=tool_choice,
                 parallel_tool_calls=False, enable_thinking=False,
-                response_format={"type": "json_schema", "json_schema": {
-                    "name": "grounded_answer", "strict": True,
-                    "schema": {"type": "object", "properties": {
-                        "status": {"type": "string", "enum": ["answered", "insufficient"]},
-                        "answer": {"type": "string"}},
-                        "required": ["status", "answer"], "additionalProperties": False},
-                }},
             )
+        if structured:
+            payload.update(response_format=ANSWER_RESPONSE_FORMAT, enable_thinking=False)
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.post(
@@ -117,10 +122,10 @@ class OpenAILLM(LLMProvider):
             reported = data.get("usage") if isinstance(data, dict) else None
             keys = ("prompt_tokens", "completion_tokens", "total_tokens")
             known = isinstance(reported, dict) and all(type(reported.get(key)) is int and reported[key] >= 0 for key in keys)
-            if tools and not known:
+            if (tools or structured) and not known:
                 raise LLMError(reason="LLM_USAGE_UNKNOWN", message="模型未返回完整实际用量")
             try:
-                return self._parse_result(data, tools, tool_choice)
+                return self._parse_result(data, tools, tool_choice, require_usage=structured)
             except (KeyError, IndexError, TypeError, ValueError) as exc:
                 # 错误输出也必须保留已发生的消耗，不重试或修复输出。
                 raise LLMError(reason="INVALID_LLM_RESPONSE", message="模型响应结构无效",
@@ -134,7 +139,9 @@ class OpenAILLM(LLMProvider):
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise LLMError(reason="INVALID_LLM_RESPONSE", message="模型响应结构无效") from exc
 
-    def _parse_result(self, data: dict, tools: list[dict] | None, tool_choice: str) -> ChatResult:
+    def _parse_result(
+        self, data: dict, tools: list[dict] | None, tool_choice: str, *, require_usage: bool = False,
+    ) -> ChatResult:
         if not isinstance(data, dict) or not isinstance(data.get("choices"), list):
             raise ValueError("missing choices")
         choice = data["choices"][0]
@@ -170,13 +177,13 @@ class OpenAILLM(LLMProvider):
         if not content and not calls:
             raise ValueError("empty response")
         usage = data.get("usage")
-        if (tools or usage is not None) and not isinstance(usage, dict):
+        if (tools or require_usage or usage is not None) and not isinstance(usage, dict):
             raise ValueError("invalid or missing usage")
         usage = {} if usage is None else usage
         counts = [usage.get(key, 0) for key in ("prompt_tokens", "completion_tokens", "total_tokens")]
         if not all(type(count) is int and count >= 0 for count in counts):
             raise ValueError("invalid usage")
-        if tools and (any(key not in usage for key in ("prompt_tokens", "completion_tokens", "total_tokens"))
+        if (tools or require_usage) and (any(key not in usage for key in ("prompt_tokens", "completion_tokens", "total_tokens"))
                       or counts[2] != counts[0] + counts[1]):
             raise ValueError("incomplete usage")
         return ChatResult(

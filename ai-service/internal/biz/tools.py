@@ -6,9 +6,17 @@ import asyncio
 import json
 from dataclasses import dataclass, field, replace
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Annotated, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+)
+from pydantic_core import PydanticCustomError
 
 from internal.biz.materials import InputBudget, MaterialProcessor, pack_sources
 from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult
@@ -25,32 +33,35 @@ T = TypeVar("T")
 
 
 class ToolArguments(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=True)
+    model_config = ConfigDict(extra="forbid", strict=True)
 
 
 class KnowledgeSearchArguments(ToolArguments):
-    query: str = Field(min_length=1, max_length=512, description="知识库检索子问题")
+    query: str = Field(min_length=1, max_length=512, pattern=r"\S", description="知识库检索子问题")
     top_k: int = Field(default=5, ge=1, le=10)
 
 
+SearchKeyword = Annotated[str, StringConstraints(
+    min_length=1, max_length=64, pattern=r"^[^\u0000-\u001f]*\S[^\u0000-\u001f]*$",
+)]
+
+
 class WebSearchArguments(ToolArguments):
-    keywords: list[str] = Field(
+    keywords: list[SearchKeyword] = Field(
         min_length=1, max_length=8,
-        description='字符串数组，例如 ["Tavily", "Search API"]；仅必要公开关键词，禁止私有资料原文',
+        description='1 到 8 项字符串；每项 1 到 64 字符、单行且非空白；用一个空格连接后最多 120 字符。仅必要公开关键词，禁止私有资料原文',
     )
     max_results: int = Field(default=5, ge=1, le=5)
 
     @field_validator("keywords")
     @classmethod
     def minimal_keywords(cls, values: list[str]) -> list[str]:
-        values = list(dict.fromkeys(value.strip() for value in values))
-        if any(
-            not value or len(value) > 32 or any(ord(char) < 32 for char in value)
-            for value in values
-        ):
-            raise ValueError("每个关键词必须为 1 到 32 字的单行文字")
-        if len(" ".join(values)) > 120:
-            raise ValueError("外部搜索最多发送 120 字关键词")
+        length = len(" ".join(values))
+        if length > 120:
+            raise PydanticCustomError(
+                "keyword_total_length", "连接后关键词长 {actual_length}，允许最多 {max_length} 字符",
+                {"actual_length": length, "max_length": 120},
+            )
         return values
 
 
@@ -67,9 +78,29 @@ _ARGUMENTS = {
 }
 _DESCRIPTIONS = {
     "knowledge_base_search": "检索用户已选择且有权访问的知识库，返回带分块位置的资料。范围由服务器固定。",
-    "web_search": "用必要公开关键词搜索网页，仅返回搜索摘要；摘要不代表已读取网页正文。",
+    "web_search": "用必要公开关键词搜索网页，仅返回搜索摘要；摘要不代表已读取网页正文。keywords 每项最多 64 字符，各项用一个空格连接后总计最多 120 字符；这是本地约束。",
     "web_read": "读取本次已发现或用户明确提供的公开网页正文；不能访问内网或任意新网址。",
 }
+
+
+def _parse_arguments(call: ToolCall) -> ToolArguments:
+    """Schema 与执行共用参数模型；错误只含位置、类型和长度，不回显参数原文。"""
+    try:
+        return _ARGUMENTS[call.name].model_validate_json(call.arguments)
+    except ValidationError as exc:
+        details = []
+        fields = {"query", "top_k", "keywords", "max_results", "urls"}
+        for error in exc.errors(include_url=False, include_input=True)[:4]:
+            location = ".".join(str(part + 1) if isinstance(part, int) else
+                                part if part in fields else "extra_field" for part in error["loc"])
+            context = {key: value for key, value in error.get("ctx", {}).items()
+                       if key in {"min_length", "max_length", "actual_length", "ge", "le"}
+                       and type(value) in (int, float)}
+            if error["type"] in ("string_too_long", "string_too_short"):
+                context["actual_length"] = len(error["input"])
+            limits = ", ".join(f"{key}={value}" for key, value in context.items())
+            details.append(f"{location or 'arguments'}: {error['type']}" + (f" ({limits})" if limits else ""))
+        raise ToolError("INVALID_TOOL_ARGUMENTS", "；".join(details)) from exc
 
 
 @dataclass(frozen=True)
@@ -182,10 +213,7 @@ class ReadOnlyToolExecutor:
         """按实际查询内容识别重复；改变数量或参数排列不能绕过检查。"""
         if call.name not in _ARGUMENTS or len(call.arguments) > 8192:
             raise ToolError("INVALID_TOOL_ARGUMENTS", "工具名称或参数无效")
-        try:
-            args = _ARGUMENTS[call.name].model_validate_json(call.arguments)
-        except ValidationError as exc:
-            raise ToolError("INVALID_TOOL_ARGUMENTS", "工具参数不符合定义") from exc
+        args = _parse_arguments(call)
         if isinstance(args, KnowledgeSearchArguments):
             value = " ".join(args.query.casefold().split())
         elif isinstance(args, WebSearchArguments):
@@ -203,6 +231,7 @@ class ReadOnlyToolExecutor:
                 "type": "function",
                 "function": {
                     "name": name,
+                    "strict": True,
                     "description": _DESCRIPTIONS[name],
                     "parameters": _ARGUMENTS[name].model_json_schema(),
                 },
@@ -257,12 +286,7 @@ class ReadOnlyToolExecutor:
             raise ToolError("UNKNOWN_TOOL", "不允许调用此工具")
         if call.name.startswith("web_") and not session.scope.allow_web:
             raise ToolError("WEB_DISABLED", "本次提问未开启联网")
-        try:
-            arguments = _ARGUMENTS[call.name].model_validate_json(call.arguments)
-        except ValidationError as exc:
-            raise ToolError(
-                "INVALID_TOOL_ARGUMENTS", "工具参数不符合定义；禁止额外字段及类型转换"
-            ) from exc
+        arguments = _parse_arguments(call)
         await self._authorize(session.scope)
         if isinstance(arguments, KnowledgeSearchArguments):
             if not session.scope.knowledge_base_ids:

@@ -1,0 +1,176 @@
+{
+  "model": "qwen3.8-flash",
+  "provider": "openai",
+  "host": "maas.qianwenaiapi.com",
+  "base_path": "/compatible-mode/v1",
+  "embedding_model": "qwen3.7-text-embedding-flash",
+  "reranker_model": "qwen3.7-text-rerank",
+  "limits": {
+    "model_calls": 6,
+    "tool_calls": 10,
+    "total_tokens": 64000,
+    "timeout": 120
+  },
+  "input_limit": 16000,
+  "output_limit": 2048,
+  "input_measurement": "utf8_bytes_estimate",
+  "code": [
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "sha256": "10db3d496e67b02e47e0f17f739ddee9d1519385ce9d4930fdf514b695553e45"
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "sha256": "2a252ec028b7ba1763fd694b0ef2ff85c3fc80389314025ea73206095f1b2f21"
+    },
+    {
+      "path": "ai-service/internal/biz/tool_model.py",
+      "sha256": "9b1d7eabd951e48516830a0e9142beba23877b98608d15f8c6540e8dafb58686"
+    },
+    {
+      "path": "ai-service/internal/biz/repo.py",
+      "sha256": "f5a8539d9b9f66608fec80e1fc48f12d359986fb030c42b922a8e5ebf84278db"
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "sha256": "81a1ec85bebe5182de962ddbb71139c1514f9f3af09faf895b5578db69f8b722"
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "sha256": "964a18edcd70bd61e362b5b59489739cd74af3aab6d0efc5a24c9fe577d2d381"
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "sha256": "16698fd42b5113e5c5f5f5b1e31505f7b19609c8c310f64b0c481a150f9f5107"
+    }
+  ],
+  "answer_response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "grounded_answer",
+      "strict": true,
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "answered",
+              "insufficient"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "answer": {
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "answer"
+        ],
+        "title": "AnswerPayload",
+        "type": "object"
+      }
+    }
+  },
+  "tool_definitions": [
+    {
+      "type": "function",
+      "function": {
+        "name": "knowledge_base_search",
+        "description": "\u68c0\u7d22\u7528\u6237\u5df2\u9009\u62e9\u4e14\u6709\u6743\u8bbf\u95ee\u7684\u77e5\u8bc6\u5e93\uff0c\u8fd4\u56de\u5e26\u5206\u5757\u4f4d\u7f6e\u7684\u8d44\u6599\u3002\u8303\u56f4\u7531\u670d\u52a1\u5668\u56fa\u5b9a\u3002",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "description": "\u77e5\u8bc6\u5e93\u68c0\u7d22\u5b50\u95ee\u9898",
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "title": "Query",
+              "type": "string"
+            },
+            "top_k": {
+              "default": 5,
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Top K",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "title": "KnowledgeSearchArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_search",
+        "description": "\u7528\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\u641c\u7d22\u7f51\u9875\uff0c\u4ec5\u8fd4\u56de\u641c\u7d22\u6458\u8981\uff1b\u6458\u8981\u4e0d\u4ee3\u8868\u5df2\u8bfb\u53d6\u7f51\u9875\u6b63\u6587\u3002keywords \u6bcf\u9879\u6700\u591a 32 \u5b57\u7b26\uff0c\u5404\u9879\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u603b\u8ba1\u6700\u591a 120 \u5b57\u7b26\uff1b\u8fd9\u662f\u672c\u5730\u7ea6\u675f\u3002",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "keywords": {
+              "description": "1 \u5230 8 \u9879\u5b57\u7b26\u4e32\uff1b\u6bcf\u9879 1 \u5230 32 \u5b57\u7b26\u3001\u5355\u884c\u4e14\u975e\u7a7a\u767d\uff1b\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u6700\u591a 120 \u5b57\u7b26\u3002\u4ec5\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\uff0c\u7981\u6b62\u79c1\u6709\u8d44\u6599\u539f\u6587",
+              "items": {
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001f]*\\S[^\\u0000-\\u001f]*$",
+                "type": "string"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "title": "Keywords",
+              "type": "array"
+            },
+            "max_results": {
+              "default": 5,
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Max Results",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "keywords"
+          ],
+          "title": "WebSearchArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_read",
+        "description": "\u8bfb\u53d6\u672c\u6b21\u5df2\u53d1\u73b0\u6216\u7528\u6237\u660e\u786e\u63d0\u4f9b\u7684\u516c\u5f00\u7f51\u9875\u6b63\u6587\uff1b\u4e0d\u80fd\u8bbf\u95ee\u5185\u7f51\u6216\u4efb\u610f\u65b0\u7f51\u5740\u3002",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "urls": {
+              "description": "\u672c\u6b21\u641c\u7d22\u5df2\u8fd4\u56de\u6216\u7528\u6237\u660e\u786e\u63d0\u4f9b\u7684\u516c\u5f00\u7f51\u5740",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3,
+              "minItems": 1,
+              "title": "Urls",
+              "type": "array"
+            }
+          },
+          "required": [
+            "urls"
+          ],
+          "title": "WebReadArguments",
+          "type": "object"
+        }
+      }
+    }
+  ]
+}

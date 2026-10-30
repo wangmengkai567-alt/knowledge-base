@@ -6,8 +6,22 @@ import json
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import BaseModel, ConfigDict, Field
+
 if TYPE_CHECKING:
     from internal.biz.materials import AnswerSource, WebSource
+
+
+class AnswerPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    status: Literal["answered", "insufficient"]
+    answer: str = Field(min_length=1)
+
+
+ANSWER_RESPONSE_FORMAT = {"type": "json_schema", "json_schema": {
+    "name": "grounded_answer", "strict": True, "schema": AnswerPayload.model_json_schema(),
+}}
 
 
 @dataclass(frozen=True)

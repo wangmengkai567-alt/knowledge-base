@@ -1,0 +1,226 @@
+{
+  "decision": {
+    "per_keyword_max_characters": 64,
+    "joined_max_characters": 120,
+    "user_authorized": true
+  },
+  "existing_files": [
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "sha256": "81a1ec85bebe5182de962ddbb71139c1514f9f3af09faf895b5578db69f8b722",
+      "crlf": 500,
+      "lf": 500,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/repo.py",
+      "sha256": "f5a8539d9b9f66608fec80e1fc48f12d359986fb030c42b922a8e5ebf84278db",
+      "crlf": 0,
+      "lf": 538,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_model.py",
+      "sha256": "9b1d7eabd951e48516830a0e9142beba23877b98608d15f8c6540e8dafb58686",
+      "crlf": 0,
+      "lf": 154,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "sha256": "2a252ec028b7ba1763fd694b0ef2ff85c3fc80389314025ea73206095f1b2f21",
+      "crlf": 0,
+      "lf": 94,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "sha256": "97471180ad89dfd4ed619cab673cf40c1968e2c8cacc2c8624ac611d8c8d6c66",
+      "crlf": 0,
+      "lf": 344,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "sha256": "964a18edcd70bd61e362b5b59489739cd74af3aab6d0efc5a24c9fe577d2d381",
+      "crlf": 193,
+      "lf": 193,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "sha256": "16698fd42b5113e5c5f5f5b1e31505f7b19609c8c310f64b0c481a150f9f5107",
+      "crlf": 25,
+      "lf": 25,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-1-report.md",
+      "sha256": "ec5e50e3924a126c1920f1e0aa284faa41ed2301a9e4e21ae7e2807fd05725cb",
+      "crlf": 0,
+      "lf": 114,
+      "bom": false
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "sha256": "7285c4c644de88fa1b87df8bbd570680347d35a70cc59c0c649811e5934da609",
+      "crlf": 0,
+      "lf": 270,
+      "bom": false
+    },
+    {
+      "path": "eval/README.md",
+      "sha256": "291892d87482fb5e0f2e5f9988bdcda2b4e4ceabf5d2cdbf5d6fd01fac44add5",
+      "crlf": 138,
+      "lf": 138,
+      "bom": false
+    },
+    {
+      "path": "eval/run_eval.py",
+      "sha256": "b6b3b51341316064b4f127a872a3e22e52ef2d14034d951de3cee8254757205e",
+      "crlf": 353,
+      "lf": 353,
+      "bom": false
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "sha256": "bc2c9104ad6e8b77376c4cb0c54a8295e53e50b6cbc6468b4d8b6d228c0286fa",
+      "crlf": 0,
+      "lf": 216,
+      "bom": false
+    },
+    {
+      "path": "web/src/components/Search/SummaryPanel.vue",
+      "sha256": "352e4d80c899b77555bdd7d900d5b510d843cef8b64ea06c59df4cfb16af45ec",
+      "crlf": 313,
+      "lf": 313,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-smoke-checks.json",
+      "sha256": "d74fbb6aa73e74e52df8a58136a0dcb8553d8f8b685a87bbdc1fa71aa5bc5cbe",
+      "crlf": 0,
+      "lf": 297,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-1-smoke-source-audit.json",
+      "sha256": "8b1275bce1830991e7c4e747e74056f17c37ef4712f4f87bad45d1de6aa1960a",
+      "crlf": 0,
+      "lf": 2324,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-capabilities.json",
+      "sha256": "deec4dce9ef629a7745b20c50b0470730c81ba491521f4b01aa0d8c5289e5d95",
+      "crlf": 0,
+      "lf": 195,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-diagnostics.json",
+      "sha256": "77dad28298fb8454897556a8448b43573b1150c8326aef1f32a5d6701214d7e7",
+      "crlf": 0,
+      "lf": 328,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-final-source-audit.json",
+      "sha256": "db98d76cc3eff2dfb5383223b6eb36ab1eb7b1a6f63dd1bbab3723352ddf3a77",
+      "crlf": 0,
+      "lf": 1832,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-initial-runtime.json",
+      "sha256": "6121c1711dc361049bb3ee28181cdfda4f93a93013f673682eb5ce18b069856e",
+      "crlf": 0,
+      "lf": 176,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-inputs.json",
+      "sha256": "8c1b123e8fe5db950aa76638db0d963f18917e6978d5328d238b379befe1cc07",
+      "crlf": 0,
+      "lf": 105,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-runtime.json",
+      "sha256": "3980a5a3a042730b8b4e784f6aaa02bfbba498f51ba04662434f014824b06057",
+      "crlf": 0,
+      "lf": 179,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-smoke-source-audit.json",
+      "sha256": "6882547cb172bc99a048fea2f012ad986c07ed7b0511fe2f495250102e8ed1d4",
+      "crlf": 0,
+      "lf": 2514,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-strict-tool-capability.json",
+      "sha256": "f12daab1f7cf8122e29364783678057c396983545f85d4730c3567d186ad9b33",
+      "crlf": 0,
+      "lf": 84,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-2-verification.json",
+      "sha256": "4951a99db3bcba0b5a75519b62d3d9e605b6a7af994c13eddc4938a96aca882b",
+      "crlf": 0,
+      "lf": 696,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-1-smoke-report.md",
+      "sha256": "fe94caad58194ee1ca4526c8226923354a16f844abd5344e2caac49e0edaa581",
+      "crlf": 0,
+      "lf": 30,
+      "bom": false
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-2-report.md",
+      "sha256": "4cae33654b59d8d517e048ee1809dd2e50b2969d0c6624223255bca34046a98a",
+      "crlf": 0,
+      "lf": 81,
+      "bom": false
+    },
+    {
+      "path": "eval/rag-quality-phase-1-smoke-results.json",
+      "sha256": "bb3ff8e0514890413a67f915ec42d5aa370a1f182cabdd04d329ad98d474b8f8",
+      "crlf": 0,
+      "lf": 12929,
+      "bom": false
+    },
+    {
+      "path": "eval/rag-quality-phase-2-final-smoke-results.json",
+      "sha256": "366e0667d51765ecbd5f3040428f4d82b54b5893eba697d06c56528c1b3995cc",
+      "crlf": 0,
+      "lf": 7722,
+      "bom": false
+    },
+    {
+      "path": "eval/rag-quality-phase-2-final-web-contract-results.json",
+      "sha256": "027159ceb37953a10a54c26a8b2517526383088406e6721ca4cfb4207ee7a1b2",
+      "crlf": 0,
+      "lf": 1661,
+      "bom": false
+    },
+    {
+      "path": "eval/rag-quality-phase-2-smoke-results.json",
+      "sha256": "14b03e2cdf5777687dd8b67b2f74466ff820e659ae6b6251170c32f79d96d263",
+      "crlf": 0,
+      "lf": 12174,
+      "bom": false
+    },
+    {
+      "path": "eval/rag-quality-phase-2-web-contract-results.json",
+      "sha256": "1ff2b50d688e5b9a0f162939680c7c8f9fd00e3d6de207c2f51ade5860c18c66",
+      "crlf": 0,
+      "lf": 1661,
+      "bom": false
+    }
+  ]
+}

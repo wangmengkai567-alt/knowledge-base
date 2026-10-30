@@ -33,13 +33,14 @@ const generatedLabel = computed(() => props.generatedAt ? formatDate(props.gener
 const labels: Record<RunStatus, string> = {
   running: '正在处理', completed: '回答完成', insufficient: '资料不足',
   budget_exhausted: '已达到执行上限', usage_unknown: '实际用量未知，已停止',
-  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过引用检查',
+  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式或引用检查',
   timeout: '执行超时', cancelled: '已取消',
 }
 const reasons: Record<string, string> = {
   model_call_limit: '已达到模型调用次数上限', tool_call_limit: '已达到工具调用次数上限',
   token_budget: '剩余额度不足以继续取证', input_budget: '资料已达到输入上限',
-  no_new_evidence: '连续查找未获得新资料', model_returned_answer: '模型结束取证并作答',
+  no_new_evidence: '连续查找未获得新资料', model_finished_exploration: '取证结束，准备生成最终回答',
+  evidence_not_requested: '模型未按要求调用取证工具，本次执行已停止',
   usage_unknown: '服务未返回完整用量，本次执行已停止',
   actual_usage_exceeded: '服务报告的实际用量超出执行上限',
   output_limit: '回答超出输出长度上限', repeated_call: '重复查询未取得新资料',

@@ -1,0 +1,105 @@
+{
+  "git_head": "16933de413dfa9df55e0464ffb7df24888b12afa",
+  "files": [
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "sha256": "98de78a9861e86d864421bcd7ff85a01201e3a5d657149f89ada2e80cdff91cb",
+      "crlf": 0,
+      "lf": 320,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "sha256": "b1b6477d3531be512c30249d873314ed643d9166dfaa72523ccb9d0767bf55e6",
+      "crlf": 0,
+      "lf": 80,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_model.py",
+      "sha256": "75a643959904c05cf943108bf7d8d1651803bcc0e388e32067af23ee2e83832c",
+      "crlf": 0,
+      "lf": 142,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/repo.py",
+      "sha256": "9d8be079eaa360d98bed2a51db6ebf85f4f8444b2f656cb024c9027f6569d29b",
+      "crlf": 0,
+      "lf": 526,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "sha256": "decc5c162417c787b9c624978fc3c33d80fb40fe7b83b78a2f72002ece662729",
+      "crlf": 492,
+      "lf": 492,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "sha256": "bfe93e6f064b6c14fe888ea7087b5dc660e0fd1bc43d6706a9c64bf3f42b4928",
+      "crlf": 186,
+      "lf": 186,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "sha256": "c63cb92f262e93aa97e90d7fc26ca48bb8cdc9b6f4bc06ec2536ab3d527b528f",
+      "crlf": 24,
+      "lf": 24,
+      "bom": false
+    },
+    {
+      "path": "web/src/components/Search/SummaryPanel.vue",
+      "sha256": "1c17799fd10c3ca1c415697bd13ec3799300131a3f47a012c5314069bbb9658a",
+      "crlf": 312,
+      "lf": 312,
+      "bom": false
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "sha256": "1534c74e8c508daa965eaca6befdd2247aefbd2cd963ce0a2dce1249187c8fad",
+      "crlf": 0,
+      "lf": 198,
+      "bom": false
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "sha256": "c531f94d3557dc83cb813f724c8d7daecd87e74ae62189271962ec4119e39c56",
+      "crlf": 0,
+      "lf": 268,
+      "bom": false
+    },
+    {
+      "path": "eval/README.md",
+      "sha256": "5053a5de79a2c54494bc0038599dc96efa7f0750faacf2344a8cac23cc075804",
+      "crlf": 124,
+      "lf": 124,
+      "bom": false
+    },
+    {
+      "path": "eval/run_eval.py",
+      "sha256": "c1b7c364ca3b23b3d4654404337714ba6f07eaba847125238c11d1965d3966fa",
+      "crlf": 351,
+      "lf": 351,
+      "bom": false
+    }
+  ],
+  "status_at_capture": [
+    " M docs/implementation/rag-quality-phase-1-report.md",
+    "?? docs/implementation/evidence/rag-quality-phase-1-smoke-checks.json",
+    "?? docs/implementation/evidence/rag-quality-phase-1-smoke-source-audit.json",
+    "?? docs/implementation/evidence/rag-quality-phase-2-capabilities.json",
+    "?? docs/implementation/rag-quality-phase-1-smoke-report.md",
+    "?? eval/rag-quality-phase-1-smoke-results.json"
+  ],
+  "capture_note": "Status captured after the first capability probe, before implementation edits.",
+  "authorized_existing_changes": [
+    "docs/implementation/rag-quality-phase-1-report.md",
+    "docs/implementation/evidence/rag-quality-phase-1-smoke-checks.json",
+    "docs/implementation/evidence/rag-quality-phase-1-smoke-source-audit.json",
+    "docs/implementation/rag-quality-phase-1-smoke-report.md",
+    "eval/rag-quality-phase-1-smoke-results.json"
+  ]
+}

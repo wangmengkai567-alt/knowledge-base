@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import re
 from dataclasses import replace
 from time import monotonic
@@ -14,7 +13,7 @@ import structlog
 from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
 from internal.biz.entity import ChatResult
 from internal.biz.materials import AnswerSource, InputBudget, WebSource, pack_sources
-from internal.biz.tool_types import ToolError, ToolFailure, ToolResult
+from internal.biz.tool_types import AnswerPayload, ToolError, ToolFailure, ToolResult
 from internal.biz.tools import ToolScope
 from pkg.errors.base import APIError
 
@@ -164,7 +163,7 @@ class RAGBiz:
         while run.status == "running":
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
-            estimate = self._model.estimate([*messages, _FINAL_CONTROL], session)
+            estimate = self._model.estimate([*messages, _FINAL_CONTROL], session, final=True)
             remaining = limits.total_tokens - usage.settled_tokens
             # 收尾使用当前完整请求的保守估算，不固定扣留最大输入窗口。
             reserve = estimate + output_tokens
@@ -174,17 +173,22 @@ class RAGBiz:
                     run.stop_exploration("model_call_limit")
                 elif usage.tool_calls >= limits.tool_calls:
                     run.stop_exploration("tool_call_limit")
+                elif self._model.estimate(messages, session) > self._budget.input_limit:
+                    run.stop_exploration("input_budget")
                 elif remaining < self._model.estimate(messages, session) + output_tokens + reserve:
                     run.stop_exploration("token_budget")
             if no_progress >= 2:
                 run.stop_exploration("no_new_evidence")
             final = bool(run.exploration_stop_reason)
+            if final and not usage.tool_calls:
+                run.finish("budget_exhausted", run.exploration_stop_reason)
+                return
             run.emit("budget_planned", settled_tokens=usage.settled_tokens,
                      remaining_tokens=remaining, final_reservation=reserve,
                      available_for_exploration=remaining - usage.reserved_tokens - reserve,
                      input_measurement=run.input_measurement)
             request = [*messages, _FINAL_CONTROL] if final else messages
-            estimate = self._model.estimate(request, session)
+            estimate = self._model.estimate(request, session, final=final)
             if (
                 usage.model_calls >= limits.model_calls
                 or estimate > self._budget.input_limit
@@ -194,7 +198,7 @@ class RAGBiz:
                           "input_budget" if estimate > self._budget.input_limit else "token_budget")
                 run.finish("budget_exhausted", reason)
                 return
-            self._model.validate_request(request, session, output_tokens)
+            self._model.validate_request(request, session, output_tokens, final=final)
             self._check_active(run, session)
             call_number = run.reserve_model(estimate, output_tokens, final)
             if pending_sources:
@@ -205,6 +209,9 @@ class RAGBiz:
                 "model_started",
                 call=usage.model_calls,
                 final=final,
+                request_mode="strict_answer" if final else "native_tools",
+                tool_definition_count=0 if final else len(self._model.executor.definitions(session.scope)),
+                tool_choice=None if final else "required" if not usage.tool_calls else "auto",
                 exploration_stop_reason=run.exploration_stop_reason,
                 estimated_input_tokens=estimate,
                 output_limit=output_tokens,
@@ -213,7 +220,8 @@ class RAGBiz:
                 result = await self._model.request_action(
                     request,
                     session,
-                    tool_choice="none" if final else "auto",
+                    final=final,
+                    require_tool=not usage.tool_calls,
                     max_tokens=output_tokens,
                     temperature=temperature,
                 )
@@ -228,13 +236,19 @@ class RAGBiz:
             self._check_active(run, session)
             if run.status != "running":
                 return
-            if not result.tool_calls:
-                run.stop_exploration("model_returned_answer")
-                self._publish(run, result)
-                return
             if final:
-                run.finish("model_failed", "unexpected_tool_call", "INVALID_TOOL_RESPONSE")
+                if result.tool_calls:
+                    run.finish("model_failed", "unexpected_tool_call", "INVALID_TOOL_RESPONSE")
+                else:
+                    self._publish(run, result)
                 return
+            if not result.tool_calls:
+                if not usage.tool_calls:
+                    run.finish("model_failed", "evidence_not_requested", "REQUIRED_TOOL_CALL_MISSING")
+                    return
+                # 探索正文不发布、不作为事实或修复素材；下一轮始终是预留的正式最终生成。
+                run.stop_exploration("model_finished_exploration")
+                continue
             if len({call.id for call in result.tool_calls}) != len(result.tool_calls) or any(
                 call.id in seen_ids for call in result.tool_calls
             ):
@@ -248,7 +262,7 @@ class RAGBiz:
             start = len(messages)
             for call in result.tool_calls:
                 messages.append(self._denied(call, "RUN_STOPPED").to_message())
-            final_estimate = self._model.estimate([*messages, _FINAL_CONTROL], session)
+            final_estimate = self._model.estimate([*messages, _FINAL_CONTROL], session, final=True)
             if final_estimate > self._budget.input_limit or final_estimate + output_tokens > limits.total_tokens - usage.settled_tokens:
                 # 尚未执行任何动作，无需把无法容纳的请求加入后续原生协议。
                 # 保留上一份完整上下文和预留额度，用最后一轮回答明确结束。
@@ -384,7 +398,7 @@ class RAGBiz:
         bounded = replace(result)
         empty = list(messages)
         empty[index] = replace(bounded, sources=[]).to_message()
-        base = self._model.estimate([*empty, _FINAL_CONTROL], session)
+        base = self._model.estimate([*empty, _FINAL_CONTROL], session, final=True)
         remaining = run.limits.total_tokens - run.usage.settled_tokens
         ceiling = min(self._budget.input_limit - self._budget.output_limit, remaining - output_tokens)
         if base > ceiling:
@@ -394,13 +408,13 @@ class RAGBiz:
         def fits(values):
             trial = list(messages)
             trial[index] = replace(bounded, sources=values).to_message()
-            return self._model.estimate([*trial, _FINAL_CONTROL], session) <= limit
+            return self._model.estimate([*trial, _FINAL_CONTROL], session, final=True) <= limit
         bounded.sources = pack_sources(sources, fits)
         if not fits(bounded.sources) or (sources and not bounded.sources):
             return None
         trial = list(messages)
         trial[index] = bounded.to_message()
-        run.usage.final_reserved_tokens = self._model.estimate([*trial, _FINAL_CONTROL], session) + output_tokens
+        run.usage.final_reserved_tokens = self._model.estimate([*trial, _FINAL_CONTROL], session, final=True) + output_tokens
         run.emit("materials_budgeted", remaining_tokens=remaining,
                  final_reservation=run.usage.final_reserved_tokens,
                  available_for_exploration=remaining - run.usage.final_reserved_tokens)
@@ -455,16 +469,10 @@ class RAGBiz:
         run.final_response = result.content
         run.emit("answer_check_started")
         try:
-            value = json.loads(result.content)
-            if (
-                not isinstance(value, dict)
-                or set(value) != {"status", "answer"}
-                or value["status"] not in ("answered", "insufficient")
-                or not isinstance(value["answer"], str)
-                or not value["answer"].strip()
-            ):
-                raise ValueError("invalid final response")
-            answer = value["answer"].strip()
+            value = AnswerPayload.model_validate_json(result.content)
+            answer = value.answer.strip()
+            if not answer:
+                raise ValueError("empty final answer")
             raw = re.findall(r"\[来源([^\]]*)\]", answer)
             if any(not re.fullmatch(r"\s*[1-9]\d*\s*", item) for item in raw):
                 raise ValueError("invalid citation syntax")
@@ -472,7 +480,7 @@ class RAGBiz:
             allowed = {source.citation_id for source in run.sources}
             if (
                 any(number not in allowed for number in citations)
-                or (value["status"] == "answered" and not citations)
+                or (value.status == "answered" and not citations)
                 or answer.count("[来源") != len(raw)
             ):
                 raise ValueError("invalid citations")
@@ -483,10 +491,10 @@ class RAGBiz:
         run.emit(
             "answer_validated",
             citation_ids=sorted(set(citations)),
-            outcome=value["status"],
+            outcome=value.status,
             semantic_support="not_evaluated",
         )
         run.finish(
-            "completed" if value["status"] == "answered" else "insufficient",
-            "answer_completed" if value["status"] == "answered" else "insufficient_material",
+            "completed" if value.status == "answered" else "insufficient",
+            "answer_completed" if value.status == "answered" else "insufficient_material",
         )

@@ -1,0 +1,195 @@
+{
+  "stage": 2,
+  "kind": "fixed_capability_matrix_not_question_evaluation",
+  "rows": [
+    {
+      "mode": "strict_without_tools",
+      "model": "qwen3.8-flash",
+      "host": "maas.qianwenaiapi.com",
+      "path": "/compatible-mode/v1/chat/completions",
+      "max_tokens": 512,
+      "timeout_seconds": 30,
+      "http_status": 200,
+      "response": {
+        "id": "chatcmpl-6f1d2f36-f7ce-94f6-93d5-2216137e23b5",
+        "object": "chat.completion",
+        "created": 1793329405,
+        "model": "qwen3.8-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\n  \"status\": \"answered\",\n  \"answer\": \"The project limit is 6 model calls. [source 1]\"\n}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 61,
+          "total_tokens": 92,
+          "completion_tokens": 31,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "text_tokens": 61
+          }
+        }
+      },
+      "usage_valid": true,
+      "native_valid": false,
+      "answer_schema_valid": true,
+      "elapsed_seconds": 1.236
+    },
+    {
+      "mode": "native_auto",
+      "model": "qwen3.8-flash",
+      "host": "maas.qianwenaiapi.com",
+      "path": "/compatible-mode/v1/chat/completions",
+      "max_tokens": 512,
+      "timeout_seconds": 30,
+      "http_status": 200,
+      "response": {
+        "id": "chatcmpl-2379de28-dcf9-918b-9b0a-69dddc06eeff",
+        "object": "chat.completion",
+        "created": 1793329406,
+        "model": "qwen3.8-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "",
+              "tool_calls": [
+                {
+                  "id": "call_9e2342dbc87c4af4a306e0d5",
+                  "type": "function",
+                  "function": {
+                    "name": "knowledge_base_search",
+                    "arguments": "{\"query\": \"project model call limit\"}"
+                  },
+                  "index": 0
+                }
+              ]
+            },
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 314,
+          "total_tokens": 343,
+          "completion_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "text_tokens": 314
+          }
+        }
+      },
+      "usage_valid": true,
+      "native_valid": true,
+      "answer_schema_valid": false,
+      "elapsed_seconds": 0.667
+    },
+    {
+      "mode": "strict_with_tools",
+      "model": "qwen3.8-flash",
+      "host": "maas.qianwenaiapi.com",
+      "path": "/compatible-mode/v1/chat/completions",
+      "max_tokens": 512,
+      "timeout_seconds": 30,
+      "http_status": 200,
+      "response": {
+        "id": "chatcmpl-31caf42d-5f58-9c82-8da8-7a42cb91d93c",
+        "object": "chat.completion",
+        "created": 1793329407,
+        "model": "qwen3.8-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "I'll search for information about the project model call limit.\n\n",
+              "tool_calls": [
+                {
+                  "id": "call_e86b1d29f78049528ba2615d",
+                  "type": "function",
+                  "function": {
+                    "name": "knowledge_base_search",
+                    "arguments": "{\"query\": \"project model call limit\"}"
+                  },
+                  "index": 0
+                }
+              ]
+            },
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 316,
+          "total_tokens": 358,
+          "completion_tokens": 42,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "text_tokens": 316
+          }
+        }
+      },
+      "usage_valid": true,
+      "native_valid": true,
+      "answer_schema_valid": false,
+      "elapsed_seconds": 0.807
+    },
+    {
+      "mode": "native_required",
+      "model": "qwen3.8-flash",
+      "host": "maas.qianwenaiapi.com",
+      "path": "/compatible-mode/v1/chat/completions",
+      "max_tokens": 512,
+      "timeout_seconds": 30,
+      "http_status": 200,
+      "response": {
+        "id": "chatcmpl-886191ee-5709-97df-830e-7fdeac60a496",
+        "object": "chat.completion",
+        "created": 1793329408,
+        "model": "qwen3.8-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "",
+              "tool_calls": [
+                {
+                  "id": "call_0013be01981c405cbca0fca6",
+                  "type": "function",
+                  "function": {
+                    "name": "knowledge_base_search",
+                    "arguments": "{\"query\": \"project model call limit\"}"
+                  },
+                  "index": 0
+                }
+              ]
+            },
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 317,
+          "total_tokens": 343,
+          "completion_tokens": 26,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "text_tokens": 317
+          }
+        }
+      },
+      "usage_valid": true,
+      "native_valid": true,
+      "answer_schema_valid": false,
+      "elapsed_seconds": 0.641
+    }
+  ]
+}

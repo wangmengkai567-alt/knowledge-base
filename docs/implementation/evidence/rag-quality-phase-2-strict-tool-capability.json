@@ -1,0 +1,84 @@
+{
+  "mode": "strict_native_tool_schema",
+  "model": "qwen3.8-flash",
+  "host": "maas.qianwenaiapi.com",
+  "max_tokens": 512,
+  "tool_definition": {
+    "type": "function",
+    "function": {
+      "name": "web_search",
+      "description": "\u7528\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\u641c\u7d22\u7f51\u9875\uff0c\u4ec5\u8fd4\u56de\u641c\u7d22\u6458\u8981\uff1b\u6458\u8981\u4e0d\u4ee3\u8868\u5df2\u8bfb\u53d6\u7f51\u9875\u6b63\u6587\u3002keywords \u6bcf\u9879\u6700\u591a 32 \u5b57\u7b26\uff0c\u5404\u9879\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u603b\u8ba1\u6700\u591a 120 \u5b57\u7b26\uff1b\u8fd9\u662f\u672c\u5730\u7ea6\u675f\u3002",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "keywords": {
+            "description": "1 \u5230 8 \u9879\u5b57\u7b26\u4e32\uff1b\u6bcf\u9879 1 \u5230 32 \u5b57\u7b26\u3001\u5355\u884c\u4e14\u975e\u7a7a\u767d\uff1b\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u6700\u591a 120 \u5b57\u7b26\u3002\u4ec5\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\uff0c\u7981\u6b62\u79c1\u6709\u8d44\u6599\u539f\u6587",
+            "items": {
+              "maxLength": 32,
+              "minLength": 1,
+              "pattern": "^[^\\u0000-\\u001f]*\\S[^\\u0000-\\u001f]*$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Keywords",
+            "type": "array"
+          },
+          "max_results": {
+            "default": 5,
+            "maximum": 5,
+            "minimum": 1,
+            "title": "Max Results",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "keywords"
+        ],
+        "title": "WebSearchArguments",
+        "type": "object"
+      },
+      "strict": true
+    }
+  },
+  "http_status": 200,
+  "response": {
+    "id": "chatcmpl-c38a997e-5c6a-9235-9f2c-7fc474afaf24",
+    "object": "chat.completion",
+    "created": 1793330031,
+    "model": "qwen3.8-flash",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "call_d55644eea3f044db8ae62fb8",
+              "type": "function",
+              "function": {
+                "name": "web_search",
+                "arguments": "{\"keywords\": \n[\"Tavily Search API documentation\", \"search_depth advanced basic\", \"include_answer Tavily parameter\"]\n\n}"
+              },
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "tool_calls",
+        "logprobs": null
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 534,
+      "total_tokens": 577,
+      "completion_tokens": 43,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "text_tokens": 534
+      }
+    }
+  },
+  "arguments_valid": true,
+  "elapsed_seconds": 1.006
+}

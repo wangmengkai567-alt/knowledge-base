@@ -1,0 +1,328 @@
+{
+  "kind": "temporary_diagnostics_no_test_files_changed",
+  "checks": [
+    {
+      "name": "item_max_length_visible",
+      "passed": true
+    },
+    {
+      "name": "item_min_length_visible",
+      "passed": true
+    },
+    {
+      "name": "array_limits_visible",
+      "passed": true
+    },
+    {
+      "name": "extra_fields_forbidden",
+      "passed": true
+    },
+    {
+      "name": "same_answer_schema",
+      "passed": true
+    },
+    {
+      "name": "W02_original_37_char",
+      "passed": true
+    },
+    {
+      "name": "joined_total_over_120",
+      "passed": true
+    },
+    {
+      "name": "array_not_string",
+      "passed": true
+    },
+    {
+      "name": "count_not_string",
+      "passed": true
+    },
+    {
+      "name": "extra_not_converted",
+      "passed": true
+    },
+    {
+      "name": "control_character",
+      "passed": true
+    },
+    {
+      "name": "exactly_32_accepted",
+      "passed": true
+    },
+    {
+      "name": "exactly_120_accepted",
+      "passed": true
+    },
+    {
+      "name": "valid:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "valid:final_has_schema_without_tools",
+      "passed": true
+    },
+    {
+      "name": "valid:exploration_text_not_reused",
+      "passed": true
+    },
+    {
+      "name": "valid:three_calls_no_retry",
+      "passed": true
+    },
+    {
+      "name": "valid:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "valid:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:final_has_schema_without_tools",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:exploration_text_not_reused",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:three_calls_no_retry",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "invalid_final:nothing_published",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:final_has_schema_without_tools",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:exploration_text_not_reused",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:three_calls_no_retry",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:unknown_not_zero",
+      "passed": true
+    },
+    {
+      "name": "unknown_final_usage:nothing_published",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:final_has_schema_without_tools",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:exploration_text_not_reused",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:three_calls_no_retry",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:over_limit_not_clamped",
+      "passed": true
+    },
+    {
+      "name": "actual_over_limit:nothing_published",
+      "passed": true
+    },
+    {
+      "name": "missing_required_tool:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "missing_required_tool:stops_without_retry",
+      "passed": true
+    },
+    {
+      "name": "missing_required_tool:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "missing_required_tool:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "missing_required_tool:nothing_published",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:first_requires_native_tool",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:final_has_schema_without_tools",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:exploration_text_not_reused",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:three_calls_no_retry",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:explicit_status",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "unexpected_final_tool:nothing_published",
+      "passed": true
+    },
+    {
+      "name": "all_final_tool_definitions_request_strict_mode",
+      "passed": true
+    }
+  ],
+  "cases": [
+    {
+      "name": "W02_original_37_char",
+      "error": "keywords.2: string_too_long (max_length=32, actual_length=37)"
+    },
+    {
+      "name": "joined_total_over_120",
+      "error": "keywords: keyword_total_length (actual_length=123, max_length=120)"
+    },
+    {
+      "name": "array_not_string",
+      "error": "keywords: list_type"
+    },
+    {
+      "name": "count_not_string",
+      "error": "max_results: int_type"
+    },
+    {
+      "name": "extra_not_converted",
+      "error": "extra_field: extra_forbidden"
+    },
+    {
+      "name": "control_character",
+      "error": "keywords.1: string_pattern_mismatch"
+    },
+    {
+      "name": "valid",
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "model_calls": 3,
+      "settled_tokens": 360,
+      "actual_total_tokens": 360,
+      "request_modes": [
+        "native_tools",
+        "native_tools",
+        "strict_answer"
+      ]
+    },
+    {
+      "name": "invalid_final",
+      "status": "invalid_answer",
+      "stop_reason": "invalid_citation_or_format",
+      "model_calls": 3,
+      "settled_tokens": 360,
+      "actual_total_tokens": 360,
+      "request_modes": [
+        "native_tools",
+        "native_tools",
+        "strict_answer"
+      ]
+    },
+    {
+      "name": "unknown_final_usage",
+      "status": "usage_unknown",
+      "stop_reason": "usage_unknown",
+      "model_calls": 3,
+      "settled_tokens": 240,
+      "actual_total_tokens": null,
+      "request_modes": [
+        "native_tools",
+        "native_tools",
+        "strict_answer"
+      ]
+    },
+    {
+      "name": "actual_over_limit",
+      "status": "budget_exhausted",
+      "stop_reason": "actual_usage_exceeded",
+      "model_calls": 3,
+      "settled_tokens": 65260,
+      "actual_total_tokens": 65260,
+      "request_modes": [
+        "native_tools",
+        "native_tools",
+        "strict_answer"
+      ]
+    },
+    {
+      "name": "missing_required_tool",
+      "status": "model_failed",
+      "stop_reason": "model_error",
+      "model_calls": 1,
+      "settled_tokens": 120,
+      "actual_total_tokens": 120,
+      "request_modes": [
+        "native_tools"
+      ]
+    },
+    {
+      "name": "unexpected_final_tool",
+      "status": "model_failed",
+      "stop_reason": "model_error",
+      "model_calls": 3,
+      "settled_tokens": 360,
+      "actual_total_tokens": 360,
+      "request_modes": [
+        "native_tools",
+        "native_tools",
+        "strict_answer"
+      ]
+    }
+  ],
+  "all_passed": true
+}

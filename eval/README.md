@@ -122,3 +122,17 @@ uv run --project ai-service --no-sync python eval/compare_quality.py --before ev
 `--ids` 只筛选本轮实测题号，保留原题集、题干、评分和授权范围，结果标记 `selected_ids`；小样本不能替代完整题集。对照要求题集（含等价表达）、请求、范围、限制和模型一致。旧答案的终态重分类仅另列分析，不修改历史快照，也不等同新运行成功。
 
 本阶段不授权新增或修改测试。已有检查若断言旧的预算/重复调用终态，应原样运行并在实施报告列明冲突；不得修改期望来制造通过。
+
+## 问答质量整改第 2 阶段：工具探索与严格最终生成
+
+工具参数 Schema 与本地解析共用参数模型；经用户确认，关键词单项由 32 放宽至 64 字符，连接后仍最多 120 字符，数组、类型和额外字段限制均显式声明。正式工具定义请求 `function.strict=true`，本地校验仍是执行前的必要条件；非法参数明确报字段与约束，不裁剪或转换后再执行。
+
+问答先执行原生工具探索，首轮 `tool_choice=required`。正式最终生成使用独立的严格回答 Schema，不携带工具定义。`model_started.request_mode` 分别记录 `native_tools` / `strict_answer`，同时记录工具定义数量及工具选择。最终调用从开始即纳入原 6 次、64000 实际词元、120 秒预算；没有输出失败后的修复调用或备用协议。
+
+评测增加 `generation_protocol_valid` 及对应门槛，只核对显式记录新阶段的快照。历史快照不补造阶段信息，题集、要点评分与幻觉规则不变。按本次用户要求只进行必要小样本；例如另存一组四题：
+
+```bash
+uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 G01 --out eval/rag-quality-phase-2-selected-results.json
+```
+
+放宽前的第 2 阶段测试覆盖 5 道不同问题、7 次运行，分清初轮和最终实现。放宽前的最终 A22 正常完成；当时 W02 即使请求严格工具模式仍生成 37 字符关键词，被 32 字符的本地限制拒绝。放宽至 64 字符后的独立结果见[长度调整记录](../docs/implementation/rag-quality-phase-2-keyword-limit-report.md)。单题子集未覆盖的基线指标可能仍显示未满足；保留原始摘要，不为小样本改分或将其当作完整质量评估。结果、服务能力缺口与检查详见[第 2 阶段实施记录](../docs/implementation/rag-quality-phase-2-report.md)。

@@ -236,6 +236,8 @@ def summary(rows: list[dict], baseline: dict, expected: int) -> dict:
     )
     if any(r.get("protocol_version") == 5 for r in rows):
         gates["usage_ledger"] = all(r.get("ledger_valid") is True for r in rows)
+    if any("generation_protocol_valid" in r for r in rows):
+        gates["generation_protocol"] = all(r.get("generation_protocol_valid") is True for r in rows)
     if not baseline:
         gates["scenario_outcomes"] = all(
             r.get("status") == ("completed" if r["answerable"] else "insufficient") for r in rows

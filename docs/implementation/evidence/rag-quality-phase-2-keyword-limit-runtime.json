@@ -1,0 +1,72 @@
+{
+  "tool_definitions": [
+    {
+      "type": "function",
+      "function": {
+        "name": "web_search",
+        "strict": true,
+        "description": "\u7528\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\u641c\u7d22\u7f51\u9875\uff0c\u4ec5\u8fd4\u56de\u641c\u7d22\u6458\u8981\uff1b\u6458\u8981\u4e0d\u4ee3\u8868\u5df2\u8bfb\u53d6\u7f51\u9875\u6b63\u6587\u3002keywords \u6bcf\u9879\u6700\u591a 64 \u5b57\u7b26\uff0c\u5404\u9879\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u603b\u8ba1\u6700\u591a 120 \u5b57\u7b26\uff1b\u8fd9\u662f\u672c\u5730\u7ea6\u675f\u3002",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "keywords": {
+              "description": "1 \u5230 8 \u9879\u5b57\u7b26\u4e32\uff1b\u6bcf\u9879 1 \u5230 64 \u5b57\u7b26\u3001\u5355\u884c\u4e14\u975e\u7a7a\u767d\uff1b\u7528\u4e00\u4e2a\u7a7a\u683c\u8fde\u63a5\u540e\u6700\u591a 120 \u5b57\u7b26\u3002\u4ec5\u5fc5\u8981\u516c\u5f00\u5173\u952e\u8bcd\uff0c\u7981\u6b62\u79c1\u6709\u8d44\u6599\u539f\u6587",
+              "items": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001f]*\\S[^\\u0000-\\u001f]*$",
+                "type": "string"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "title": "Keywords",
+              "type": "array"
+            },
+            "max_results": {
+              "default": 5,
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Max Results",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "keywords"
+          ],
+          "title": "WebSearchArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_read",
+        "strict": true,
+        "description": "\u8bfb\u53d6\u672c\u6b21\u5df2\u53d1\u73b0\u6216\u7528\u6237\u660e\u786e\u63d0\u4f9b\u7684\u516c\u5f00\u7f51\u9875\u6b63\u6587\uff1b\u4e0d\u80fd\u8bbf\u95ee\u5185\u7f51\u6216\u4efb\u610f\u65b0\u7f51\u5740\u3002",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "urls": {
+              "description": "\u672c\u6b21\u641c\u7d22\u5df2\u8fd4\u56de\u6216\u7528\u6237\u660e\u786e\u63d0\u4f9b\u7684\u516c\u5f00\u7f51\u5740",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3,
+              "minItems": 1,
+              "title": "Urls",
+              "type": "array"
+            }
+          },
+          "required": [
+            "urls"
+          ],
+          "title": "WebReadArguments",
+          "type": "object"
+        }
+      }
+    }
+  ],
+  "source_path": "ai-service/internal/biz/tools.py",
+  "source_sha256": "f26ffb05cdbbd6d8b1a82ff6fff9e989f29a368855515e975c6fa45a806d65aa"
+}

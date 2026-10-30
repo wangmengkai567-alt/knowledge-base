@@ -1,0 +1,297 @@
+{
+  "date": "2026-10-30",
+  "git_head": "16933de413dfa9df55e0464ffb7df24888b12afa",
+  "scope": "phase_1_verification_of_existing_implementation",
+  "new_live_questions": 3,
+  "test_files_changed": false,
+  "existing_eval_tests": {
+    "command": "python -m unittest discover -s eval -p test_run_metrics.py",
+    "passed": 5
+  },
+  "rows": [
+    {
+      "id": "A09",
+      "run_id": "353595fc-74f1-4945-a92e-97c90cb0c861",
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "input_budget",
+      "actual_total_tokens": 13124,
+      "model_calls": 5,
+      "tool_calls": 4
+    },
+    {
+      "id": "A22",
+      "run_id": "e5c27f95-b450-40d6-844f-db07f0b968b6",
+      "status": "invalid_answer",
+      "stop_reason": "invalid_citation_or_format",
+      "exploration_stop_reason": "model_returned_answer",
+      "actual_total_tokens": 3419,
+      "model_calls": 2,
+      "tool_calls": 1
+    },
+    {
+      "id": "G01",
+      "run_id": "03996d9a-1a83-4d1f-9b50-79127b6343eb",
+      "status": "insufficient",
+      "stop_reason": "insufficient_material",
+      "exploration_stop_reason": "no_new_evidence",
+      "actual_total_tokens": 2807,
+      "model_calls": 3,
+      "tool_calls": 2
+    }
+  ],
+  "code": [
+    {
+      "path": "ai-service/internal/biz/answer_run.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "ai-service/internal/data/llm/openai_patch.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "ai-service/api/openapi/schemas/rag.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "ai-service/internal/service/rag.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "eval/run_eval.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "eval/compare_quality.py",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "web/src/api/search.ts",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "web/src/types/search.ts",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "web/src/hooks/useSearch.ts",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "web/src/views/SearchResults.vue",
+      "matches_implementation_record": true
+    },
+    {
+      "path": "web/src/components/Search/SummaryPanel.vue",
+      "matches_implementation_record": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "exploration_and_final_reservations_separate",
+      "passed": true
+    },
+    {
+      "name": "actual_usage_replaces_estimate",
+      "passed": true
+    },
+    {
+      "name": "identical_settlement_is_idempotent",
+      "passed": true
+    },
+    {
+      "name": "final_reservation_transferred",
+      "passed": true
+    },
+    {
+      "name": "resent_history_consumed_each_call",
+      "passed": true
+    },
+    {
+      "name": "unknown_usage_not_zero",
+      "passed": true
+    },
+    {
+      "name": "unknown_usage_stops_next_call",
+      "passed": true
+    },
+    {
+      "name": "reported_over_limit_usage_kept_in_full",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:ai-service/internal/biz/answer_run.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:ai-service/internal/data/llm/openai_patch.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:ai-service/api/openapi/schemas/rag.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:ai-service/internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:eval/run_metrics.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:eval/run_eval.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:eval/compare_quality.py",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:web/src/api/search.ts",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:web/src/types/search.ts",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:web/src/hooks/useSearch.ts",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:web/src/views/SearchResults.vue",
+      "passed": true
+    },
+    {
+      "name": "implemented_code_unchanged:web/src/components/Search/SummaryPanel.vue",
+      "passed": true
+    },
+    {
+      "name": "historical_A22_actual_12972",
+      "passed": true
+    },
+    {
+      "name": "historical_A22_charged_50908",
+      "passed": true
+    },
+    {
+      "name": "A09:protocol_v5",
+      "passed": true
+    },
+    {
+      "name": "A09:ledger_valid",
+      "passed": true
+    },
+    {
+      "name": "A09:budget_valid",
+      "passed": true
+    },
+    {
+      "name": "A09:sequence_valid",
+      "passed": true
+    },
+    {
+      "name": "A09:evidence_valid",
+      "passed": true
+    },
+    {
+      "name": "A09:citations_valid",
+      "passed": true
+    },
+    {
+      "name": "A09:single_settlement_sum",
+      "passed": true
+    },
+    {
+      "name": "A09:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "A22:protocol_v5",
+      "passed": true
+    },
+    {
+      "name": "A22:ledger_valid",
+      "passed": true
+    },
+    {
+      "name": "A22:budget_valid",
+      "passed": true
+    },
+    {
+      "name": "A22:sequence_valid",
+      "passed": true
+    },
+    {
+      "name": "A22:evidence_valid",
+      "passed": true
+    },
+    {
+      "name": "A22:citations_valid",
+      "passed": true
+    },
+    {
+      "name": "A22:single_settlement_sum",
+      "passed": true
+    },
+    {
+      "name": "A22:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "G01:protocol_v5",
+      "passed": true
+    },
+    {
+      "name": "G01:ledger_valid",
+      "passed": true
+    },
+    {
+      "name": "G01:budget_valid",
+      "passed": true
+    },
+    {
+      "name": "G01:sequence_valid",
+      "passed": true
+    },
+    {
+      "name": "G01:evidence_valid",
+      "passed": true
+    },
+    {
+      "name": "G01:citations_valid",
+      "passed": true
+    },
+    {
+      "name": "G01:single_settlement_sum",
+      "passed": true
+    },
+    {
+      "name": "G01:reservations_released",
+      "passed": true
+    },
+    {
+      "name": "all_18_source_ranges_and_versions_match",
+      "passed": true
+    }
+  ],
+  "all_checks_passed": true,
+  "limitations": [
+    "A22 returned non-JSON text and remains invalid_answer; output contract belongs to phase 2.",
+    "Three questions do not establish overall answer accuracy.",
+    "The over-limit ledger diagnostic verifies accounting; failure status coverage remains in the existing phase-1 diagnostics."
+  ]
+}

@@ -125,6 +125,22 @@ def score_run(snapshot: dict, item: dict) -> dict:
         and events[-1]["data"]["stop_reason"] == run["stop_reason"]
         and (not current or events[-1]["data"]["exploration_stop_reason"] == run["exploration_stop_reason"])
     )
+    # 新执行在每次调用显式记录阶段；历史快照不补造此信息或改写评分。
+    generation_protocol_valid = None
+    if any("request_mode" in e["data"] for e in model_starts):
+        final_calls = [e for e in model_starts if e["data"]["final"]]
+        generation_protocol_valid = (
+            len(final_calls) <= 1
+            and model_starts[0]["data"].get("tool_choice") == "required"
+            and all(
+                e["data"].get("request_mode") == ("strict_answer" if e["data"]["final"] else "native_tools")
+                and (e["data"].get("tool_definition_count") == 0 and e["data"].get("tool_choice") is None
+                     if e["data"]["final"] else e["data"].get("tool_definition_count", 0) > 0)
+                for e in model_starts
+            )
+            and (not final_calls or final_calls[0] == model_starts[-1])
+            and (run["status"] not in ("completed", "insufficient") or bool(final_calls))
+        )
     keys = []
     for event in tool_starts:
         data = event["data"]
@@ -153,6 +169,8 @@ def score_run(snapshot: dict, item: dict) -> dict:
     )
     return {
         "status": run["status"], "stop_reason": run["stop_reason"],
+        **({"generation_protocol_valid": generation_protocol_valid}
+           if generation_protocol_valid is not None else {}),
         **({"protocol_version": 5, "ledger_valid": ledger_ok,
             "exploration_stop_reason": run["exploration_stop_reason"],
             "actual_usage_known": usage["actual_total_tokens"] is not None} if current else {}),

@@ -1,0 +1,220 @@
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "name": "existing_work_preserved:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:ai-service/internal/biz/repo.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:ai-service/internal/biz/tool_model.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:ai-service/internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_policy_preserved:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:ai-service/internal/data/llm/openai_patch.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:ai-service/internal/prompt/templates/rag.yaml",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/rag-quality-phase-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "BOM_policy_preserved:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "BOM_policy_preserved:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/run_eval.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/run_metrics.py",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:web/src/components/Search/SummaryPanel.vue",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-1-smoke-checks.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-1-smoke-source-audit.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-capabilities.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-final-source-audit.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-initial-runtime.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-runtime.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-smoke-source-audit.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-strict-tool-capability.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/evidence/rag-quality-phase-2-verification.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:docs/implementation/rag-quality-phase-1-smoke-report.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/rag-quality-phase-2-report.md",
+      "passed": true
+    },
+    {
+      "name": "BOM_policy_preserved:docs/implementation/rag-quality-phase-2-report.md",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/rag-quality-phase-1-smoke-results.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/rag-quality-phase-2-final-smoke-results.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/rag-quality-phase-2-final-web-contract-results.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/rag-quality-phase-2-smoke-results.json",
+      "passed": true
+    },
+    {
+      "name": "existing_work_preserved:eval/rag-quality-phase-2-web-contract-results.json",
+      "passed": true
+    },
+    {
+      "name": "deployed_schema_max_64",
+      "passed": true
+    },
+    {
+      "name": "deployed_source_matches_workspace",
+      "passed": true
+    },
+    {
+      "name": "ledger_valid",
+      "passed": true
+    },
+    {
+      "name": "budget_valid",
+      "passed": true
+    },
+    {
+      "name": "sequence_valid",
+      "passed": true
+    },
+    {
+      "name": "generation_protocol_valid",
+      "passed": true
+    },
+    {
+      "name": "first_search_succeeded",
+      "passed": true
+    },
+    {
+      "name": "two_web_reads_succeeded",
+      "passed": true
+    },
+    {
+      "name": "subsequent_71_char_request_rejected",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-2-keyword-limit-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-2-keyword-limit-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/rag-quality-phase-2-keyword-limit-runtime.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/rag-quality-phase-2-keyword-limit-report.md",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:eval/rag-quality-phase-2-keyword-limit-results.json",
+      "passed": true
+    },
+    {
+      "name": "no_test_changes",
+      "passed": true
+    },
+    {
+      "name": "index_untouched",
+      "passed": true
+    },
+    {
+      "name": "git_diff_check",
+      "passed": true
+    }
+  ],
+  "ruff": "passed",
+  "existing_read_only_tool_tests_passed": 8,
+  "boundary_diagnostics_passed": 10,
+  "live_questions": 1,
+  "live_question_status": "tool_failed",
+  "reason": "A later search keyword has 71 characters and exceeds 64; the first search and web reads succeeded.",
+  "git_diff_check_exit_code": 0
+}
