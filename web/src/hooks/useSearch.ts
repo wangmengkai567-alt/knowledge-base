@@ -5,7 +5,7 @@ import { useSearchHistoryStore } from '@/stores/history'
 import { usePagination } from './usePagination'
 import { paginateSlice } from '@/utils/format'
 import { tokenize } from '@/utils/highlight'
-import type { SearchHit, SearchFilters, SortOption, RagSource, RunEvent, RunStatus, RunUsage } from '@/types'
+import type { SearchHit, SearchFilters, SortOption, RagSource, RunEvent, RunStatus, RunUsage, WebDirectoryEntry } from '@/types'
 
 /** 后端一次问答产生回答、检索列表与实际送模资料。本地筛选只影响列表。 */
 export function useSearch() {
@@ -18,6 +18,7 @@ export function useSearch() {
   const allHits = ref<SearchHit[]>([])
   const answer = ref('')
   const sources = ref<RagSource[]>([])
+  const webDirectory = ref<WebDirectoryEntry[]>([])
   const model = ref('')
   const error = ref('')
   const generatedAt = ref('')
@@ -81,6 +82,7 @@ export function useSearch() {
     error.value = ''
     answer.value = ''
     sources.value = []
+    webDirectory.value = []
     rawHits.value = []
     model.value = ''
     generatedAt.value = ''
@@ -98,6 +100,7 @@ export function useSearch() {
         if (message.type === 'event') {
           runId.value = message.runId
           events.value.push(message.event)
+          if (message.directory) webDirectory.value = message.directory
           if (message.event.kind === 'run_finished') {
             status.value = message.event.data.status as RunStatus
             stopReason.value = String(message.event.data.stop_reason)
@@ -117,6 +120,7 @@ export function useSearch() {
           answer.value = result.answer
           model.value = result.model
           sources.value = result.sources
+          webDirectory.value = result.webDirectory
           rawHits.value = result.results
           usage.value = result.usage
           generatedAt.value = new Date().toISOString()
@@ -144,6 +148,7 @@ export function useSearch() {
     query.value = ''
     answer.value = ''
     sources.value = []
+    webDirectory.value = []
     rawHits.value = []
     error.value = ''
     runId.value = ''
@@ -159,6 +164,6 @@ export function useSearch() {
   watch(page, refreshPage)
   watch(pageSize, refreshPage)
   onUnmounted(() => abort?.abort())
-  return { loading, query, hits, rawHits, allHits, answer, sources, model, error, generatedAt,
+  return { loading, query, hits, rawHits, allHits, answer, sources, webDirectory, model, error, generatedAt,
     allowWeb, runId, status, stopReason, explorationStopReason, events, usage, cancel, filters, sort, terms, page, pageSize, total, totalPages, run, clear, setPage, changeSize }
 }

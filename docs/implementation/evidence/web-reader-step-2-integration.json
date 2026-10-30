@@ -1,0 +1,1255 @@
+{
+  "synthetic_model_and_web": true,
+  "live_model_calls": 0,
+  "snapshot": {
+    "version": 5,
+    "tool_contract_version": 2,
+    "query": "Search official docs, read original command and cite it",
+    "web_pages": {
+      "web_5": {
+        "url": "https://example.com/4",
+        "title": "Doc",
+        "fetched_at": "2026-10-30T00:00:00Z",
+        "content": "intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro\n\n```\nCOPY --from=example /uv /bin/\n```\n\nTail",
+        "code_ranges": [
+          [
+            7201,
+            7238
+          ]
+        ]
+      }
+    },
+    "evidence_selection": {
+      "outcome": "answered",
+      "citation_ids": [
+        7
+      ]
+    },
+    "final_response": "{\"status\": \"answered\", \"answer\": \"命令：\\n```dockerfile\\nCOPY --from=example /uv /bin/\\n```\\n[来源 7]\"}",
+    "started_at": "2026-10-30T07:18:27.980563+00:00",
+    "scope": {
+      "user_id": 1,
+      "knowledge_base_ids": [],
+      "allow_web": true
+    },
+    "limits": {
+      "model_calls": 6,
+      "tool_calls": 10,
+      "total_tokens": 64000,
+      "timeout": 120
+    },
+    "result": {
+      "version": 5,
+      "tool_contract_version": 2,
+      "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "evidence_complete",
+      "error_code": null,
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "estimated_input_tokens": 61188,
+        "prompt_tokens": 100,
+        "completion_tokens": 50,
+        "settled_tokens": 150,
+        "actual_total_tokens": 150,
+        "reserved_tokens": 0,
+        "final_reserved_tokens": 0,
+        "calls": [
+          {
+            "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+            "call": 1,
+            "phase": "exploration",
+            "estimated_input_tokens": 6364,
+            "output_limit": 2048,
+            "reservation": 8412,
+            "state": "settled",
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "unknown_reason": null
+          },
+          {
+            "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+            "call": 2,
+            "phase": "exploration",
+            "estimated_input_tokens": 11929,
+            "output_limit": 2048,
+            "reservation": 13977,
+            "state": "settled",
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "unknown_reason": null
+          },
+          {
+            "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+            "call": 3,
+            "phase": "exploration",
+            "estimated_input_tokens": 14283,
+            "output_limit": 2048,
+            "reservation": 16331,
+            "state": "settled",
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "unknown_reason": null
+          },
+          {
+            "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+            "call": 4,
+            "phase": "exploration",
+            "estimated_input_tokens": 15180,
+            "output_limit": 2048,
+            "reservation": 17228,
+            "state": "settled",
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "unknown_reason": null
+          },
+          {
+            "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+            "call": 5,
+            "phase": "final",
+            "estimated_input_tokens": 13432,
+            "output_limit": 2048,
+            "reservation": 15480,
+            "state": "settled",
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "unknown_reason": null
+          }
+        ],
+        "unreported_model_calls": 0
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "kind": "run_started",
+          "elapsed_ms": 0,
+          "data": {
+            "knowledge_base_ids": [],
+            "allow_web": true
+          }
+        },
+        {
+          "sequence": 2,
+          "kind": "budget_planned",
+          "elapsed_ms": 0,
+          "data": {
+            "settled_tokens": 0,
+            "remaining_tokens": 64000,
+            "final_reservation": 6111,
+            "available_for_exploration": 57889,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "sequence": 3,
+          "kind": "model_started",
+          "elapsed_ms": 14,
+          "data": {
+            "call": 1,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 4,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 6364,
+            "output_limit": 2048
+          }
+        },
+        {
+          "sequence": 4,
+          "kind": "model_finished",
+          "elapsed_ms": 14,
+          "data": {
+            "call": 1,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 30,
+            "released_reservation": 8412,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "sequence": 5,
+          "kind": "tool_started",
+          "elapsed_ms": 14,
+          "data": {
+            "call_id": "call1",
+            "tool": "web_search",
+            "arguments_summary": "{\"query\": \"public query\"}",
+            "call_key": "[\"web_search\", \"public query\"]"
+          }
+        },
+        {
+          "sequence": 6,
+          "kind": "web_directory_updated",
+          "elapsed_ms": 14,
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://example.com/0",
+                "title": "doc0",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_2",
+                "url": "https://example.com/1",
+                "title": "doc1",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_3",
+                "url": "https://example.com/2",
+                "title": "doc2",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_4",
+                "url": "https://example.com/3",
+                "title": "doc3",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_5",
+                "url": "https://example.com/4",
+                "title": "doc4",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              }
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "kind": "tool_finished",
+          "elapsed_ms": 14,
+          "data": {
+            "call_id": "call1",
+            "tool": "web_search",
+            "status": "success",
+            "source_count": 5,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://example.com/0",
+                "title": "doc0",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_2",
+                "url": "https://example.com/1",
+                "title": "doc1",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_3",
+                "url": "https://example.com/2",
+                "title": "doc2",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_4",
+                "url": "https://example.com/3",
+                "title": "doc3",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_5",
+                "url": "https://example.com/4",
+                "title": "doc4",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              }
+            ],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "sequence": 8,
+          "kind": "materials_budgeted",
+          "elapsed_ms": 14,
+          "data": {
+            "remaining_tokens": 63970,
+            "final_reservation": 11676,
+            "available_for_exploration": 52294
+          }
+        },
+        {
+          "sequence": 9,
+          "kind": "materials_prepared",
+          "elapsed_ms": 14,
+          "data": {
+            "call_id": "call1",
+            "citation_ids": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "truncated": true
+          }
+        },
+        {
+          "sequence": 10,
+          "kind": "budget_planned",
+          "elapsed_ms": 14,
+          "data": {
+            "settled_tokens": 30,
+            "remaining_tokens": 63970,
+            "final_reservation": 11676,
+            "available_for_exploration": 52294,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "sequence": 11,
+          "kind": "sources_updated",
+          "elapsed_ms": 31,
+          "data": {
+            "citation_ids": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        },
+        {
+          "sequence": 12,
+          "kind": "model_started",
+          "elapsed_ms": 31,
+          "data": {
+            "call": 2,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 4,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 11929,
+            "output_limit": 2048
+          }
+        },
+        {
+          "sequence": 13,
+          "kind": "model_finished",
+          "elapsed_ms": 31,
+          "data": {
+            "call": 2,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 60,
+            "released_reservation": 13977,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "sequence": 14,
+          "kind": "tool_started",
+          "elapsed_ms": 31,
+          "data": {
+            "call_id": "call2",
+            "tool": "web_read",
+            "arguments_summary": "{\"source_id\": \"web_5\"}",
+            "call_key": "[\"web_read\", [\"web_5\", 0, 5000]]"
+          }
+        },
+        {
+          "sequence": 15,
+          "kind": "web_directory_updated",
+          "elapsed_ms": 31,
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://example.com/0",
+                "title": "doc0",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_2",
+                "url": "https://example.com/1",
+                "title": "doc1",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_3",
+                "url": "https://example.com/2",
+                "title": "doc2",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_4",
+                "url": "https://example.com/3",
+                "title": "doc3",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": false
+              },
+              {
+                "source_id": "web_5",
+                "url": "https://example.com/4",
+                "title": "Doc",
+                "origin": "search",
+                "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+                "read": true
+              }
+            ]
+          }
+        },
+        {
+          "sequence": 16,
+          "kind": "tool_finished",
+          "elapsed_ms": 31,
+          "data": {
+            "call_id": "call2",
+            "tool": "web_read",
+            "status": "success",
+            "source_count": 1,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "sequence": 17,
+          "kind": "materials_budgeted",
+          "elapsed_ms": 31,
+          "data": {
+            "remaining_tokens": 63940,
+            "final_reservation": 14030,
+            "available_for_exploration": 49910
+          }
+        },
+        {
+          "sequence": 18,
+          "kind": "materials_prepared",
+          "elapsed_ms": 31,
+          "data": {
+            "call_id": "call2",
+            "citation_ids": [
+              6
+            ],
+            "truncated": true
+          }
+        },
+        {
+          "sequence": 19,
+          "kind": "budget_planned",
+          "elapsed_ms": 62,
+          "data": {
+            "settled_tokens": 60,
+            "remaining_tokens": 63940,
+            "final_reservation": 14030,
+            "available_for_exploration": 49910,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "sequence": 20,
+          "kind": "sources_updated",
+          "elapsed_ms": 62,
+          "data": {
+            "citation_ids": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          }
+        },
+        {
+          "sequence": 21,
+          "kind": "model_started",
+          "elapsed_ms": 62,
+          "data": {
+            "call": 3,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 4,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 14283,
+            "output_limit": 2048
+          }
+        },
+        {
+          "sequence": 22,
+          "kind": "model_finished",
+          "elapsed_ms": 78,
+          "data": {
+            "call": 3,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 90,
+            "released_reservation": 16331,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "sequence": 23,
+          "kind": "tool_started",
+          "elapsed_ms": 78,
+          "data": {
+            "call_id": "call3",
+            "tool": "web_find",
+            "arguments_summary": "{\"source_id\": \"web_5\", \"pattern\": \"COPY\"}",
+            "call_key": "[\"web_find\", [\"web_5\", \"COPY\"]]"
+          }
+        },
+        {
+          "sequence": 24,
+          "kind": "tool_finished",
+          "elapsed_ms": 78,
+          "data": {
+            "call_id": "call3",
+            "tool": "web_find",
+            "status": "success",
+            "source_count": 1,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [
+              {
+                "start": 7205,
+                "end": 7209
+              }
+            ],
+            "selection": null
+          }
+        },
+        {
+          "sequence": 25,
+          "kind": "materials_budgeted",
+          "elapsed_ms": 78,
+          "data": {
+            "remaining_tokens": 63910,
+            "final_reservation": 14927,
+            "available_for_exploration": 48983
+          }
+        },
+        {
+          "sequence": 26,
+          "kind": "materials_prepared",
+          "elapsed_ms": 78,
+          "data": {
+            "call_id": "call3",
+            "citation_ids": [
+              7
+            ],
+            "truncated": true
+          }
+        },
+        {
+          "sequence": 27,
+          "kind": "budget_planned",
+          "elapsed_ms": 78,
+          "data": {
+            "settled_tokens": 90,
+            "remaining_tokens": 63910,
+            "final_reservation": 14927,
+            "available_for_exploration": 48983,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "sequence": 28,
+          "kind": "sources_updated",
+          "elapsed_ms": 78,
+          "data": {
+            "citation_ids": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          }
+        },
+        {
+          "sequence": 29,
+          "kind": "model_started",
+          "elapsed_ms": 78,
+          "data": {
+            "call": 4,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 4,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 15180,
+            "output_limit": 2048
+          }
+        },
+        {
+          "sequence": 30,
+          "kind": "model_finished",
+          "elapsed_ms": 93,
+          "data": {
+            "call": 4,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 120,
+            "released_reservation": 17228,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "sequence": 31,
+          "kind": "tool_started",
+          "elapsed_ms": 93,
+          "data": {
+            "call_id": "call4",
+            "tool": "finish_research",
+            "arguments_summary": "{\"outcome\": \"answered\", \"citation_ids\": [7]}",
+            "call_key": "[\"finish_research\", [\"answered\", [7]]]"
+          }
+        },
+        {
+          "sequence": 32,
+          "kind": "tool_finished",
+          "elapsed_ms": 93,
+          "data": {
+            "call_id": "call4",
+            "tool": "finish_research",
+            "status": "success",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [],
+            "selection": {
+              "outcome": "answered",
+              "citation_ids": [
+                7
+              ]
+            }
+          }
+        },
+        {
+          "sequence": 33,
+          "kind": "exploration_stopped",
+          "elapsed_ms": 93,
+          "data": {
+            "reason": "evidence_complete"
+          }
+        },
+        {
+          "sequence": 34,
+          "kind": "materials_budgeted",
+          "elapsed_ms": 93,
+          "data": {
+            "remaining_tokens": 63880,
+            "final_reservation": 15480,
+            "available_for_exploration": 48400
+          }
+        },
+        {
+          "sequence": 35,
+          "kind": "materials_prepared",
+          "elapsed_ms": 93,
+          "data": {
+            "call_id": "call4",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "sequence": 36,
+          "kind": "budget_planned",
+          "elapsed_ms": 93,
+          "data": {
+            "settled_tokens": 120,
+            "remaining_tokens": 63880,
+            "final_reservation": 15480,
+            "available_for_exploration": 48400,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "sequence": 37,
+          "kind": "model_started",
+          "elapsed_ms": 93,
+          "data": {
+            "call": 5,
+            "final": true,
+            "request_mode": "strict_answer",
+            "tool_definition_count": 0,
+            "tool_choice": null,
+            "exploration_stop_reason": "evidence_complete",
+            "estimated_input_tokens": 13432,
+            "output_limit": 2048
+          }
+        },
+        {
+          "sequence": 38,
+          "kind": "model_finished",
+          "elapsed_ms": 93,
+          "data": {
+            "call": 5,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 150,
+            "released_reservation": 15480,
+            "finish_reason": "stop"
+          }
+        },
+        {
+          "sequence": 39,
+          "kind": "answer_check_started",
+          "elapsed_ms": 93,
+          "data": {}
+        },
+        {
+          "sequence": 40,
+          "kind": "answer_validated",
+          "elapsed_ms": 93,
+          "data": {
+            "citation_ids": [
+              7
+            ],
+            "outcome": "answered",
+            "semantic_support": "not_evaluated"
+          }
+        },
+        {
+          "sequence": 41,
+          "kind": "run_finished",
+          "elapsed_ms": 93,
+          "data": {
+            "status": "completed",
+            "stop_reason": "answer_completed",
+            "error_code": null,
+            "exploration_stop_reason": "evidence_complete"
+          }
+        }
+      ],
+      "answer": "命令：\n```dockerfile\nCOPY --from=example /uv /bin/\n```\n[来源 7]",
+      "model": "qwen3.8-flash",
+      "web_directory": [
+        {
+          "source_id": "web_1",
+          "url": "https://example.com/0",
+          "title": "doc0",
+          "origin": "search",
+          "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+          "read": false
+        },
+        {
+          "source_id": "web_2",
+          "url": "https://example.com/1",
+          "title": "doc1",
+          "origin": "search",
+          "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+          "read": false
+        },
+        {
+          "source_id": "web_3",
+          "url": "https://example.com/2",
+          "title": "doc2",
+          "origin": "search",
+          "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+          "read": false
+        },
+        {
+          "source_id": "web_4",
+          "url": "https://example.com/3",
+          "title": "doc3",
+          "origin": "search",
+          "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+          "read": false
+        },
+        {
+          "source_id": "web_5",
+          "url": "https://example.com/4",
+          "title": "Doc",
+          "origin": "search",
+          "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+          "read": true
+        }
+      ],
+      "sources": [
+        {
+          "citation_id": 1,
+          "source_type": "web_search_summary",
+          "url": "https://example.com/0",
+          "title": "doc0",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary",
+          "truncated": true,
+          "source_id": "web_1",
+          "start": 0,
+          "end": 607,
+          "total_chars": 1120,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 2,
+          "source_type": "web_search_summary",
+          "url": "https://example.com/1",
+          "title": "doc1",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary",
+          "truncated": true,
+          "source_id": "web_2",
+          "start": 0,
+          "end": 607,
+          "total_chars": 1120,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 3,
+          "source_type": "web_search_summary",
+          "url": "https://example.com/2",
+          "title": "doc2",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary",
+          "truncated": true,
+          "source_id": "web_3",
+          "start": 0,
+          "end": 607,
+          "total_chars": 1120,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 4,
+          "source_type": "web_search_summary",
+          "url": "https://example.com/3",
+          "title": "doc3",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary",
+          "truncated": true,
+          "source_id": "web_4",
+          "start": 0,
+          "end": 607,
+          "total_chars": 1120,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 5,
+          "source_type": "web_search_summary",
+          "url": "https://example.com/4",
+          "title": "doc4",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary",
+          "truncated": true,
+          "source_id": "web_5",
+          "start": 0,
+          "end": 607,
+          "total_chars": 1120,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 6,
+          "source_type": "web_page",
+          "url": "https://example.com/4",
+          "title": "Doc",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro i",
+          "truncated": true,
+          "source_id": "web_5",
+          "start": 0,
+          "end": 1723,
+          "total_chars": 7244,
+          "code_ranges": []
+        },
+        {
+          "citation_id": 7,
+          "source_type": "web_page",
+          "url": "https://example.com/4",
+          "title": "Doc",
+          "fetched_at": "2026-10-30T00:00:00Z",
+          "content": "ntro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro\n\n```\nCOPY --from=example /uv /bin/\n```\n\nTail",
+          "truncated": true,
+          "source_id": "web_5",
+          "start": 7045,
+          "end": 7244,
+          "total_chars": 7244,
+          "code_ranges": [
+            [
+              7201,
+              7238
+            ]
+          ]
+        }
+      ],
+      "source_count": 7,
+      "retrieval_results": [],
+      "input_measurement": "utf8_bytes_estimate",
+      "estimated_input_tokens": 61188,
+      "prompt_tokens": 100,
+      "completion_tokens": 50
+    },
+    "tool_results": [
+      {
+        "call_id": "call1",
+        "tool": "web_search",
+        "status": "success",
+        "errors": [],
+        "web_diagnostics": [],
+        "directory": [
+          {
+            "source_id": "web_1",
+            "url": "https://example.com/0",
+            "title": "doc0",
+            "origin": "search",
+            "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+            "read": false
+          },
+          {
+            "source_id": "web_2",
+            "url": "https://example.com/1",
+            "title": "doc1",
+            "origin": "search",
+            "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+            "read": false
+          },
+          {
+            "source_id": "web_3",
+            "url": "https://example.com/2",
+            "title": "doc2",
+            "origin": "search",
+            "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+            "read": false
+          },
+          {
+            "source_id": "web_4",
+            "url": "https://example.com/3",
+            "title": "doc3",
+            "origin": "search",
+            "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+            "read": false
+          },
+          {
+            "source_id": "web_5",
+            "url": "https://example.com/4",
+            "title": "doc4",
+            "origin": "search",
+            "discovered_at": "2026-10-30T07:18:27.993561+00:00",
+            "read": false
+          }
+        ],
+        "matches": [],
+        "selection": null,
+        "sources": [
+          {
+            "citation_id": 0,
+            "source_type": "web_search_summary",
+            "url": "https://example.com/0",
+            "title": "doc0",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary ",
+            "truncated": false,
+            "source_id": "web_1",
+            "start": 0,
+            "end": 1120,
+            "total_chars": 1120,
+            "code_ranges": []
+          },
+          {
+            "citation_id": 0,
+            "source_type": "web_search_summary",
+            "url": "https://example.com/1",
+            "title": "doc1",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary ",
+            "truncated": false,
+            "source_id": "web_2",
+            "start": 0,
+            "end": 1120,
+            "total_chars": 1120,
+            "code_ranges": []
+          },
+          {
+            "citation_id": 0,
+            "source_type": "web_search_summary",
+            "url": "https://example.com/2",
+            "title": "doc2",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary ",
+            "truncated": false,
+            "source_id": "web_3",
+            "start": 0,
+            "end": 1120,
+            "total_chars": 1120,
+            "code_ranges": []
+          },
+          {
+            "citation_id": 0,
+            "source_type": "web_search_summary",
+            "url": "https://example.com/3",
+            "title": "doc3",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary ",
+            "truncated": false,
+            "source_id": "web_4",
+            "start": 0,
+            "end": 1120,
+            "total_chars": 1120,
+            "code_ranges": []
+          },
+          {
+            "citation_id": 0,
+            "source_type": "web_search_summary",
+            "url": "https://example.com/4",
+            "title": "doc4",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary ",
+            "truncated": false,
+            "source_id": "web_5",
+            "start": 0,
+            "end": 1120,
+            "total_chars": 1120,
+            "code_ranges": []
+          }
+        ]
+      },
+      {
+        "call_id": "call2",
+        "tool": "web_read",
+        "status": "success",
+        "errors": [],
+        "web_diagnostics": [],
+        "directory": [],
+        "matches": [],
+        "selection": null,
+        "sources": [
+          {
+            "citation_id": 0,
+            "source_type": "web_page",
+            "url": "https://example.com/4",
+            "title": "Doc",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro in",
+            "truncated": true,
+            "source_id": "web_5",
+            "start": 0,
+            "end": 5000,
+            "total_chars": 7244,
+            "code_ranges": []
+          }
+        ]
+      },
+      {
+        "call_id": "call3",
+        "tool": "web_find",
+        "status": "success",
+        "errors": [],
+        "web_diagnostics": [],
+        "directory": [],
+        "matches": [
+          {
+            "start": 7205,
+            "end": 7209
+          }
+        ],
+        "selection": null,
+        "sources": [
+          {
+            "citation_id": 0,
+            "source_type": "web_page",
+            "url": "https://example.com/4",
+            "title": "Doc",
+            "fetched_at": "2026-10-30T00:00:00Z",
+            "content": "ntro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro intro\n\n```\nCOPY --from=example /uv /bin/\n```\n\nTail",
+            "truncated": true,
+            "source_id": "web_5",
+            "start": 7045,
+            "end": 7244,
+            "total_chars": 7244,
+            "code_ranges": [
+              [
+                7201,
+                7238
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "call_id": "call4",
+        "tool": "finish_research",
+        "status": "success",
+        "errors": [],
+        "web_diagnostics": [],
+        "directory": [],
+        "matches": [],
+        "selection": {
+          "outcome": "answered",
+          "citation_ids": [
+            7
+          ]
+        },
+        "sources": []
+      }
+    ],
+    "saved_at": "2026-10-30T07:18:28.132643+00:00",
+    "expires_at": "2026-11-06T07:18:28.132643+00:00"
+  },
+  "score": {
+    "status": "completed",
+    "stop_reason": "answer_completed",
+    "generation_protocol_valid": true,
+    "protocol_version": 5,
+    "ledger_valid": true,
+    "exploration_stop_reason": "evidence_complete",
+    "actual_usage_known": true,
+    "evidence_valid": true,
+    "evidence_errors": [],
+    "citations_valid": true,
+    "citation_count": 1,
+    "cited_source_fraction": 0.14285714285714285,
+    "claim_checks": [
+      {
+        "text": "[来源 7]",
+        "citations": [
+          7
+        ],
+        "heuristic_unsupported": []
+      }
+    ],
+    "semantic_review": "pending",
+    "budget_valid": true,
+    "sequence_valid": true,
+    "tool_selection_ok": true,
+    "tools": [
+      "web_search",
+      "web_read",
+      "web_find",
+      "finish_research"
+    ],
+    "repeated_executions": 0,
+    "unknown_call_keys": 0,
+    "usage": {
+      "model_calls": 5,
+      "tool_calls": 4,
+      "estimated_input_tokens": 61188,
+      "prompt_tokens": 100,
+      "completion_tokens": 50,
+      "settled_tokens": 150,
+      "actual_total_tokens": 150,
+      "reserved_tokens": 0,
+      "final_reserved_tokens": 0,
+      "calls": [
+        {
+          "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+          "call": 1,
+          "phase": "exploration",
+          "estimated_input_tokens": 6364,
+          "output_limit": 2048,
+          "reservation": 8412,
+          "state": "settled",
+          "prompt_tokens": 20,
+          "completion_tokens": 10,
+          "provider_total_tokens": 30,
+          "unknown_reason": null
+        },
+        {
+          "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+          "call": 2,
+          "phase": "exploration",
+          "estimated_input_tokens": 11929,
+          "output_limit": 2048,
+          "reservation": 13977,
+          "state": "settled",
+          "prompt_tokens": 20,
+          "completion_tokens": 10,
+          "provider_total_tokens": 30,
+          "unknown_reason": null
+        },
+        {
+          "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+          "call": 3,
+          "phase": "exploration",
+          "estimated_input_tokens": 14283,
+          "output_limit": 2048,
+          "reservation": 16331,
+          "state": "settled",
+          "prompt_tokens": 20,
+          "completion_tokens": 10,
+          "provider_total_tokens": 30,
+          "unknown_reason": null
+        },
+        {
+          "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+          "call": 4,
+          "phase": "exploration",
+          "estimated_input_tokens": 15180,
+          "output_limit": 2048,
+          "reservation": 17228,
+          "state": "settled",
+          "prompt_tokens": 20,
+          "completion_tokens": 10,
+          "provider_total_tokens": 30,
+          "unknown_reason": null
+        },
+        {
+          "run_id": "eb985ed4-f790-4722-9067-fe36fb8e5f71",
+          "call": 5,
+          "phase": "final",
+          "estimated_input_tokens": 13432,
+          "output_limit": 2048,
+          "reservation": 15480,
+          "state": "settled",
+          "prompt_tokens": 20,
+          "completion_tokens": 10,
+          "provider_total_tokens": 30,
+          "unknown_reason": null
+        }
+      ],
+      "unreported_model_calls": 0
+    },
+    "actual_peak_input_tokens": 20,
+    "actual_peak_output_tokens": 10
+  }
+}

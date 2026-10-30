@@ -58,6 +58,15 @@ class RAGSourceDTO(BaseModel):
     )
 
 
+class WebDirectoryDTO(BaseModel):
+    source_id: str
+    url: str
+    title: str
+    origin: Literal["user", "search"]
+    discovered_at: str
+    read: bool
+
+
 class RAGWebSourceDTO(BaseModel):
     citation_id: int
     source_type: Literal["web_search_summary", "web_page"]
@@ -66,6 +75,11 @@ class RAGWebSourceDTO(BaseModel):
     fetched_at: str
     content: str
     truncated: bool
+    source_id: str
+    start: int
+    end: int
+    total_chars: int
+    code_ranges: list[tuple[int, int]]
 
 
 class ModelCallUsageDTO(BaseModel):
@@ -105,6 +119,7 @@ class RunEventDTO(BaseModel):
 
 class RAGQueryResponse(BaseModel):
     version: Literal[5] = 5
+    tool_contract_version: Literal[2] = 2
     run_id: str
     status: str
     stop_reason: str
@@ -114,6 +129,7 @@ class RAGQueryResponse(BaseModel):
     events: list[RunEventDTO]
     answer: str
     model: str
+    web_directory: list[WebDirectoryDTO]
     sources: list[RAGSourceDTO | RAGWebSourceDTO]
     source_count: int
     retrieval_results: list[RetrievalResultDTO]

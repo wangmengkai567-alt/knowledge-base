@@ -1,6 +1,6 @@
 import { post } from './request'
 import { fileExt } from '@/utils/format'
-import type { SearchHit, RagSource, RunEvent, RunResult } from '@/types'
+import type { SearchHit, RagSource, RunEvent, RunResult, WebDirectoryEntry } from '@/types'
 
 /** 去掉扩展名作为可读标题 */
 function stripExt(name: string): string {
@@ -18,6 +18,7 @@ function mapSource(s: any): RagSource {
   }
   if (s.source_type === 'web_search_summary' || s.source_type === 'web_page') return {
     ...base, sourceType: s.source_type, url: s.url, title: s.title, fetchedAt: s.fetched_at,
+    sourceId: s.source_id, start: s.start, end: s.end, totalChars: s.total_chars,
   }
   throw new Error('未知的资料来源类型')
 }
@@ -33,7 +34,7 @@ function mapHit(r: any): SearchHit {
 }
 
 export type RagStreamHandler = (event:
-  | { type: 'event'; runId: string; event: RunEvent; sources?: RagSource[]; results?: SearchHit[] }
+  | { type: 'event'; runId: string; event: RunEvent; sources?: RagSource[]; results?: SearchHit[]; directory?: WebDirectoryEntry[] }
   | { type: 'result'; result: RunResult }
 ) => void
 
@@ -129,7 +130,7 @@ export const searchApi = {
     let sequence = 0
     let terminal = false
     await readSseStream(res, (data) => {
-      if (data.version !== 5) throw new Error('问答协议已更新，请刷新页面')
+      if (data.version !== 5 || data.tool_contract_version !== 2) throw new Error('问答协议已更新，请刷新页面')
       if (data.type === 'error') throw new Error(data.error)
       if (terminal) throw new Error('收到终态之后的问答事件')
       if (!data.run_id || (runId && runId !== data.run_id)) throw new Error('问答运行编号不一致')
@@ -141,13 +142,13 @@ export const searchApi = {
           sequence, kind: data.kind, elapsed_ms: data.elapsed_ms, data: data.data,
         }, ...(data.kind === 'sources_updated' ? {
           sources: data.data.sources.map(mapSource), results: data.data.retrieval_results.map(mapHit),
-        } : {}) })
+        } : {}), ...(data.kind === 'web_directory_updated' ? { directory: data.data.directory } : {}) })
       } else if (data.type === 'result') {
         terminal = true
         onEvent({ type: 'result', result: {
           runId, status: data.status, stopReason: data.stop_reason, explorationStopReason: data.exploration_stop_reason, errorCode: data.error_code,
           answer: data.answer, model: data.model, usage: data.usage,
-          sources: data.sources.map(mapSource), results: data.retrieval_results.map(mapHit),
+          sources: data.sources.map(mapSource), webDirectory: data.web_directory, results: data.retrieval_results.map(mapHit),
         } })
       } else throw new Error('未知的问答事件')
     })

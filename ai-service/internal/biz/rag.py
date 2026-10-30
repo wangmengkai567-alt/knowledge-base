@@ -15,6 +15,7 @@ from internal.biz.entity import ChatResult
 from internal.biz.materials import AnswerSource, InputBudget, WebSource, pack_sources
 from internal.biz.tool_types import AnswerPayload, ToolError, ToolFailure, ToolResult
 from internal.biz.tools import ToolScope
+from internal.biz.web_sources import unseen_web_ranges
 from pkg.errors.base import APIError
 
 if TYPE_CHECKING:
@@ -95,6 +96,9 @@ class RAGBiz:
                 deadline=run.started + run.limits.timeout,
             )
             session.search_top_k = top_k
+            run.web_directory, run.web_pages = session.web.entries, session.web.pages
+            if run.web_directory:
+                run.emit("web_directory_updated", directory=[asdict(entry) for entry in run.web_directory])
             messages = self._prompts.get_template(self._template).build_messages(
                 {
                     "query": query,
@@ -205,13 +209,14 @@ class RAGBiz:
                 run.sources.extend(pending_sources)
                 run.emit("sources_updated", citation_ids=[s.citation_id for s in run.sources])
             pending_sources = []
+            session.delivered_citations = {source.citation_id: source for source in run.sources}
             run.emit(
                 "model_started",
                 call=usage.model_calls,
                 final=final,
                 request_mode="strict_answer" if final else "native_tools",
                 tool_definition_count=0 if final else len(self._model.executor.definitions(session.scope)),
-                tool_choice=None if final else "required" if not usage.tool_calls else "auto",
+                tool_choice=None if final else "required",
                 exploration_stop_reason=run.exploration_stop_reason,
                 estimated_input_tokens=estimate,
                 output_limit=output_tokens,
@@ -221,7 +226,7 @@ class RAGBiz:
                     request,
                     session,
                     final=final,
-                    require_tool=not usage.tool_calls,
+                    require_tool=True,
                     max_tokens=output_tokens,
                     temperature=temperature,
                 )
@@ -243,12 +248,11 @@ class RAGBiz:
                     self._publish(run, result)
                 return
             if not result.tool_calls:
-                if not usage.tool_calls:
-                    run.finish("model_failed", "evidence_not_requested", "REQUIRED_TOOL_CALL_MISSING")
-                    return
-                # 探索正文不发布、不作为事实或修复素材；下一轮始终是预留的正式最终生成。
-                run.stop_exploration("model_finished_exploration")
-                continue
+                run.finish("model_failed", "evidence_not_requested", "REQUIRED_TOOL_CALL_MISSING")
+                return
+            if len(result.tool_calls) > 1 and any(call.name == "finish_research" for call in result.tool_calls):
+                run.finish("model_failed", "invalid_tool_batch", "FINISH_MUST_BE_ALONE")
+                return
             if len({call.id for call in result.tool_calls}) != len(result.tool_calls) or any(
                 call.id in seen_ids for call in result.tool_calls
             ):
@@ -297,9 +301,12 @@ class RAGBiz:
                     call_id=call.id,
                     tool=call.name,
                     arguments_summary=call.arguments[:256],
+                    call_key=key,
                 )
                 result_tool = await self._model.executor.execute(call, session)
                 run.tool_results.append(result_tool)
+                if call.name in ("web_search", "web_read"):
+                    run.emit("web_directory_updated", directory=[asdict(entry) for entry in run.web_directory])
                 run.emit(
                     "tool_finished",
                     call_id=call.id,
@@ -309,6 +316,9 @@ class RAGBiz:
                     errors=[error.code for error in result_tool.errors],
                     error_summaries=[asdict(error) for error in result_tool.errors],
                     web_diagnostics=[asdict(item) for item in result_tool.diagnostics],
+                    directory=[asdict(entry) for entry in result_tool.directory],
+                    matches=result_tool.matches,
+                    selection=result_tool.selection,
                 )
                 self._check_active(run, session)
                 if result_tool.errors or result_tool.status in ("error", "partial"):
@@ -319,6 +329,9 @@ class RAGBiz:
                         code,
                     )
                     return
+                if result_tool.selection is not None:
+                    run.evidence_selection = result_tool.selection
+                    run.stop_exploration("evidence_complete" if result_tool.selection["outcome"] == "answered" else "evidence_insufficient")
                 bounded = self._fit_result(
                     result_tool,
                     run,
@@ -334,7 +347,7 @@ class RAGBiz:
                     ).to_message()
                     run.stop_exploration("input_budget")
                     break
-                no_progress = 0 if bounded.sources else no_progress + 1
+                no_progress = 0 if bounded.sources or bounded.directory else no_progress + 1
                 if no_progress >= 2:
                     run.stop_exploration("no_new_evidence")
                 messages[start + index] = bounded.to_message()
@@ -391,8 +404,11 @@ class RAGBiz:
                 ids = {part.chunk_id for part in segments}
                 source = replace(source, segments=segments,
                                  retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids])
-            elif any(isinstance(existing, WebSource) and replace(existing, citation_id=0) == replace(source, citation_id=0)
-                     for existing in registry):
+            else:
+                for part in unseen_web_ranges(source, [*registry, *sources]):
+                    sources.append(replace(part, citation_id=next_id + len(sources)))
+                continue
+            if not source.content.strip():
                 continue
             sources.append(replace(source, citation_id=next_id + len(sources)))
         bounded = replace(result)
@@ -409,8 +425,8 @@ class RAGBiz:
             trial = list(messages)
             trial[index] = replace(bounded, sources=values).to_message()
             return self._model.estimate([*trial, _FINAL_CONTROL], session, final=True) <= limit
-        bounded.sources = pack_sources(sources, fits)
-        if not fits(bounded.sources) or (sources and not bounded.sources):
+        bounded.sources = [source for source in pack_sources(sources, fits) if source.content.strip()]
+        if not fits(bounded.sources) or (sources and not bounded.sources and not bounded.directory):
             return None
         trial = list(messages)
         trial[index] = bounded.to_message()
@@ -478,6 +494,20 @@ class RAGBiz:
                 raise ValueError("invalid citation syntax")
             citations = [int(item.strip()) for item in raw]
             allowed = {source.citation_id for source in run.sources}
+            if run.evidence_selection is not None:
+                if value.status != run.evidence_selection["outcome"]:
+                    run.finish("invalid_answer", "evidence_selection_mismatch", "EVIDENCE_SELECTION_MISMATCH")
+                    return
+                allowed &= set(run.evidence_selection["citation_ids"])
+            cited_sources = [source for source in run.sources if source.citation_id in citations]
+            if value.status == "answered" and any(source.source_type == "web_search_summary" for source in cited_sources) and not any(source.source_type == "web_page" for source in cited_sources):
+                run.finish("invalid_answer", "web_body_required", "WEB_BODY_REQUIRED")
+                return
+            for block in re.finditer(r"^[ \t]*(`{3,})[^\n]*\n(.*?)^[ \t]*\1[ \t]*$", answer, re.MULTILINE | re.DOTALL):
+                code = block.group(2).strip()
+                if code and not any(code in source.content for source in cited_sources if source.source_type != "web_search_summary"):
+                    run.finish("invalid_answer", "unsupported_code", "UNSUPPORTED_CODE")
+                    return
             if (
                 any(number not in allowed for number in citations)
                 or (value.status == "answered" and not citations)

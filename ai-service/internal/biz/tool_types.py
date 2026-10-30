@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from internal.biz.materials import AnswerSource, WebSource
+    from internal.biz.web_sources import WebEntry, WebPage
 
 
 class AnswerPayload(BaseModel):
@@ -49,7 +50,9 @@ class WebDiagnostic:
     exception_type: str | None = None
     timeout_layer: str | None = None
     client_timeout_seconds: float | None = None
-    extract_timeout_seconds: float | None = None
+    connected_ip: str | None = None
+    redirect_count: int = 0
+    final_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +78,7 @@ class WebResult:
     sources: list[WebSource] = field(default_factory=list)
     errors: list[ToolFailure] = field(default_factory=list)
     diagnostics: list[WebDiagnostic] = field(default_factory=list)
+    pages: list[WebPage] = field(default_factory=list)
 
 
 @dataclass
@@ -85,6 +89,9 @@ class ToolResult:
     sources: list[AnswerSource | WebSource] = field(default_factory=list)
     errors: list[ToolFailure] = field(default_factory=list)
     diagnostics: list[WebDiagnostic] = field(default_factory=list)
+    directory: list[WebEntry] = field(default_factory=list)
+    matches: list[dict] = field(default_factory=list)
+    selection: dict | None = None
 
     def to_message(self) -> dict:
         sources = []
@@ -95,7 +102,9 @@ class ToolResult:
                 value.update(document_filename=source.document_filename,
                              document_updated_at=source.document_updated_at)
             else:
-                value.update(url=source.url, title=source.title, fetched_at=source.fetched_at)
+                value.update(url=source.url, title=source.title, fetched_at=source.fetched_at,
+                             source_id=source.source_id, start=source.start, end=source.end,
+                             total_chars=source.total_chars)
             sources.append(value)
         return {
             "role": "tool",
@@ -106,6 +115,9 @@ class ToolResult:
                     "status": self.status,
                     "trust": "untrusted_material",
                     "sources": sources,
+                    "directory": [asdict(entry) for entry in self.directory],
+                    "matches": self.matches,
+                    "selection": self.selection,
                     "errors": [asdict(error) for error in self.errors],
                 },
                 ensure_ascii=False,

@@ -52,11 +52,24 @@ export interface KnowledgeSource extends SourceBase {
   kbId: number
 }
 
+export interface WebDirectoryEntry {
+  source_id: string
+  url: string
+  title: string
+  origin: 'user' | 'search'
+  discovered_at: string
+  read: boolean
+}
+
 export interface WebSource extends SourceBase {
   sourceType: 'web_search_summary' | 'web_page'
   url: string
   title: string
   fetchedAt: string
+  sourceId: string
+  start: number
+  end: number
+  totalChars: number
 }
 
 export type RagSource = KnowledgeSource | WebSource
@@ -96,6 +109,7 @@ export interface RunResult {
   answer: string
   model: string
   sources: RagSource[]
+  webDirectory: WebDirectoryEntry[]
   results: SearchHit[]
   usage: RunUsage
 }

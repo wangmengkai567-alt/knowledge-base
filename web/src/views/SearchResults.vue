@@ -19,7 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const knowledge = useKnowledgeStore()
 const user = useUserStore()
-const { loading, query, allHits, answer, sources, error, generatedAt, allowWeb, runId, status, stopReason, explorationStopReason, events, usage, cancel, filters, sort, page, pageSize, run, setPage, changeSize } =
+const { loading, query, allHits, answer, sources, webDirectory, error, generatedAt, allowWeb, runId, status, stopReason, explorationStopReason, events, usage, cancel, filters, sort, page, pageSize, run, setPage, changeSize } =
   useSearch()
 
 const filterOpen = ref(false)
@@ -107,6 +107,7 @@ const initial = computed(() => displayName.value?.trim()?.[0]?.toUpperCase() || 
         :query="query"
         :answer="answer"
         :sources="sources"
+        :web-directory="webDirectory"
         :loading="loading"
         :error="error"
         :generated-at="generatedAt"

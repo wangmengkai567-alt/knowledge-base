@@ -1,0 +1,221 @@
+{
+  "model": "qwen3.8-flash",
+  "service_host": "maas.qianwenaiapi.com",
+  "embedding": "qwen3.7-text-embedding-flash",
+  "reranker": "qwen3.7-text-rerank",
+  "limits": {
+    "model_calls": 6,
+    "tool_calls": 10,
+    "total_tokens": 64000,
+    "timeout": 120
+  },
+  "web_reader": {
+    "timeout": 20,
+    "page_chars": 5000
+  },
+  "tool_contract_version": 2,
+  "definitions": [
+    {
+      "type": "function",
+      "function": {
+        "name": "knowledge_base_search",
+        "strict": true,
+        "description": "检索用户已选择且有权访问的知识库，返回带分块位置的资料。范围由服务器固定。",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "description": "知识库检索子问题",
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "title": "Query",
+              "type": "string"
+            },
+            "top_k": {
+              "default": 5,
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Top K",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "title": "KnowledgeSearchArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_search",
+        "strict": true,
+        "description": "用一个最多 120 字符的 query 搜索。完整 directory 供选择，摘要不是网页正文。",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "description": "完整搜索短语，单行且非空白，最多 120 字符；仅必要公开信息，禁止私有资料原文",
+              "maxLength": 120,
+              "minLength": 1,
+              "pattern": "^[^\\u0000-\\u001f]*\\S[^\\u0000-\\u001f]*$",
+              "title": "Query",
+              "type": "string"
+            },
+            "max_results": {
+              "default": 5,
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Max Results",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "title": "WebSearchArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_read",
+        "strict": true,
+        "description": "通过 directory 中的 source_id 读取正文；首次抓取后固定使用本次快照。start/max_chars 可定位其他片段，返回原文字符范围。不能填写网址。",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "source_id": {
+              "maxLength": 32,
+              "pattern": "^web_[1-9][0-9]*$",
+              "title": "Source Id",
+              "type": "string"
+            },
+            "start": {
+              "default": 0,
+              "description": "正文字符起点；首次从 0 开始",
+              "maximum": 2000000,
+              "minimum": 0,
+              "title": "Start",
+              "type": "integer"
+            },
+            "max_chars": {
+              "default": 5000,
+              "maximum": 5000,
+              "minimum": 100,
+              "title": "Max Chars",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_id"
+          ],
+          "title": "WebReadArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_find",
+        "strict": true,
+        "description": "在已用 web_read 读取的本次快照中查找 pattern，返回首个命中附近原文及最多 10 个位置；不发网络请求。",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "source_id": {
+              "maxLength": 32,
+              "pattern": "^web_[1-9][0-9]*$",
+              "title": "Source Id",
+              "type": "string"
+            },
+            "pattern": {
+              "description": "已读取正文中的字面文本，不是正则",
+              "maxLength": 120,
+              "minLength": 1,
+              "pattern": "\\S",
+              "title": "Pattern",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_id",
+            "pattern"
+          ],
+          "title": "WebFindArguments",
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "finish_research",
+        "strict": true,
+        "description": "证据齐备或已确认资料不足时单独调用，提交实际已送模的 citation_ids 和 outcome。answered 必须有证据；使用网页摘要时还须有正文依据。该动作结束取证，随后独立生成答案，不再探索。",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "outcome": {
+              "enum": [
+                "answered",
+                "insufficient"
+              ],
+              "title": "Outcome",
+              "type": "string"
+            },
+            "citation_ids": {
+              "items": {
+                "exclusiveMinimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 30,
+              "title": "Citation Ids",
+              "type": "array"
+            }
+          },
+          "required": [
+            "outcome",
+            "citation_ids"
+          ],
+          "title": "FinishArguments",
+          "type": "object"
+        }
+      }
+    }
+  ],
+  "source_sha256": {
+    "internal/biz/web_sources.py": "9900160c6044f799e76bedaf468b2fd0c3f5cf69ed78629befdbd2c551a23f97",
+    "internal/biz/materials.py": "478c12e51fad2174f7964307c9095004f6e8077f6c7935fb30d097140ced94fc",
+    "internal/biz/tool_types.py": "fa5621c25d63e4f7c5df34ad0ecdbd57644e0b084ba9b39b95b162c16163c35a",
+    "internal/biz/tools.py": "c578abcaff8358b3161c0f6d59cdba845cc83d30b3f93dba90e971b794f6f8e3",
+    "internal/biz/tool_model.py": "2ee4633cb9f001f35e549b221ade16acc6fc5146bf7af5f70467a5430c370fa4",
+    "internal/biz/rag.py": "9a9f35edd4fc66dcc2f5c632ea19134c3ff20642147c0801cf95315bcf7f1ad4",
+    "internal/biz/answer_run.py": "bad30c33cdf08348d7dcd45f364fc9832c71d2e95b2c1c85bdad62a9b2cb7634",
+    "internal/biz/repo.py": "d8526d3b1dbeb0958a0d381cda544c3eac6babb6e82577f8a758ed974ed19923",
+    "internal/data/web/access.py": "03de6fbf3856a9e8efce047d13208a995ced19b68198f448b3d5a7d90a76a9c9",
+    "internal/data/web/html_reader.py": "feadaf0ecce7c133ae16d2b2a58369d52d8bf1b620111c62e149b3dab25e7c38",
+    "internal/data/web/html_content.py": "097ae3080a525416bcebea03629db6a008259c3550f8f8646cea7ca5788004ca",
+    "internal/data/web/tavily.py": "2faf7ab7729627d0f59ad59c5679ebf364b6affdec13c724d5314b69bd0a3192",
+    "internal/service/rag.py": "cf10c4170748bba6b317a2a97df4c2a852f4064eb1b1aeacffc5fe713a0eccfd",
+    "api/openapi/schemas/rag.py": "293f87ec13196a3ec8df0c05cdd563e3afcee2bff8db2534226679062571a904",
+    "internal/prompt/templates/rag.yaml": "5ca1c328f52153999b3d84381adf93fc3c201d43339c0bddf5df3c424130104d",
+    "cmd/wire.py": "f72075d53e2e0e12aa0853b7a9ba4c6b568142a36b1bb81fead0153ecf8c6a04"
+  },
+  "network_environment_flags": {
+    "HTTP_PROXY": false,
+    "HTTPS_PROXY": false,
+    "ALL_PROXY": false,
+    "http_proxy": false,
+    "https_proxy": false,
+    "all_proxy": false,
+    "SSL_CERT_FILE": false,
+    "SSL_CERT_DIR": false
+  }
+}

@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, replace
-from collections.abc import Callable
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
 from internal.biz.relevance import apply_relevance_gate
 from pkg.errors.base import RAGError
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from internal.biz.entity import Chunk, RetrievalResult
     from internal.biz.repo import ChunkRepo
 
@@ -59,6 +60,11 @@ class WebSource:
     content: str
     source_type: Literal["web_search_summary", "web_page"]
     truncated: bool = False
+    source_id: str = ""
+    start: int = 0
+    end: int = 0
+    total_chars: int = 0
+    code_ranges: list[tuple[int, int]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -201,7 +207,12 @@ class MaterialProcessor:
 
 def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
     if isinstance(source, WebSource):
-        return replace(source, content=source.content[:length], truncated=True)
+        end = source.start + min(length, len(source.content))
+        for left, right in source.code_ranges:
+            if left < end < right:
+                end = left
+        return replace(source, content=source.content[:end-source.start], end=end, truncated=True,
+                       code_ranges=[(left, right) for left, right in source.code_ranges if right <= end])
     segments: list[MaterialSegment] = []
     remaining = length
     for segment in source.segments:

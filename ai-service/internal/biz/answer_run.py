@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from internal.biz.materials import AnswerSource, WebSource
     from internal.biz.tool_types import ToolResult
     from internal.biz.tools import ToolScope
+    from internal.biz.web_sources import WebEntry, WebPage
 
 RunStatus = Literal[
     "running",
@@ -103,6 +104,9 @@ class AnswerRun:
     # 仅登记真正进入模型请求的内容；获取但未送模的结果另保存在 tool_results。
     sources: list[AnswerSource | WebSource] = field(default_factory=list)
     tool_results: list[ToolResult] = field(default_factory=list)
+    web_directory: list[WebEntry] = field(default_factory=list)
+    web_pages: dict[str, WebPage] = field(default_factory=dict)
+    evidence_selection: dict | None = None
     events: list[RunEvent] = field(default_factory=list)
     on_event: Callable[[AnswerRun, RunEvent], None] | None = field(default=None, repr=False)
 

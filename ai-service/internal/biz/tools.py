@@ -6,7 +6,7 @@ import asyncio
 import json
 from dataclasses import dataclass, field, replace
 from time import monotonic
-from typing import TYPE_CHECKING, Annotated, TypeVar
+from typing import TYPE_CHECKING, Annotated, Literal, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -14,13 +14,13 @@ from pydantic import (
     Field,
     StringConstraints,
     ValidationError,
-    field_validator,
+    model_validator,
 )
-from pydantic_core import PydanticCustomError
 
 from internal.biz.materials import InputBudget, MaterialProcessor, pack_sources
 from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult, WebDiagnostic
 from internal.biz.web_access import normalize_public_url, validate_public_url
+from internal.biz.web_sources import WebRegistry
 from pkg.errors.base import APIError
 
 if TYPE_CHECKING:
@@ -41,45 +41,51 @@ class KnowledgeSearchArguments(ToolArguments):
     top_k: int = Field(default=5, ge=1, le=10)
 
 
-SearchKeyword = Annotated[str, StringConstraints(
-    min_length=1, max_length=64, pattern=r"^[^\u0000-\u001f]*\S[^\u0000-\u001f]*$",
-)]
+SourceId = Annotated[str, StringConstraints(pattern=r"^web_[1-9][0-9]*$", max_length=32)]
 
 
 class WebSearchArguments(ToolArguments):
-    keywords: list[SearchKeyword] = Field(
-        min_length=1, max_length=8,
-        description='1 到 8 项字符串；每项 1 到 64 字符、单行且非空白；用一个空格连接后最多 120 字符。仅必要公开关键词，禁止私有资料原文',
+    query: str = Field(
+        min_length=1, max_length=120, pattern=r"^[^\u0000-\u001f]*\S[^\u0000-\u001f]*$",
+        description="完整搜索短语，单行且非空白，最多 120 字符；仅必要公开信息，禁止私有资料原文",
     )
     max_results: int = Field(default=5, ge=1, le=5)
 
-    @field_validator("keywords")
-    @classmethod
-    def minimal_keywords(cls, values: list[str]) -> list[str]:
-        length = len(" ".join(values))
-        if length > 120:
-            raise PydanticCustomError(
-                "keyword_total_length", "连接后关键词长 {actual_length}，允许最多 {max_length} 字符",
-                {"actual_length": length, "max_length": 120},
-            )
-        return values
-
-
 class WebReadArguments(ToolArguments):
-    urls: list[str] = Field(
-        min_length=1, max_length=3, description="本次搜索已返回或用户明确提供的公开网址"
-    )
+    source_id: SourceId
+    start: int = Field(default=0, ge=0, le=2_000_000, description="正文字符起点；首次从 0 开始")
+    max_chars: int = Field(default=5000, ge=100, le=5000)
+
+
+class WebFindArguments(ToolArguments):
+    source_id: SourceId
+    pattern: str = Field(min_length=1, max_length=120, pattern=r"\S", description="已读取正文中的字面文本，不是正则")
+
+
+class FinishArguments(ToolArguments):
+    outcome: Literal["answered", "insufficient"]
+    citation_ids: list[Annotated[int, Field(gt=0)]] = Field(max_length=30)
+
+    @model_validator(mode="after")
+    def answered_needs_evidence(self) -> FinishArguments:
+        if self.outcome == "answered" and not self.citation_ids:
+            raise ValueError("answered requires citation_ids")
+        return self
 
 
 _ARGUMENTS = {
     "knowledge_base_search": KnowledgeSearchArguments,
     "web_search": WebSearchArguments,
     "web_read": WebReadArguments,
+    "web_find": WebFindArguments,
+    "finish_research": FinishArguments,
 }
 _DESCRIPTIONS = {
     "knowledge_base_search": "检索用户已选择且有权访问的知识库，返回带分块位置的资料。范围由服务器固定。",
-    "web_search": "用必要公开关键词搜索网页，仅返回搜索摘要；摘要不代表已读取网页正文。keywords 每项最多 64 字符，各项用一个空格连接后总计最多 120 字符；这是本地约束。",
-    "web_read": "读取本次已发现或用户明确提供的公开网页正文；不能访问内网或任意新网址。",
+    "web_search": "用一个最多 120 字符的 query 搜索。完整 directory 供选择，摘要不是网页正文。",
+    "web_read": "通过 directory 中的 source_id 读取正文；首次抓取后固定使用本次快照。start/max_chars 可定位其他片段，返回原文字符范围。不能填写网址。",
+    "web_find": "在已用 web_read 读取的本次快照中查找 pattern，返回首个命中附近原文及最多 10 个位置；不发网络请求。",
+    "finish_research": "证据齐备或已确认资料不足时单独调用，提交实际已送模的 citation_ids 和 outcome。answered 必须有证据；使用网页摘要时还须有正文依据。该动作结束取证，随后独立生成答案，不再探索。",
 }
 
 
@@ -89,7 +95,7 @@ def _parse_arguments(call: ToolCall) -> ToolArguments:
         return _ARGUMENTS[call.name].model_validate_json(call.arguments)
     except ValidationError as exc:
         details = []
-        fields = {"query", "top_k", "keywords", "max_results", "urls"}
+        fields = {"query", "top_k", "max_results", "source_id", "start", "max_chars", "pattern", "outcome", "citation_ids"}
         for error in exc.errors(include_url=False, include_input=True)[:4]:
             location = ".".join(str(part + 1) if isinstance(part, int) else
                                 part if part in fields else "extra_field" for part in error["loc"])
@@ -116,7 +122,10 @@ class ToolSession:
     deadline: float = field(default_factory=lambda: monotonic() + 120)
     cancelled: asyncio.Event = field(default_factory=asyncio.Event)
     # 由服务器根据本次搜索结果或用户明确提供的网址登记，不接受模型设置。
-    readable_urls: dict[str, str] = field(default_factory=dict)
+    web: WebRegistry = field(default_factory=WebRegistry)
+    delivered_citations: dict = field(default_factory=dict)
+    evidence_actions: int = 0
+    finished: bool = False
     search_top_k: int = 10
 
 
@@ -158,6 +167,7 @@ class ReadOnlyToolExecutor:
         context_window: int = 0,
         timeout: float = 30,
         max_content_chars: int = 8000,
+        web_page_chars: int = 5000,
     ) -> None:
         self._retrieval = retrieval
         self._kb_repo = kb_repo
@@ -166,6 +176,7 @@ class ReadOnlyToolExecutor:
         self._web = web
         self._timeout = timeout
         self._max_content_chars = max_content_chars
+        self._web_page_chars = web_page_chars
 
     async def create_session(
         self,
@@ -197,7 +208,7 @@ class ReadOnlyToolExecutor:
             await self._authorize(session.scope)
             for url in user_urls:
                 normalized = await validate_public_url(url)
-                session.readable_urls[normalized] = ""
+                session.web.register(normalized, "", "user")
 
         await run_scoped(authorize, session, self._timeout)
         return session
@@ -214,18 +225,22 @@ class ReadOnlyToolExecutor:
         if call.name not in _ARGUMENTS or len(call.arguments) > 8192:
             raise ToolError("INVALID_TOOL_ARGUMENTS", "工具名称或参数无效")
         args = _parse_arguments(call)
-        if isinstance(args, KnowledgeSearchArguments):
+        if isinstance(args, (KnowledgeSearchArguments, WebSearchArguments)):
             value = " ".join(args.query.casefold().split())
-        elif isinstance(args, WebSearchArguments):
-            value = sorted({" ".join(word.casefold().split()) for word in args.keywords})
+        elif isinstance(args, WebReadArguments):
+            value = [args.source_id, args.start, args.max_chars]
+        elif isinstance(args, WebFindArguments):
+            value = [args.source_id, args.pattern]
         else:
-            value = sorted({normalize_public_url(url) for url in args.urls})
+            value = [args.outcome, sorted(set(args.citation_ids))]
         return json.dumps([call.name, value], ensure_ascii=False)
 
     def definitions(self, scope: ToolScope) -> list[dict]:
         names = ["knowledge_base_search"] if scope.knowledge_base_ids else []
         if scope.allow_web:
-            names.extend(("web_search", "web_read"))
+            names.extend(("web_search", "web_read", "web_find"))
+        if names:
+            names.append("finish_research")
         return [
             {
                 "type": "function",
@@ -245,9 +260,9 @@ class ReadOnlyToolExecutor:
             return await run_scoped(lambda: self._execute(call, session), session, self._timeout)
         except ToolError as exc:
             diagnostic = exc.diagnostics
-            if diagnostic is None and exc.code == "TOOL_TIMEOUT" and call.name in ("web_search", "web_read"):
+            if diagnostic is None and exc.code == "TOOL_TIMEOUT" and call.name in ("web_search", "web_read", "web_find"):
                 diagnostic = WebDiagnostic(
-                    endpoint="search" if call.name == "web_search" else "extract",
+                    endpoint="search" if call.name == "web_search" else "web_page",
                     phase="tool_execution", category="timeout",
                     elapsed_seconds=round(monotonic() - started, 3),
                     exception_type=type(exc).__name__,
@@ -286,6 +301,8 @@ class ReadOnlyToolExecutor:
             )
 
     async def _execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
+        if session.finished:
+            raise ToolError("RUN_STOPPED", "已结束取证，不能再执行工具动作")
         if (
             not isinstance(call.id, str)
             or not call.id.strip()
@@ -319,30 +336,68 @@ class ReadOnlyToolExecutor:
                 sources=prepared.sources,
             )
         elif isinstance(arguments, WebSearchArguments):
-            web = await self._web.search(" ".join(arguments.keywords), arguments.max_results)
-            result = ToolResult(
-                call.id, call.name, "success", sources=web.sources, errors=web.errors,
-                diagnostics=web.diagnostics,
-            )
-        else:
-            urls = list(dict.fromkeys(normalize_public_url(url) for url in arguments.urls))
-            if any(url not in session.readable_urls for url in urls):
-                raise ToolError("URL_NOT_APPROVED", "只可读取本次搜索已返回或用户明确提供的网址")
-            web = await self._web.read(urls)
+            web = await self._web.search(arguments.query, arguments.max_results)
+            directory = []
             for source in web.sources:
-                source.title = source.title or session.readable_urls[source.url]
+                entry = session.web.register(normalize_public_url(source.url), source.title, "search")
+                source.source_id = entry.source_id
+                source.start, source.end = 0, len(source.content)
+                source.total_chars = max(source.total_chars, len(source.content))
+                directory.append(replace(entry))
             result = ToolResult(
                 call.id, call.name, "success", sources=web.sources, errors=web.errors,
-                diagnostics=web.diagnostics,
+                diagnostics=web.diagnostics, directory=directory,
+            )
+        elif isinstance(arguments, WebReadArguments):
+            entry = session.web.get(arguments.source_id)
+            diagnostics = []
+            phase = "snapshot_cache"
+            try:
+                if entry.source_id not in session.web.pages:
+                    web = await self._web.read([entry.url])
+                    diagnostics = web.diagnostics
+                    if web.errors or len(web.pages) != 1:
+                        raise ToolError("WEB_SNAPSHOT_INVALID", "正文读取未返回唯一有效快照")
+                    session.web.cache(entry.source_id, web.pages[0])
+                else:
+                    diagnostics = [WebDiagnostic("web_cache", "complete", "cache_hit", 0)]
+                phase = "page_window"
+                page = session.web.page(entry.source_id)
+                window = page.window(entry.source_id, arguments.start, min(arguments.max_chars, self._web_page_chars))
+            except ToolError as exc:
+                if exc.diagnostics is None and diagnostics:
+                    raise ToolError(exc.code, exc.message, diagnostics=replace(
+                        diagnostics[-1], phase=phase, category=exc.code.lower(),
+                    )) from exc
+                raise
+            result = ToolResult(
+                call.id, call.name, "success",
+                sources=[window],
+                diagnostics=diagnostics,
+            )
+        elif isinstance(arguments, WebFindArguments):
+            sources, matches = session.web.find(arguments.source_id, arguments.pattern, self._web_page_chars)
+            result = ToolResult(call.id, call.name, "success", sources=sources, matches=matches)
+        else:
+            ids = set(arguments.citation_ids)
+            if not session.evidence_actions or not ids.issubset(session.delivered_citations):
+                raise ToolError("EVIDENCE_SELECTION_INVALID", "必须先取证，且只能选择实际已送模的引用编号")
+            selected = [session.delivered_citations[number] for number in ids]
+            if arguments.outcome == "answered" and any(source.source_type == "web_search_summary" for source in selected) and not any(source.source_type == "web_page" for source in selected):
+                raise ToolError("WEB_BODY_REQUIRED", "网页摘要不足以完成回答，请先取得正文依据")
+            result = ToolResult(
+                call.id, call.name, "success",
+                selection={"outcome": arguments.outcome, "citation_ids": sorted(ids)},
             )
         self._bound_result(result)
-        if call.name == "web_search":
-            for source in result.sources:
-                session.readable_urls[source.url] = source.title
+        if result.selection is not None:
+            session.finished = True
+        if call.name != "finish_research" and not result.errors:
+            session.evidence_actions += 1
         result.status = (
             ("partial" if result.sources else "error")
             if result.errors
-            else ("success" if result.sources else "empty")
+            else ("success" if result.sources or result.directory or result.selection is not None else "empty")
         )
         return result
 
@@ -353,6 +408,6 @@ class ReadOnlyToolExecutor:
             bounded = replace(result, sources=sources)
             return (sum(len(source.content) for source in sources) <= self._max_content_chars
                     and len(json.dumps(bounded.to_message(), ensure_ascii=False).encode()) <= 12000)
-        result.sources = [replace(source, citation_id=0) for source in pack_sources(result.sources, fits)]
-        if not fits(result.sources) or (had_sources and not result.sources):
+        result.sources = [replace(source, citation_id=0) for source in pack_sources(result.sources, fits) if source.content.strip()]
+        if not fits(result.sources) or (had_sources and not result.sources and not result.directory):
             raise ToolError("TOOL_RESULT_TOO_LARGE", "资料无法在工具结果预算内保留")

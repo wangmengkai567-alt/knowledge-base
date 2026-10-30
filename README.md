@@ -21,7 +21,7 @@ Copy-Item ai-service/.env.example .env
 Copy-Item ai-service/.env.example ai-service/.env
 ```
 
-配置清单见 [环境变量模板](ai-service/.env.example) 和 [已确认选型、预算](docs/preparation/preparation-report.md)。当前模型为 `qwen3.8-flash`，嵌入为 `qwen3.7-text-embedding-flash`、1024 维，重排为 `qwen3.7-text-rerank`，网页供应商为 Tavily。填写模型密钥、`TAVILY_API_KEY` 和 `POSTGRES_PASSWORD`。修改环境变量后需重新创建后端容器使其生效。
+配置清单见 [环境变量模板](ai-service/.env.example) 和 [已确认选型、预算](docs/preparation/preparation-report.md)。当前模型为 `qwen3.8-flash`，嵌入为 `qwen3.7-text-embedding-flash`、1024 维，重排为 `qwen3.7-text-rerank`，网页搜索使用 Tavily，正文使用受控静态 HTML 读取。填写模型密钥、`TAVILY_API_KEY` 和 `POSTGRES_PASSWORD`。修改环境变量后需重新创建后端容器使其生效。
 
 `AI_SERVER__WORKERS` 必须为 **1**；关键词索引是进程内状态。保留既有向量与上传文件，不为启用工具问答重新上传全部资料。
 

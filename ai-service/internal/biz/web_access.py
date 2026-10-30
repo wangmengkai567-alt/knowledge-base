@@ -1,4 +1,4 @@
-"""网页工具访问边界；仅向已选供应商提交公开 URL。"""
+"""网页工具访问边界；解析并固定已校验的公网地址。"""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def normalize_public_url(url: str) -> str:
         raise ToolError("URL_NOT_ALLOWED", "仅允许无凭据、标准端口的公开 HTTP(S) 网页") from exc
 
 
-async def validate_public_url(url: str) -> str:
+async def resolve_public_url(url: str) -> tuple[str, tuple[str, ...]]:
     normalized = normalize_public_url(url)
     host = urlsplit(normalized).hostname
     try:
@@ -58,4 +58,9 @@ async def validate_public_url(url: str) -> str:
         raise ToolError("URL_DNS_FAILED", "网页域名无法解析") from exc
     if not records or any(not ipaddress.ip_address(record[4][0]).is_global for record in records):
         raise ToolError("URL_NOT_ALLOWED", "网页域名必须仅解析到公网地址")
+    return normalized, tuple(dict.fromkeys(record[4][0] for record in records))
+
+
+async def validate_public_url(url: str) -> str:
+    normalized, _ = await resolve_public_url(url)
     return normalized

@@ -1,0 +1,35 @@
+{
+  "direct_probes": [
+    {
+      "id": "W01",
+      "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "elapsed_seconds": 5.194,
+      "html_bytes": 128544,
+      "main_tag": true,
+      "pre_blocks": 32,
+      "copy_blocks": [
+        "FROM python:3.12-slim-trixie\nCOPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/\n",
+        "COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /uvx /bin/\n",
+        "# Install uv\nFROM python:3.12-slim\nCOPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/\n\n# Change the working directory to the `app` directory\nWORKDIR /app\n\n# Install dependencies\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    --mount=type=bind,source=uv.lock,target=uv.lock \\\n    uv sync --frozen --no-install-project\n\n# Copy the project into the image\nCOPY . /app\n\n# Sync the project\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    uv sync --locked\n",
+        "# Install uv\nFROM python:3.12-slim\nCOPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/\n\nWORKDIR /app\n\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    --mount=type=bind,source=uv.lock,target=uv.lock \\\n    uv sync --frozen --no-install-workspace\n\nCOPY . /app\n\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    uv sync --locked\n",
+        "# Install uv\nFROM python:3.12-slim AS builder\nCOPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/\n\n# Use the system Python across both stages\nENV UV_PYTHON_DOWNLOADS=0\n\n# Change the working directory to the `app` directory\nWORKDIR /app\n\n# Install dependencies\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    --mount=type=bind,source=uv.lock,target=uv.lock \\\n    uv sync --frozen --no-install-project --no-editable\n\n# Copy the project into the intermediate image\nCOPY . /app\n\n# Sync the project\nRUN --mount=type=cache,target=/root/.cache/uv \\\n    uv sync --locked --no-editable\n\nFROM python:3.12-slim\n\n# Copy the environment, but not the source code\nCOPY --from=builder /app/.venv /app/.venv\n\n# Run the application\nCMD [\"/app/.venv/bin/hello\"]\n"
+      ],
+      "docker_explanation": null
+    },
+    {
+      "id": "W03",
+      "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/",
+      "status": 200,
+      "content_type": "text/html",
+      "elapsed_seconds": 1.926,
+      "html_bytes": 219420,
+      "main_tag": true,
+      "pre_blocks": 5,
+      "copy_blocks": [],
+      "docker_explanation": true
+    }
+  ],
+  "old_reader_has_complete_COPY": false
+}

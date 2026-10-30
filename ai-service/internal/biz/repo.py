@@ -530,7 +530,7 @@ class WebProvider(ABC):
     """网页搜索摘要和正文读取是两个明确的只读动作。"""
 
     @abstractmethod
-    async def search(self, keywords: str, max_results: int) -> WebResult:
+    async def search(self, query: str, max_results: int) -> WebResult:
         ...
 
     @abstractmethod

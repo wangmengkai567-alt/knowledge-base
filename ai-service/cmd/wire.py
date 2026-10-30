@@ -51,7 +51,9 @@ from internal.data.retriever.factory import create_retriever
 from internal.data.storage.factory import create_file_storage_repo
 from internal.data.user.factory import create_user_repo
 from internal.data.vector_store.factory import create_vector_store
-from internal.data.web.tavily import TavilyWeb
+from internal.data.web.access import PublicWeb
+from internal.data.web.html_reader import HTMLPageReader
+from internal.data.web.tavily import TavilySearch
 from internal.prompt.manager import PromptManager
 from internal.server.http import HTTPServer
 from internal.server.middleware.rate_limit import RateLimitSettings, create_rate_limiter
@@ -282,13 +284,19 @@ def create_app() -> FastAPI:
     tool_budget = InputBudget(model=llm_provider.model_name)
     tool_executor = ReadOnlyToolExecutor(
         retrieval=retrieval_biz, kb_repo=kb_repo, chunk_repo=chunk_repo,
-        web=TavilyWeb(
-            api_key=settings.tavily.api_key, timeout=settings.tavily.timeout,
-            search_limit=settings.tavily.search_limit,
-            summary_chars=settings.tavily.summary_chars, page_chars=settings.tavily.page_chars,
+        web=PublicWeb(
+            search=TavilySearch(
+                api_key=settings.tavily.api_key, timeout=settings.tavily.timeout,
+                search_limit=settings.tavily.search_limit,
+                summary_chars=settings.tavily.summary_chars,
+            ),
+            reader=HTMLPageReader(
+                timeout=settings.web_reader.timeout,
+            ),
         ),
         budget=tool_budget, context_window=settings.rag.context_window,
         timeout=settings.tools.timeout,
+        web_page_chars=settings.web_reader.page_chars,
     )
     tool_service = ToolModel(
         tool_executor, llm_provider, tool_budget, model_timeout=settings.llm.timeout

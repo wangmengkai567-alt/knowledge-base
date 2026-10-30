@@ -1,0 +1,47 @@
+{
+  "git_status_before_work": "?? ai-service/data/web-reader-step-1-before.json\n",
+  "files": [
+    {
+      "path": "ai-service/internal/data/web/tavily.py",
+      "crlf": 0,
+      "lf": 279,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/web_access.py",
+      "crlf": 0,
+      "lf": 61,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "crlf": 0,
+      "lf": 114,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "crlf": 0,
+      "lf": 358,
+      "bom": false
+    },
+    {
+      "path": "ai-service/internal/conf/config.py",
+      "crlf": 641,
+      "lf": 0,
+      "bom": false
+    },
+    {
+      "path": "ai-service/cmd/wire.py",
+      "crlf": 362,
+      "lf": 0,
+      "bom": false
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "crlf": 0,
+      "lf": 272,
+      "bom": false
+    }
+  ]
+}

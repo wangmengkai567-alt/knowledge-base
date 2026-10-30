@@ -1,0 +1,13 @@
+{
+  "probe": "single bare TLS handshake, no HTTP query or credentials",
+  "host": "api.tavily.com",
+  "proxy_environment_present": {
+    "HTTP_PROXY": false,
+    "HTTPS_PROXY": false,
+    "ALL_PROXY": false
+  },
+  "exception_type": "ConnectionResetError",
+  "certificate_verify_code": null,
+  "certificate_verify_message": null,
+  "conclusion": "TLS connection was reset; no evidence establishing a missing CA or a query-parameter error; no TLS verification or proxy settings changed"
+}

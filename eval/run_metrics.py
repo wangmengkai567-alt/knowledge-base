@@ -45,10 +45,16 @@ def ledger_valid(run: dict, starts: list[dict], finishes: list[dict]) -> bool:
 def score_run(snapshot: dict, item: dict) -> dict:
     run = snapshot["result"]
     sources, events, usage = run["sources"], run["events"], run["usage"]
+    contract = snapshot.get("tool_contract_version", 1)
+    if contract not in (1, 2):
+        raise ValueError("unsupported saved tool contract")
+    directory = {entry["source_id"]: entry for entry in run.get("web_directory", [])}
     ids = [source["citation_id"] for source in sources]
     cited = [int(value) for value in CITATION.findall(run["answer"])]
     valid = len(ids) == len(set(ids)) and all(type(i) is int and i > 0 for i in ids)
     evidence_errors = []
+    if contract == 2 and (len(directory) != len(run["web_directory"]) or len({entry["url"] for entry in directory.values()}) != len(directory) or (directory and not snapshot["scope"]["allow_web"])):
+        evidence_errors.append("invalid web directory scope or identity")
     for source in sources:
         if not source["content"]:
             evidence_errors.append("empty material")
@@ -69,6 +75,17 @@ def score_run(snapshot: dict, item: dict) -> dict:
                 evidence_errors.append("invalid web URL")
             if not source["fetched_at"]:
                 evidence_errors.append("missing fetch time")
+            if contract == 2:
+                entry = directory.get(source["source_id"])
+                start, end = source["start"], source["end"]
+                if not entry or entry["url"] != source["url"] or start < 0 or end - start != len(source["content"]) or end > source["total_chars"]:
+                    evidence_errors.append("invalid web directory or range")
+                if source["source_type"] == "web_page":
+                    page = snapshot["web_pages"].get(source["source_id"])
+                    if not page or page["url"] != source["url"] or page["fetched_at"] != source["fetched_at"] or page["content"][start:end] != source["content"] or len(page["content"]) != source["total_chars"]:
+                        evidence_errors.append("web snapshot/content mismatch")
+                    elif any(a < boundary < b for a, b in page["code_ranges"] for boundary in (start, end)):
+                        evidence_errors.append("web code block cut by window")
         else:
             evidence_errors.append("unknown source type")
     prepared = set()
@@ -144,6 +161,9 @@ def score_run(snapshot: dict, item: dict) -> dict:
     keys = []
     for event in tool_starts:
         data = event["data"]
+        if contract == 2:
+            keys.append(data["call_key"])
+            continue
         # 参数摘要可能截断；无法完整解析时显式保留未知，不伪造重复判断。
         try:
             args = json.loads(data["arguments_summary"])

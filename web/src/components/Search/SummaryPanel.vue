@@ -6,12 +6,13 @@ import { useKnowledgeStore } from '@/stores/knowledge'
 import { renderAnswer } from '@/utils/markdown'
 import { formatDate } from '@/utils/format'
 import { ElMessage } from 'element-plus'
-import type { RagSource, RunEvent, RunStatus, RunUsage } from '@/types'
+import type { RagSource, RunEvent, RunStatus, RunUsage, WebDirectoryEntry } from '@/types'
 
 const props = defineProps<{
   query: string
   answer: string
   sources: RagSource[]
+  webDirectory: WebDirectoryEntry[]
   loading: boolean
   error: string
   generatedAt: string
@@ -33,30 +34,35 @@ const generatedLabel = computed(() => props.generatedAt ? formatDate(props.gener
 const labels: Record<RunStatus, string> = {
   running: '正在处理', completed: '回答完成', insufficient: '资料不足',
   budget_exhausted: '已达到执行上限', usage_unknown: '实际用量未知，已停止',
-  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式或引用检查',
+  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式、引用或依据检查',
   timeout: '执行超时', cancelled: '已取消',
 }
 const reasons: Record<string, string> = {
   model_call_limit: '已达到模型调用次数上限', tool_call_limit: '已达到工具调用次数上限',
   token_budget: '剩余额度不足以继续取证', input_budget: '资料已达到输入上限',
-  no_new_evidence: '连续查找未获得新资料', model_finished_exploration: '取证结束，准备生成最终回答',
+  no_new_evidence: '连续查找未获得新资料', evidence_complete: '证据选择完成，准备生成最终回答', evidence_insufficient: '取证结束，说明缺失资料',
   evidence_not_requested: '模型未按要求调用取证工具，本次执行已停止',
   usage_unknown: '服务未返回完整用量，本次执行已停止',
   actual_usage_exceeded: '服务报告的实际用量超出执行上限',
   output_limit: '回答超出输出长度上限', repeated_call: '重复查询未取得新资料',
   insufficient_material: '现有资料不足以完整回答', user_cancelled: '已停止本次提问',
+  unsupported_code: '命令或代码无法在所引正文中定位，未发布答案',
+  web_body_required: '需要网页正文支持，搜索摘要不能替代正文',
+  evidence_selection_mismatch: '最终回答与已选证据状态不一致，未发布答案',
   invalid_citation_or_format: '回答的引用或格式不符合要求，未发布答案',
 }
 const statusLabel = computed(() => props.status ? labels[props.status] : '')
 const noticeType = computed(() => props.status === 'cancelled' ? 'info' :
   ['insufficient', 'budget_exhausted'].includes(props.status || '') ? 'warning' : 'error')
 const toolLabels: Record<string, string> = {
-  knowledge_base_search: '正在查知识库', web_search: '正在搜索网页', web_read: '正在读取网页',
+  knowledge_base_search: '正在查知识库', web_search: '正在搜索网页', web_read: '正在读取网页', web_find: '正在定位网页内容', finish_research: '正在确认回答依据',
 }
 function eventLabel(event: RunEvent): string {
   if (event.kind === 'run_started') return '开始处理问题'
   if (event.kind === 'model_started') return event.data.final ? '正在整理最终回答' : '正在判断下一步'
   if (event.kind === 'tool_started') return toolLabels[String(event.data.tool)] || '正在读取资料'
+  if (event.kind === 'web_directory_updated') return '已更新可用网页目录'
+  if (event.kind === 'tool_finished' && event.data.selection) return '已选定回答依据'
   if (event.kind === 'tool_finished') return event.data.status === 'empty' ? '本次查找未取得资料' :
     ['error', 'partial'].includes(String(event.data.status)) ? '资料获取失败' : '已取得 ' + event.data.source_count + ' 份资料'
   if (event.kind === 'exploration_stopped') return '停止取证：' + (reasons[String(event.data.reason)] || String(event.data.reason))
@@ -120,6 +126,16 @@ async function copyAnswer() {
         <ol class="mt-2 space-y-1" :aria-busy="loading">
           <li v-for="step in steps" :key="step.sequence">{{ (step.elapsed_ms / 1000).toFixed(1) }} 秒 · {{ eventLabel(step) }}</li>
         </ol>
+      </details>
+      <details v-if="webDirectory.length" class="mb-3 text-xs text-ink-500">
+        <summary class="cursor-pointer">发现的网页 · {{ webDirectory.length }} 个</summary>
+        <p class="mt-2">网页目录供选择，实际回答依据见引用资料。</p>
+        <ul class="mt-2 space-y-1">
+          <li v-for="entry in webDirectory" :key="entry.source_id">
+            <a :href="entry.url" target="_blank" rel="noopener noreferrer" class="underline">{{ entry.title || entry.url }}</a>
+            <span> · {{ entry.read ? '已读取正文' : '尚未读取正文' }}</span>
+          </li>
+        </ul>
       </details>
       <el-alert v-if="error" :title="error" type="error" :closable="false" class="mb-3" />
       <el-alert v-else-if="!loading && status && status !== 'completed'" :title="statusLabel"

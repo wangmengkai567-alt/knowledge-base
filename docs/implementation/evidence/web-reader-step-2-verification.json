@@ -1,0 +1,1331 @@
+{
+  "implementation_complete": true,
+  "all_delivery_checks_passed": true,
+  "checks": [
+    {
+      "name": "prior_input_preserved:README.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/.env.example",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/web_access.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/conf/config.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/web/http_errors.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/evidence/web-reader-step-1-before.json",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/evidence/web-reader-step-1-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/evidence/web-reader-step-1-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/evidence/web-reader-step-1-results.json",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/evidence/web-reader-step-1-verification.json",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/web-reader-step-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:GLOSSARY.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/auth.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/chunk.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/document.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/knowledge_base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/api/openapi/schemas/retrieval.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/cmd/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/cmd/main.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/cmd/migrate.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/configs/config.yaml",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/auth.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/chunk.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/constants.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/document.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/embedding.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/entity.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/ingestion.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/ingestion_state.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/knowledge_base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/query_plan.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/relevance.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/retrieval.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/rrf.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/table_meta.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/biz/tokenizer.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/conf/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/conf/logging.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/answer_runs.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunk/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunk/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunk/sqlalchemy.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunker/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunker/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunker/recursive.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/chunker/tokenizer.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/converter.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/database.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/document/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/document/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/document/sqlalchemy.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/cache.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/local.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/memory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/embedding/openai.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/ingestion_migration.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/keyword/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/keyword/bm25.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/keyword/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/knowledge_base/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/knowledge_base/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/knowledge_base/sqlalchemy.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/llm/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/llm/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/llm/local.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/llm/memory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/llm/openai_patch.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/models.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/markdown.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/ocr.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/pdf.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/table_struct.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/parser/text.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/reranker/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/reranker/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/reranker/memory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/reranker/qwen.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/reranker/zhipu.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/retriever/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/retriever/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/retriever/hybrid.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/retriever/vector.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/storage/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/storage/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/storage/local.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/user/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/user/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/user/sqlalchemy.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/vector_store/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/vector_store/factory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/vector_store/memory.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/vector_store/pgvector.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/data/web/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/prompt/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/prompt/base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/prompt/manager.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/http.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/middleware/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/middleware/auth.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/middleware/metrics.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/middleware/rate_limit.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/server/middleware/security.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/auth.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/chunk.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/document.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/knowledge_base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/service/retrieval.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/streaming/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/internal/streaming/sse.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/errors/__init__.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/errors/base.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/errors/codes.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/errors/fastapi.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/pkg/session.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_context_block.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_model_protocol.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_qwen_reranker.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_rag_grounded_answer.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_read_only_tools.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_relevance_gate.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:ai-service/tests/test_rerank_relevance.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:deployments/docker/docker-compose.yaml",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/adr/0001-retain-docker-and-existing-data.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/adr/0002-bounded-read-only-question-answering.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/keyword-scoring-review.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-2-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-3-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-4-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-5-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-6-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/phase-6-semantic-review.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-optimization-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-0-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-1-smoke-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-2-keyword-limit-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-2-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/implementation/rag-quality-phase-3-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/plans/agentic-rag-refactoring-plan.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/preparation/preparation-report.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/research/agentic-rag-references.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/research/phase-5-cancellation-finalization.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/research/phase-5-reparse-consistency.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/research/phase-5-retrieval-eligibility.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:docs/research/rag-quality-optimization-references.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/GOLDEN_SET.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/audit_sources.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/compare_quality.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/faithfulness.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/keyword_scoring.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/review_keywords.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/run_eval.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/test_faithfulness.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/test_quota_abort.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/test_run_lock.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:eval/test_run_metrics.py",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/README.md",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/env.d.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/App.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/api/auth.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/api/document.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/api/knowledge.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/api/mock.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/api/request.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/BrandMark.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/EmptyState.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/Loading.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/PageHeader.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/Pagination.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Common/SpotlightCard.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Knowledge/DocumentList.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Knowledge/DocumentPreview.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Knowledge/IngestionStatus.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Knowledge/KnowledgeCard.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Search/FilterPanel.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Search/SearchBox.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Search/SearchResult.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Visual/GlassStack.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/components/Visual/HeroDecor.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/hooks/useHighlight.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/hooks/useMouseMotion.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/hooks/usePagination.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/hooks/usePointerGlow.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/layout/AppHeader.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/layout/AppLayout.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/layout/AppSidebar.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/main.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/router/index.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/favorites.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/history.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/knowledge.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/settings.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/ui.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/stores/user.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/types/common.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/types/document.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/types/index.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/types/knowledge.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/types/user.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/utils/format.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/utils/highlight.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/utils/markdown.ts",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/Document.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/DocumentDetail.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/Favorites.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/History.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/KnowledgeBase.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/Login.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/SearchHome.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/src/views/Setting.vue",
+      "passed": true
+    },
+    {
+      "name": "prior_input_preserved:web/vite.config.ts",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-tls-diagnostic.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/plans/rag-quality-remediation-plan.md",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/data/web/access.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/data/web/access.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/repo.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/repo.py",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-stream.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/conf/config.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/conf/config.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/api/openapi/schemas/rag.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/api/openapi/schemas/rag.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:web/src/api/search.ts",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:web/src/api/search.ts",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/.env.example",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/.env.example",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/evidence/web-reader-step-1-verification.json",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/evidence/web-reader-step-1-verification.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/tool_model.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/tool_model.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:web/src/types/search.ts",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:web/src/types/search.ts",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/data/web/html_content.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/data/web/html_content.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/cmd/wire.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/cmd/wire.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/data/web/http_errors.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/data/web/http_errors.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/evidence/web-reader-step-1-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/evidence/web-reader-step-1-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-runtime.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/answer_run.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/answer_run.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/evidence/web-reader-step-1-before.json",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/evidence/web-reader-step-1-before.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/evidence/web-reader-step-1-results.json",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/evidence/web-reader-step-1-results.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/materials.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/materials.py",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-live-tools-initial.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/web-reader-step-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/web-reader-step-1-report.md",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-integration.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-inputs.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:web/src/components/Search/SummaryPanel.vue",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:web/src/components/Search/SummaryPanel.vue",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:web/src/views/SearchResults.vue",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:web/src/views/SearchResults.vue",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/web-reader-step-2-report.md",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/prompt/templates/rag.yaml",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/prompt/templates/rag.yaml",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:eval/README.md",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:docs/implementation/evidence/web-reader-step-1-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:docs/implementation/evidence/web-reader-step-1-diagnostics.json",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:eval/run_metrics.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:eval/run_metrics.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/web_access.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/web_access.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/data/web/html_reader.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/data/web/html_reader.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:ai-service/internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:ai-service/internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:web/src/hooks/useSearch.ts",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:web/src/hooks/useSearch.ts",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:docs/implementation/evidence/web-reader-step-2-live-pages.json",
+      "passed": true
+    },
+    {
+      "name": "new_UTF8_without_BOM_LF:ai-service/internal/biz/web_sources.py",
+      "passed": true
+    },
+    {
+      "name": "BOM_preserved:README.md",
+      "passed": true
+    },
+    {
+      "name": "line_endings_preserved:README.md",
+      "passed": true
+    },
+    {
+      "name": "no_test_file_changes",
+      "passed": true
+    },
+    {
+      "name": "index_untouched",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/web_sources.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/materials.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/tool_types.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/tools.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/tool_model.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/rag.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/answer_run.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/biz/repo.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/data/web/access.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/data/web/html_reader.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/data/web/html_content.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/data/web/tavily.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/service/rag.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:api/openapi/schemas/rag.py",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:internal/prompt/templates/rag.yaml",
+      "passed": true
+    },
+    {
+      "name": "runtime_source_matches:cmd/wire.py",
+      "passed": true
+    },
+    {
+      "name": "41_temporary_diagnostics",
+      "passed": true
+    },
+    {
+      "name": "final_synthetic_stream_completed",
+      "passed": true
+    },
+    {
+      "name": "strict_tool_definitions",
+      "passed": true
+    },
+    {
+      "name": "old_tool_arguments_removed",
+      "passed": true
+    },
+    {
+      "name": "git_diff_check",
+      "passed": true
+    }
+  ],
+  "protected_input_files": 226,
+  "unit_checks": {
+    "context_passed": 3,
+    "eval_passed": 24,
+    "read_only_passed": 7,
+    "read_only_failed": 1,
+    "failure": "test_read_requires_previously_approved_url expects obsolete urls and URL_NOT_APPROVED; current contract rejects urls as INVALID_TOOL_ARGUMENTS"
+  },
+  "temporary_diagnostics": 41,
+  "synthetic_integration_and_stream": "passed; 0 live model calls",
+  "live_network_checks": "1 public search and Docker page TLS failure; uv HTTP 200; no retries",
+  "full_four_question_acceptance": "not run",
+  "live_model_calls": 0,
+  "ruff_changed_business_files": "passed",
+  "frontend_build_and_typecheck": "passed",
+  "git_diff_check_exit_code": 0,
+  "prior_work_preserved": true
+}
