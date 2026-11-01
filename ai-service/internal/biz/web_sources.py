@@ -4,10 +4,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Literal, TypedDict
 
 from internal.biz.materials import WebSource
 from internal.biz.tool_types import ToolError
+
+
+class WebMatch(TypedDict):
+    source_id: str
+    start: int
+    end: int
+    preview_start: int
+    preview_end: int
+    preview: str
+    in_code: bool
 
 
 @dataclass
@@ -115,20 +125,25 @@ class WebRegistry:
             raise ToolError("WEB_PAGE_NOT_READ", "请先用 web_read 取得该来源正文，再进行页内查找")
         return self.pages[source_id]
 
-    def find(self, source_id: str, pattern: str, size: int) -> tuple[list[WebSource], list[dict]]:
+    def find(self, source_id: str, pattern: str) -> list[WebMatch]:
+        """只返回定位导航；预览允许省略代码，不能作为引用正文。"""
         page = self.page(source_id)
-        offsets = []
+        matches: list[WebMatch] = []
         start = 0
-        while len(offsets) < 10:
+        while len(matches) < 10:
             offset = page.content.find(pattern, start)
             if offset < 0:
                 break
-            offsets.append({"start": offset, "end": offset + len(pattern)})
+            preview_start = max(0, offset - (120 - len(pattern)) // 2)
+            preview_end = min(len(page.content), preview_start + 120)
+            matches.append({
+                "source_id": source_id,
+                "start": offset,
+                "end": offset + len(pattern),
+                "preview_start": preview_start,
+                "preview_end": preview_end,
+                "preview": page.content[preview_start:preview_end],
+                "in_code": any(left <= offset < right for left, right in page.code_ranges),
+            })
             start = offset + len(pattern)
-        if not offsets:
-            return [], []
-        window = page.window(source_id, max(0, offsets[0]["start"] - 160), size)
-        # 命中不能因前置长代码块被窗口边界排除。
-        if not window.start <= offsets[0]["start"] < window.end:
-            window = page.window(source_id, offsets[0]["start"], size)
-        return [window], offsets
+        return matches

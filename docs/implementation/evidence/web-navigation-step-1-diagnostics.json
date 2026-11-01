@@ -1,0 +1,131 @@
+{
+  "offline_only": true,
+  "network_calls": 0,
+  "model_calls": 0,
+  "find_replay": [
+    {
+      "pattern": "search_depth",
+      "status": "success",
+      "body_chars": 0,
+      "match_count": 7,
+      "message_utf8_bytes": 1895,
+      "matches": [
+        {
+          "source_id": "web_1",
+          "start": 1817,
+          "end": 1829,
+          "preview_start": 1763,
+          "preview_end": 1883,
+          "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+          "in_code": true
+        },
+        {
+          "source_id": "web_1",
+          "start": 3776,
+          "end": 3788,
+          "preview_start": 3722,
+          "preview_end": 3842,
+          "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+          "in_code": true
+        },
+        {
+          "source_id": "web_1",
+          "start": 4246,
+          "end": 4258,
+          "preview_start": 4192,
+          "preview_end": 4312,
+          "preview": "ecute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 5730,
+          "end": 5742,
+          "preview_start": 5676,
+          "preview_end": 5796,
+          "preview": " length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 13534,
+          "end": 13546,
+          "preview_start": 13480,
+          "preview_end": 13600,
+          "preview": "anually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 13706,
+          "end": 13718,
+          "preview_start": 13652,
+          "preview_end": 13772,
+          "preview": "uest. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEn",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 15992,
+          "end": 16004,
+          "preview_start": 15938,
+          "preview_end": 16058,
+          "preview": "rs is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage detai",
+          "in_code": true
+        }
+      ]
+    },
+    {
+      "pattern": "include_answer",
+      "status": "success",
+      "body_chars": 0,
+      "match_count": 3,
+      "message_utf8_bytes": 867,
+      "matches": [
+        {
+          "source_id": "web_1",
+          "start": 8866,
+          "end": 8880,
+          "preview_start": 8813,
+          "preview_end": 8933,
+          "preview": "d.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 13407,
+          "end": 13421,
+          "preview_start": 13354,
+          "preview_end": 13474,
+          "preview": "ues will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be",
+          "in_code": false
+        },
+        {
+          "source_id": "web_1",
+          "start": 14562,
+          "end": 14576,
+          "preview_start": 14509,
+          "preview_end": 14629,
+          "preview": "enerated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)",
+          "in_code": false
+        }
+      ]
+    },
+    {
+      "pattern": "parameter_that_is_absent",
+      "status": "empty",
+      "body_chars": 0,
+      "match_count": 0,
+      "message_utf8_bytes": 135,
+      "matches": []
+    }
+  ],
+  "selected_definition_read": {
+    "start": 4246,
+    "end": 4946,
+    "provider_calls": 0
+  },
+  "navigation_cannot_select_invented_citation": true,
+  "unregistered_source_rejected": true,
+  "all_checks_passed": true
+}

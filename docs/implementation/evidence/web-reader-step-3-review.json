@@ -1,0 +1,330 @@
+{
+  "scope": "Four fixed web scenarios, once each; scoped agent review, not independent human or full-corpus semantic rating",
+  "strict_supported_cases": 2,
+  "total_cases": 4,
+  "automatic_scenario_outcomes_passed": 3,
+  "required_completed_and_keywords_for_answerable": {
+    "passed": 2,
+    "total": 3
+  },
+  "correct_refusal": {
+    "passed": 1,
+    "total": 1
+  },
+  "full_acceptance_passed": false,
+  "automatic_summary_preserved": {
+    "ran_at": "2026-10-30T09:57:16.705627+00:00",
+    "n_items": 4,
+    "expected_items": 4,
+    "n_errors": 0,
+    "hit_at_5": null,
+    "hit_at_10": null,
+    "mrr": null,
+    "answer_correctness": 1.0,
+    "hallucination_rate": 0.5,
+    "n_answered": 2,
+    "refusal_accuracy": 1.0,
+    "missed_recall_rate": 0.3333,
+    "hallucination_judge": "historical_heuristic_actual_model_materials",
+    "statuses": {
+      "completed": 2,
+      "insufficient": 2
+    },
+    "stop_reasons": {
+      "answer_completed": 2,
+      "insufficient_material": 2
+    },
+    "protocol_versions": {
+      "5": 4
+    },
+    "exploration_stop_reasons": {
+      "evidence_complete": 1,
+      "input_budget": 2,
+      "evidence_insufficient": 1
+    },
+    "actual_total_tokens": 48405,
+    "usage_note": "settled_tokens is known consumption only; null actual totals cannot be certified.",
+    "latency_p50_seconds": 10.641,
+    "latency_p95_seconds": 12.781,
+    "latency_max_seconds": 12.781,
+    "usage_totals": {
+      "model_calls": 16,
+      "tool_calls": 12,
+      "prompt_tokens": 47003,
+      "completion_tokens": 1402,
+      "estimated_input_tokens": 184039,
+      "unreported_model_calls": 0,
+      "settled_tokens": 48405
+    },
+    "repeated_executions": 0,
+    "semantic_review_pending": 4,
+    "cost_currency": null,
+    "cost_note": "Only model usage is recorded; no unverified prices or currency costs.",
+    "gates": {
+      "complete": true,
+      "no_errors": true,
+      "valid_evidence": true,
+      "within_budget": true,
+      "valid_citations": true,
+      "ordered_events": true,
+      "no_repeat_execution": true,
+      "expected_tools": true,
+      "usage_ledger": true,
+      "generation_protocol": true,
+      "scenario_outcomes": false,
+      "scenario_keywords": true
+    },
+    "automated_gates_passed": false,
+    "semantic_acceptance": "requires_manual_review"
+  },
+  "automatic_correctness_caveat": "answer_correctness=1.0 credits W02 because its refusal mentions both keywords; it is not actual answer correctness. Original scoring/result files were not changed.",
+  "rows": [
+    {
+      "id": "W01",
+      "run_id": "bff832f9-376e-473e-a630-feff9037f791",
+      "status": "completed",
+      "exploration_stop_reason": "evidence_complete",
+      "elapsed_seconds": 10.641,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 13377,
+      "automatic_keyword_match": true,
+      "automatic_heuristic_suspect": false,
+      "integrity": {
+        "evidence_valid": true,
+        "citations_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "review": {
+        "strict_pass": true,
+        "assessment": "Specified official page was read. The binary-copy command, pinned version and digest examples match actual cited body windows. Extra pinning examples are supported, though beyond the minimum requested answer.",
+        "exact_code_block_matches": [
+          {
+            "matched": true,
+            "code": "FROM python:3.12-slim-trixie\nCOPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/"
+          },
+          {
+            "matched": true,
+            "code": "COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /uvx /bin/"
+          },
+          {
+            "matched": true,
+            "code": "COPY --from=ghcr.io/astral-sh/uv@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff /uv /uvx /bin/"
+          }
+        ]
+      },
+      "before": {
+        "status": "completed",
+        "error": null,
+        "actual_total_tokens": 11860
+      }
+    },
+    {
+      "id": "W02",
+      "run_id": "ef88889f-4968-4279-836a-5a43f240474e",
+      "status": "insufficient",
+      "exploration_stop_reason": "input_budget",
+      "elapsed_seconds": 11.625,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 10561,
+      "automatic_keyword_match": true,
+      "automatic_heuristic_suspect": false,
+      "integrity": {
+        "evidence_valid": true,
+        "citations_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "review": {
+        "strict_pass": false,
+        "assessment": "Answerable case ended insufficient. Search, approved-ID read and local find succeeded, but only 182 body characters reached the model. Full snapshot contains parameter definitions at offsets 4246 and 8866. The first find window starts with a large response JSON code block; internal material allowance rejected that complete block. Answer incorrectly describes this as tool-call budget exhaustion (3/10 used)."
+      },
+      "before": {
+        "status": "tool_failed",
+        "error": "tool_failed: tool_error (URL_NOT_APPROVED)",
+        "actual_total_tokens": 6932
+      }
+    },
+    {
+      "id": "W03",
+      "run_id": "14cf4976-9d90-4c7a-85e7-2bec1a692d82",
+      "status": "completed",
+      "exploration_stop_reason": "input_budget",
+      "elapsed_seconds": 10.438,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 12224,
+      "automatic_keyword_match": true,
+      "automatic_heuristic_suspect": true,
+      "integrity": {
+        "evidence_valid": true,
+        "citations_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "review": {
+        "strict_pass": false,
+        "core_answer_supported": true,
+        "assessment": "Image/template and container/runtime-instance distinctions are supported by knowledge-base source 1. Isolated processes, self-contained/isolated/independent/portable traits and shared kernel are supported by official sources 2/3. Final uncited paragraph attributes an implied image-foundation role to both sources, but the actual official sent windows do not state it. Strict whole-answer support is therefore not passed.",
+        "unsupported_text": "两者均确认容器是运行时的实体，且都隐含或明示了镜像作为基础的角色（尽管官方网页片段主要聚焦于容器本身）",
+        "official_sent_mentions_image": false
+      },
+      "before": {
+        "status": "tool_failed",
+        "error": "tool_failed: tool_error (INVALID_TOOL_ARGUMENTS)",
+        "actual_total_tokens": 11617
+      }
+    },
+    {
+      "id": "W04",
+      "run_id": "8a12de45-7ba0-41a9-b821-16e9c5a93749",
+      "status": "insufficient",
+      "exploration_stop_reason": "evidence_insufficient",
+      "elapsed_seconds": 12.781,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 12243,
+      "automatic_keyword_match": null,
+      "automatic_heuristic_suspect": false,
+      "integrity": {
+        "evidence_valid": true,
+        "citations_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "generation_protocol_valid": true,
+        "tool_selection_ok": true
+      },
+      "review": {
+        "strict_pass": true,
+        "assessment": "Two real public searches returned other institutions review regulations, not this project original. The answer identifies the mismatch and correctly refuses to substitute unrelated conclusions."
+      },
+      "before": {
+        "status": "insufficient",
+        "error": null,
+        "actual_total_tokens": 13582
+      }
+    }
+  ],
+  "provider_http_requests": [
+    {
+      "question": "W01",
+      "call_id": "call_6c15e1b3e81540e88bcd3926",
+      "endpoint": "web_page",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 1.898,
+      "http_status": 200,
+      "request_id": null,
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": "104.26.12.77",
+      "redirect_count": 0,
+      "final_url": "https://docs.astral.sh/uv/guides/integration/docker/"
+    },
+    {
+      "question": "W02",
+      "call_id": "call_d3cead57f0034fc69c10b496",
+      "endpoint": "search",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 5.297,
+      "http_status": 200,
+      "request_id": "fe0bf27d-c707-4f7c-b28f-4b35c2278915",
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": null,
+      "redirect_count": 0,
+      "final_url": null
+    },
+    {
+      "question": "W02",
+      "call_id": "call_92b0f2037baa4ac283fe39c4",
+      "endpoint": "web_page",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 1.132,
+      "http_status": 200,
+      "request_id": null,
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": "66.33.60.130",
+      "redirect_count": 0,
+      "final_url": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+    },
+    {
+      "question": "W03",
+      "call_id": "call_31a6cc4daa574f8898a76d82",
+      "endpoint": "web_page",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 0.572,
+      "http_status": 200,
+      "request_id": null,
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": "18.65.14.9",
+      "redirect_count": 0,
+      "final_url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/"
+    },
+    {
+      "question": "W04",
+      "call_id": "call_828abfe6187b4369a8b824e6",
+      "endpoint": "search",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 2.659,
+      "http_status": 200,
+      "request_id": "36c01b83-0c39-410a-abdc-c449acfdb102",
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": null,
+      "redirect_count": 0,
+      "final_url": null
+    },
+    {
+      "question": "W04",
+      "call_id": "call_4f6f0851e0df489fb15c47f6",
+      "endpoint": "search",
+      "phase": "complete",
+      "category": "success",
+      "elapsed_seconds": 3.766,
+      "http_status": 200,
+      "request_id": "eb8034c8-3de3-4aef-8f6a-32286f5886c1",
+      "exception_type": null,
+      "timeout_layer": null,
+      "client_timeout_seconds": 20.0,
+      "connected_ip": null,
+      "redirect_count": 0,
+      "final_url": null
+    }
+  ],
+  "cache_views": [
+    {
+      "question": "W01",
+      "tool": "web_read"
+    },
+    {
+      "question": "W03",
+      "tool": "web_read"
+    }
+  ],
+  "comparison_dataset_and_request_scopes_identical": true,
+  "old_results_unchanged": true
+}

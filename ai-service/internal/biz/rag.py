@@ -162,6 +162,7 @@ class RAGBiz:
     ) -> None:
         seen_calls: set[str] = set()
         seen_ids: set[str] = set()
+        seen_matches: set[tuple[str, int, int]] = set()
         pending_sources: list[AnswerSource | WebSource] = []
         no_progress = 0
         while run.status == "running":
@@ -347,7 +348,12 @@ class RAGBiz:
                     ).to_message()
                     run.stop_exploration("input_budget")
                     break
-                no_progress = 0 if bounded.sources or bounded.directory else no_progress + 1
+                new_matches = {
+                    (match["source_id"], match["start"], match["end"])
+                    for match in bounded.matches
+                } - seen_matches
+                seen_matches.update(new_matches)
+                no_progress = 0 if bounded.sources or bounded.directory or new_matches else no_progress + 1
                 if no_progress >= 2:
                     run.stop_exploration("no_new_evidence")
                 messages[start + index] = bounded.to_message()

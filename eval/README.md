@@ -149,6 +149,8 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 当前 `tool_contract_version=2`：网页搜索使用最多 120 字符的单字符串 `query`，读取使用本次目录的 `source_id`，`web_find` 只查本次已保存的正文快照。旧 `keywords`/`urls` 工具参数已删除。目录与实际证据分离；范围字段只描述实际送模片段，完整规范正文保存在快照 `web_pages` 中。
 
+`web_find` 只返回最多 10 项导航命中：`source_id`、匹配范围 `start/end`、原样短预览及其 `preview_start/preview_end`、`in_code`。预览最多 120 字符，不生成引用编号，也不加入送模证据来源。模型选择命中后用 `web_read` 的 `start/max_chars` 取得可引用正文；多个子问题可以在同轮发出多个工具调用。新命中位置计为导航进展，同次快照中重复位置不重复计数。API 和事件外层字段保持不变；历史结果中的 find 正文保留为当时的执行证据。
+
 取证通过 `finish_research` 选择实际已送模引用后进入独立最终生成；仍遵守原有模型、工具、用量和时间上限。目录不可引用，围栏代码必须有引用正文支撑。新契约评测核对目录身份、完整快照、原文范围及代码块边界，并直接读取规范调用键。旧历史结果按原契约只读解析，不补造新字段或改写历史答案。
 
 本次只做必要诊断、确定性集成及公开端点探针；未执行四题完整问答。模拟流程通过，真实 Tavily 搜索与 Docker 页面读取在 TLS 阶段失败，原结果保留。现有只读工具有一项旧 `urls` 参数断言失败，未修改测试。结果和边界见[顺序 2 实施记录](../docs/implementation/web-reader-step-2-report.md)。

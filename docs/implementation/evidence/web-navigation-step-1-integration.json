@@ -1,0 +1,811 @@
+{
+  "offline_only": true,
+  "real_model_calls": 0,
+  "network_calls": 0,
+  "real_loop_executor_prompts_and_budget": true,
+  "synthetic_model": true,
+  "all_checks_passed": true,
+  "scenarios": [
+    {
+      "scenario": "two_find_then_two_selected_reads",
+      "status": "completed",
+      "exploration_stop_reason": "evidence_complete",
+      "model_calls": 4,
+      "tool_calls": 5,
+      "evidence_ranges": [
+        [
+          4246,
+          4946
+        ],
+        [
+          8866,
+          9166
+        ]
+      ],
+      "native_history_valid": true,
+      "estimated_peak_input": 13565,
+      "model_usage_is_synthetic": true,
+      "events": [
+        {
+          "kind": "run_started",
+          "data": {
+            "knowledge_base_ids": [
+              3
+            ],
+            "allow_web": true
+          }
+        },
+        {
+          "kind": "web_directory_updated",
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                "title": "Tavily Search - Tavily Docs",
+                "origin": "search",
+                "discovered_at": "2026-10-30T12:37:27.880105+00:00",
+                "read": true
+              }
+            ]
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 0,
+            "remaining_tokens": 64000,
+            "final_reservation": 6527,
+            "available_for_exploration": 57473,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 1,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 5,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 7470,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 1,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 30,
+            "released_reservation": 9518,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "f0",
+            "tool": "web_find",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"search_depth\"}",
+            "call_key": "[\"web_find\", [\"web_1\", \"search_depth\"]]"
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "f0",
+            "tool": "web_find",
+            "status": "success",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [
+              {
+                "source_id": "web_1",
+                "start": 1817,
+                "end": 1829,
+                "preview_start": 1763,
+                "preview_end": 1883,
+                "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                "in_code": true
+              },
+              {
+                "source_id": "web_1",
+                "start": 3776,
+                "end": 3788,
+                "preview_start": 3722,
+                "preview_end": 3842,
+                "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                "in_code": true
+              },
+              {
+                "source_id": "web_1",
+                "start": 4246,
+                "end": 4258,
+                "preview_start": 4192,
+                "preview_end": 4312,
+                "preview": "ecute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 5730,
+                "end": 5742,
+                "preview_start": 5676,
+                "preview_end": 5796,
+                "preview": " length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 13534,
+                "end": 13546,
+                "preview_start": 13480,
+                "preview_end": 13600,
+                "preview": "anually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 13706,
+                "end": 13718,
+                "preview_start": 13652,
+                "preview_end": 13772,
+                "preview": "uest. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEn",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 15992,
+                "end": 16004,
+                "preview_start": 15938,
+                "preview_end": 16058,
+                "preview": "rs is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage detai",
+                "in_code": true
+              }
+            ],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63970,
+            "final_reservation": 9426,
+            "available_for_exploration": 54544
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "f0",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "f1",
+            "tool": "web_find",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"include_answer\"}",
+            "call_key": "[\"web_find\", [\"web_1\", \"include_answer\"]]"
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "f1",
+            "tool": "web_find",
+            "status": "success",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [
+              {
+                "source_id": "web_1",
+                "start": 8866,
+                "end": 8880,
+                "preview_start": 8813,
+                "preview_end": 8933,
+                "preview": "d.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 13407,
+                "end": 13421,
+                "preview_start": 13354,
+                "preview_end": 13474,
+                "preview": "ues will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be",
+                "in_code": false
+              },
+              {
+                "source_id": "web_1",
+                "start": 14562,
+                "end": 14576,
+                "preview_start": 14509,
+                "preview_end": 14629,
+                "preview": "enerated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)",
+                "in_code": false
+              }
+            ],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63970,
+            "final_reservation": 10118,
+            "available_for_exploration": 53852
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "f1",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 30,
+            "remaining_tokens": 63970,
+            "final_reservation": 10118,
+            "available_for_exploration": 53852,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 2,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 5,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 11061,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 2,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 60,
+            "released_reservation": 13109,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "r1",
+            "tool": "web_read",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 4246, \"max_chars\": 700}",
+            "call_key": "[\"web_read\", [\"web_1\", 4246, 700]]"
+          }
+        },
+        {
+          "kind": "web_directory_updated",
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                "title": "Tavily Search - Tavily Docs",
+                "origin": "search",
+                "discovered_at": "2026-10-30T12:37:27.880105+00:00",
+                "read": true
+              }
+            ]
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "r1",
+            "tool": "web_read",
+            "status": "success",
+            "source_count": 1,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [
+              {
+                "endpoint": "web_cache",
+                "phase": "complete",
+                "category": "cache_hit",
+                "elapsed_seconds": 0,
+                "http_status": null,
+                "request_id": null,
+                "exception_type": null,
+                "timeout_layer": null,
+                "client_timeout_seconds": null,
+                "connected_ip": null,
+                "redirect_count": 0,
+                "final_url": null
+              }
+            ],
+            "directory": [],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63940,
+            "final_reservation": 12064,
+            "available_for_exploration": 51876
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "r1",
+            "citation_ids": [
+              1
+            ],
+            "truncated": true
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "r2",
+            "tool": "web_read",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 8866, \"max_chars\": 300}",
+            "call_key": "[\"web_read\", [\"web_1\", 8866, 300]]"
+          }
+        },
+        {
+          "kind": "web_directory_updated",
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                "title": "Tavily Search - Tavily Docs",
+                "origin": "search",
+                "discovered_at": "2026-10-30T12:37:27.880105+00:00",
+                "read": true
+              }
+            ]
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "r2",
+            "tool": "web_read",
+            "status": "success",
+            "source_count": 1,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [
+              {
+                "endpoint": "web_cache",
+                "phase": "complete",
+                "category": "cache_hit",
+                "elapsed_seconds": 0,
+                "http_status": null,
+                "request_id": null,
+                "exception_type": null,
+                "timeout_layer": null,
+                "client_timeout_seconds": null,
+                "connected_ip": null,
+                "redirect_count": 0,
+                "final_url": null
+              }
+            ],
+            "directory": [],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63940,
+            "final_reservation": 12622,
+            "available_for_exploration": 51318
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "r2",
+            "citation_ids": [
+              2
+            ],
+            "truncated": true
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 60,
+            "remaining_tokens": 63940,
+            "final_reservation": 12622,
+            "available_for_exploration": 51318,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "sources_updated",
+          "data": {
+            "citation_ids": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 3,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 5,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 13565,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 3,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 90,
+            "released_reservation": 15613,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "done",
+            "tool": "finish_research",
+            "arguments_summary": "{\"outcome\": \"answered\", \"citation_ids\": [1, 2]}",
+            "call_key": "[\"finish_research\", [\"answered\", [1, 2]]]"
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "done",
+            "tool": "finish_research",
+            "status": "success",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [],
+            "selection": {
+              "outcome": "answered",
+              "citation_ids": [
+                1,
+                2
+              ]
+            }
+          }
+        },
+        {
+          "kind": "exploration_stopped",
+          "data": {
+            "reason": "evidence_complete"
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63910,
+            "final_reservation": 13178,
+            "available_for_exploration": 50732
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "done",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 90,
+            "remaining_tokens": 63910,
+            "final_reservation": 13178,
+            "available_for_exploration": 50732,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 4,
+            "final": true,
+            "request_mode": "strict_answer",
+            "tool_definition_count": 0,
+            "tool_choice": null,
+            "exploration_stop_reason": "evidence_complete",
+            "estimated_input_tokens": 11130,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 4,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 120,
+            "released_reservation": 13178,
+            "finish_reason": "stop"
+          }
+        },
+        {
+          "kind": "answer_check_started",
+          "data": {}
+        },
+        {
+          "kind": "answer_validated",
+          "data": {
+            "citation_ids": [
+              1,
+              2
+            ],
+            "outcome": "answered",
+            "semantic_support": "not_evaluated"
+          }
+        },
+        {
+          "kind": "run_finished",
+          "data": {
+            "status": "completed",
+            "stop_reason": "answer_completed",
+            "error_code": null,
+            "exploration_stop_reason": "evidence_complete"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "two_missing_patterns_stop",
+      "status": "insufficient",
+      "exploration_stop_reason": "no_new_evidence",
+      "model_calls": 2,
+      "tool_calls": 2,
+      "evidence_ranges": [],
+      "native_history_valid": true,
+      "estimated_peak_input": 7470,
+      "model_usage_is_synthetic": true,
+      "events": [
+        {
+          "kind": "run_started",
+          "data": {
+            "knowledge_base_ids": [
+              3
+            ],
+            "allow_web": true
+          }
+        },
+        {
+          "kind": "web_directory_updated",
+          "data": {
+            "directory": [
+              {
+                "source_id": "web_1",
+                "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                "title": "Tavily Search - Tavily Docs",
+                "origin": "search",
+                "discovered_at": "2026-10-30T12:37:27.937127+00:00",
+                "read": true
+              }
+            ]
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 0,
+            "remaining_tokens": 64000,
+            "final_reservation": 6527,
+            "available_for_exploration": 57473,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 1,
+            "final": false,
+            "request_mode": "native_tools",
+            "tool_definition_count": 5,
+            "tool_choice": "required",
+            "exploration_stop_reason": "",
+            "estimated_input_tokens": 7470,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 1,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 30,
+            "released_reservation": 9518,
+            "finish_reason": "tool_calls"
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "f0",
+            "tool": "web_find",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"missing_alpha\"}",
+            "call_key": "[\"web_find\", [\"web_1\", \"missing_alpha\"]]"
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "f0",
+            "tool": "web_find",
+            "status": "empty",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63970,
+            "final_reservation": 7400,
+            "available_for_exploration": 56570
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "f0",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "kind": "tool_started",
+          "data": {
+            "call_id": "f1",
+            "tool": "web_find",
+            "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"missing_beta\"}",
+            "call_key": "[\"web_find\", [\"web_1\", \"missing_beta\"]]"
+          }
+        },
+        {
+          "kind": "tool_finished",
+          "data": {
+            "call_id": "f1",
+            "tool": "web_find",
+            "status": "empty",
+            "source_count": 0,
+            "errors": [],
+            "error_summaries": [],
+            "web_diagnostics": [],
+            "directory": [],
+            "matches": [],
+            "selection": null
+          }
+        },
+        {
+          "kind": "materials_budgeted",
+          "data": {
+            "remaining_tokens": 63970,
+            "final_reservation": 7290,
+            "available_for_exploration": 56680
+          }
+        },
+        {
+          "kind": "exploration_stopped",
+          "data": {
+            "reason": "no_new_evidence"
+          }
+        },
+        {
+          "kind": "materials_prepared",
+          "data": {
+            "call_id": "f1",
+            "citation_ids": [],
+            "truncated": false
+          }
+        },
+        {
+          "kind": "budget_planned",
+          "data": {
+            "settled_tokens": 30,
+            "remaining_tokens": 63970,
+            "final_reservation": 7290,
+            "available_for_exploration": 56680,
+            "input_measurement": "utf8_bytes_estimate"
+          }
+        },
+        {
+          "kind": "model_started",
+          "data": {
+            "call": 2,
+            "final": true,
+            "request_mode": "strict_answer",
+            "tool_definition_count": 0,
+            "tool_choice": null,
+            "exploration_stop_reason": "no_new_evidence",
+            "estimated_input_tokens": 5242,
+            "output_limit": 2048
+          }
+        },
+        {
+          "kind": "model_finished",
+          "data": {
+            "call": 2,
+            "prompt_tokens": 20,
+            "completion_tokens": 10,
+            "provider_total_tokens": 30,
+            "settled_tokens": 60,
+            "released_reservation": 7290,
+            "finish_reason": "stop"
+          }
+        },
+        {
+          "kind": "answer_check_started",
+          "data": {}
+        },
+        {
+          "kind": "answer_validated",
+          "data": {
+            "citation_ids": [],
+            "outcome": "insufficient",
+            "semantic_support": "not_evaluated"
+          }
+        },
+        {
+          "kind": "run_finished",
+          "data": {
+            "status": "insufficient",
+            "stop_reason": "insufficient_material",
+            "error_code": null,
+            "exploration_stop_reason": "no_new_evidence"
+          }
+        }
+      ]
+    }
+  ]
+}

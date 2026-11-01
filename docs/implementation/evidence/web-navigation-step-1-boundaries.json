@@ -1,0 +1,12 @@
+{
+  "offline_only": true,
+  "network_calls": 0,
+  "model_calls": 0,
+  "large_code_chars": 14007,
+  "code_matches_capped_at": 10,
+  "large_code_find_does_not_read_window": true,
+  "long_unicode_literal_chars": 120,
+  "long_literal_message_bytes": 4868,
+  "unread_page_error": "WEB_PAGE_NOT_READ",
+  "all_checks_passed": true
+}

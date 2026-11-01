@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from internal.biz.materials import AnswerSource, WebSource
-    from internal.biz.web_sources import WebEntry, WebPage
+    from internal.biz.web_sources import WebEntry, WebMatch, WebPage
 
 
 class AnswerPayload(BaseModel):
@@ -90,7 +90,7 @@ class ToolResult:
     errors: list[ToolFailure] = field(default_factory=list)
     diagnostics: list[WebDiagnostic] = field(default_factory=list)
     directory: list[WebEntry] = field(default_factory=list)
-    matches: list[dict] = field(default_factory=list)
+    matches: list[WebMatch] = field(default_factory=list)
     selection: dict | None = None
 
     def to_message(self) -> dict:

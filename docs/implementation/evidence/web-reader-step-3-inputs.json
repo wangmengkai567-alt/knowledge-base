@@ -1,0 +1,90 @@
+{
+  "git_status_before": "",
+  "head": "82fd36ffb68f39448008abdf96996431bc35b21c",
+  "files": {
+    "eval/web_scenarios.json": {
+      "sha256": "2d697c38163bf6aa523b7e9a742506fe9162d52f8ccd9adc5c2de10cc4559631",
+      "crlf": 0,
+      "lf": 46,
+      "bom": false
+    },
+    "eval/run_eval.py": {
+      "sha256": "b6b3b51341316064b4f127a872a3e22e52ef2d14034d951de3cee8254757205e",
+      "crlf": 353,
+      "lf": 0,
+      "bom": false
+    },
+    "eval/run_metrics.py": {
+      "sha256": "e20466df14cc108be8cbfb4be1e5937e33cc7d696f5ca34f7dad8c9976220dba",
+      "crlf": 0,
+      "lf": 236,
+      "bom": false
+    },
+    "eval/keyword_scoring.py": {
+      "sha256": "9cde90e94552378d51e9d88bc97976946d1ea626631ddd6de14a8ff47fb87af2",
+      "crlf": 0,
+      "lf": 32,
+      "bom": false
+    },
+    "eval/faithfulness.py": {
+      "sha256": "debf390cec0a3a3041396ad15c50501ce976e880731dcb06de8e778a1af6ccae",
+      "crlf": 179,
+      "lf": 0,
+      "bom": false
+    },
+    "ai-service/internal/biz/rag.py": {
+      "sha256": "9a9f35edd4fc66dcc2f5c632ea19134c3ff20642147c0801cf95315bcf7f1ad4",
+      "crlf": 530,
+      "lf": 0,
+      "bom": false
+    },
+    "ai-service/internal/biz/tools.py": {
+      "sha256": "c578abcaff8358b3161c0f6d59cdba845cc83d30b3f93dba90e971b794f6f8e3",
+      "crlf": 0,
+      "lf": 413,
+      "bom": false
+    },
+    "ai-service/internal/biz/tool_model.py": {
+      "sha256": "2ee4633cb9f001f35e549b221ade16acc6fc5146bf7af5f70467a5430c370fa4",
+      "crlf": 0,
+      "lf": 159,
+      "bom": false
+    },
+    "ai-service/internal/biz/web_sources.py": {
+      "sha256": "9900160c6044f799e76bedaf468b2fd0c3f5cf69ed78629befdbd2c551a23f97",
+      "crlf": 0,
+      "lf": 134,
+      "bom": false
+    },
+    "ai-service/internal/data/web/html_reader.py": {
+      "sha256": "feadaf0ecce7c133ae16d2b2a58369d52d8bf1b620111c62e149b3dab25e7c38",
+      "crlf": 0,
+      "lf": 129,
+      "bom": false
+    },
+    "ai-service/internal/data/web/html_content.py": {
+      "sha256": "097ae3080a525416bcebea03629db6a008259c3550f8f8646cea7ca5788004ca",
+      "crlf": 0,
+      "lf": 117,
+      "bom": false
+    },
+    "ai-service/internal/data/web/tavily.py": {
+      "sha256": "2faf7ab7729627d0f59ad59c5679ebf364b6affdec13c724d5314b69bd0a3192",
+      "crlf": 0,
+      "lf": 177,
+      "bom": false
+    },
+    "ai-service/internal/service/rag.py": {
+      "sha256": "cf10c4170748bba6b317a2a97df4c2a852f4064eb1b1aeacffc5fe713a0eccfd",
+      "crlf": 174,
+      "lf": 0,
+      "bom": false
+    },
+    "ai-service/internal/prompt/templates/rag.yaml": {
+      "sha256": "5ca1c328f52153999b3d84381adf93fc3c201d43339c0bddf5df3c424130104d",
+      "crlf": 26,
+      "lf": 0,
+      "bom": false
+    }
+  }
+}

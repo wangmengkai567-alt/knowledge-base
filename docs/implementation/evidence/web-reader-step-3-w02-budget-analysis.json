@@ -1,0 +1,32 @@
+{
+  "offline_only": true,
+  "additional_model_calls": 0,
+  "base_final_estimate": 10416,
+  "ceiling": 13952,
+  "per_material_limit": 12184,
+  "remaining_material_bytes": 1768,
+  "first_code_range": [
+    182,
+    1940
+  ],
+  "smallest_first_code_estimate": 12787,
+  "fits_material_limit": false,
+  "full_page_chars": 16298,
+  "parameter_definitions_in_cached_page": {
+    "search_depth": {
+      "definition_offset": 4246,
+      "short_excerpt": "search_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs. relevance tradeoff and how results[].content is generated:\n\nadvanced: Highest relevance with increased latency. Best for d"
+    },
+    "include_answer": {
+      "definition_offset": 8866,
+      "short_excerpt": "include_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-generated answer to the provided query. basic or true returns a quick answer. advanced returns a more detailed answer.\n\n​\n\n"
+    }
+  },
+  "actual_sent_body_chars": 182,
+  "actual_stop_reason": "input_budget",
+  "tool_calls_used": 3,
+  "tool_calls_limit": 10,
+  "smallest_first_code_native_estimate": 15677,
+  "native_estimate_within_16000": true,
+  "interpretation": "The internal half-space material allowance rejects this complete code block, although its offline reconstructed native request estimate is below 16000. No request was sent for this counterfactual."
+}
