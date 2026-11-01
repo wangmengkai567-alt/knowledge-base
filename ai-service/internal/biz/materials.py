@@ -76,6 +76,10 @@ class InputBudget:
     context_capacity: int = 1000000
     measurement: str = "utf8_bytes_estimate"
 
+    def input_ceiling(self, output_tokens: int) -> int:
+        """输入限额独立于输出限额；只有模型总上下文容量需要扣除输出。"""
+        return min(self.input_limit, self.context_capacity - output_tokens)
+
     def estimate(self, messages: list[dict], tools: list[dict], history: list[dict]) -> int:
         """保守的 UTF-8 字节估算，包含消息包装；不是供应商精确 token 计量。"""
         payload = {"messages": [*history, *messages], "tools": tools}
@@ -126,7 +130,7 @@ class MaterialProcessor:
         tools, history = tools or [], history or []
         if not 0 < output_tokens <= budget.output_limit:
             raise RAGError(reason="OUTPUT_BUDGET_EXCEEDED", message="回答预算必须在 1 到 2048 之间")
-        limit = min(budget.input_limit, budget.context_capacity - output_tokens)
+        limit = budget.input_ceiling(output_tokens)
 
         def measure(sources: list[AnswerSource | WebSource]) -> tuple[list[dict], int]:
             messages = build_messages(render_materials(sources))
@@ -207,7 +211,11 @@ class MaterialProcessor:
 
 def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
     if isinstance(source, WebSource):
-        end = source.start + min(length, len(source.content))
+        relative_end = min(length, len(source.content))
+        if relative_end < len(source.content):
+            # 装包缩短网页正文时只保留完整段落，不把几个字符当成可用证据。
+            relative_end = max(0, source.content.rfind("\n\n", 0, relative_end + 2))
+        end = source.start + relative_end
         for left, right in source.code_ranges:
             if left < end < right:
                 end = left

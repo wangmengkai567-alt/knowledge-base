@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 from time import monotonic
 from typing import TYPE_CHECKING
 
@@ -28,10 +29,55 @@ if TYPE_CHECKING:
     from internal.prompt.manager import PromptManager
 
 logger = structlog.get_logger()
-_FINAL_CONTROL = {
-    "role": "system",
-    "content": "现在只发布最终答案，不再调用工具。依据已有资料作答；资料不足时说明缺失信息。严格使用规定的 JSON 格式。",
+_STOP_DETAILS = {
+    "model_call_limit": "必须为最终回答保留最后一次模型调用，不能继续取证。",
+    "tool_call_limit": "工具调用次数已达到上限，不能继续取证。",
+    "input_budget": "完整模型请求的输入空间不足，不能继续取证；不代表工具调用次数已用完。",
+    "token_budget": "本次剩余总额度不足以同时支付继续取证和最终回答。",
+    "no_new_evidence": "连续两次操作没有取得新正文、目录或定位信息。",
+    "repeated_call": "检测到重复工具动作，本次停止继续取证。",
+    "evidence_complete": "已显式选定足以回答的证据。",
+    "evidence_insufficient": "已显式确认所查资料不足以完整回答。",
 }
+_BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
+
+
+def _final_control(reason: str) -> dict:
+    return {
+        "role": "system",
+        "content": "现在只发布最终答案，不再调用工具。依据已有资料作答；资料不足时说明缺失信息。"
+        "严格使用规定的 JSON 格式。程序记录的取证停止原因是 " + reason + "：" + _STOP_DETAILS[reason]
+        + " 如需解释停止原因，只能使用该事实，不得改称其他上限，也不能据此声称原始资料不存在。",
+    }
+
+
+# 停止原因尚未确定时，按最长控制消息预留，确保实际收尾解释也能装入。
+_FINAL_RESERVE_CONTROL = max(
+    (_final_control(reason) for reason in _STOP_DETAILS),
+    key=lambda message: len(json.dumps(message, ensure_ascii=False).encode("utf-8")),
+)
+
+
+@dataclass(frozen=True)
+class RequestBudgetPlan:
+    exploration_input: int
+    final_input: int
+    output_tokens: int
+    input_ceiling: int
+    remaining_tokens: int
+
+    @property
+    def final_reservation(self) -> int:
+        return self.final_input + self.output_tokens
+
+    def stop_reason(self, *, final: bool) -> str:
+        inputs = (self.final_input,) if final else (self.exploration_input, self.final_input)
+        if max(inputs) > self.input_ceiling:
+            return "input_budget"
+        required = self.final_reservation
+        if not final:
+            required += self.exploration_input + self.output_tokens
+        return "token_budget" if required > self.remaining_tokens else ""
 
 
 def retrieval_results(run: AnswerRun) -> list[RetrievalResult]:
@@ -119,8 +165,9 @@ class RAGBiz:
         except APIError as exc:
             if exc.reason == "LLM_USAGE_UNKNOWN":
                 run.finish("usage_unknown", "usage_unknown", exc.reason)
-            elif "BUDGET" in exc.reason:
-                run.finish("budget_exhausted", "input_budget", exc.reason)
+            elif exc.reason in ("INPUT_BUDGET_EXCEEDED", "MATERIAL_BUDGET_EXCEEDED", "OUTPUT_BUDGET_EXCEEDED"):
+                reason = "output_limit" if exc.reason == "OUTPUT_BUDGET_EXCEEDED" else "input_budget"
+                run.finish("budget_exhausted", reason, exc.reason)
             else:
                 run.finish(
                     "timeout" if exc.reason.endswith("TIMEOUT") else "model_failed",
@@ -152,6 +199,19 @@ class RAGBiz:
         if monotonic() >= session.deadline:
             raise ToolError("TOOL_TIMEOUT", "本次执行时限已到")
 
+    def _budget_plan(
+        self, messages: list[dict], session: ToolSession, run: AnswerRun, output_tokens: int,
+    ) -> RequestBudgetPlan:
+        return RequestBudgetPlan(
+            self._model.estimate(messages, session),
+            self._model.estimate(
+                [*messages, _FINAL_RESERVE_CONTROL], replace(session, finished=True), final=True,
+            ),
+            output_tokens,
+            self._budget.input_ceiling(output_tokens),
+            run.limits.total_tokens - run.usage.settled_tokens,
+        )
+
     async def _loop(
         self,
         run: AnswerRun,
@@ -168,20 +228,17 @@ class RAGBiz:
         while run.status == "running":
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
-            estimate = self._model.estimate([*messages, _FINAL_CONTROL], session, final=True)
-            remaining = limits.total_tokens - usage.settled_tokens
-            # 收尾使用当前完整请求的保守估算，不固定扣留最大输入窗口。
-            reserve = estimate + output_tokens
+            plan = self._budget_plan(messages, session, run, output_tokens)
+            remaining = plan.remaining_tokens
+            reserve = plan.final_reservation
             usage.final_reserved_tokens = reserve
             if not run.exploration_stop_reason:
                 if usage.model_calls >= limits.model_calls - 1:
                     run.stop_exploration("model_call_limit")
                 elif usage.tool_calls >= limits.tool_calls:
                     run.stop_exploration("tool_call_limit")
-                elif self._model.estimate(messages, session) > self._budget.input_limit:
-                    run.stop_exploration("input_budget")
-                elif remaining < self._model.estimate(messages, session) + output_tokens + reserve:
-                    run.stop_exploration("token_budget")
+                elif reason := plan.stop_reason(final=False):
+                    run.stop_exploration(reason)
             if no_progress >= 2:
                 run.stop_exploration("no_new_evidence")
             final = bool(run.exploration_stop_reason)
@@ -192,15 +249,15 @@ class RAGBiz:
                      remaining_tokens=remaining, final_reservation=reserve,
                      available_for_exploration=remaining - usage.reserved_tokens - reserve,
                      input_measurement=run.input_measurement)
-            request = [*messages, _FINAL_CONTROL] if final else messages
+            request = [*messages, _final_control(run.exploration_stop_reason)] if final else messages
             estimate = self._model.estimate(request, session, final=final)
             if (
                 usage.model_calls >= limits.model_calls
-                or estimate > self._budget.input_limit
+                or estimate > plan.input_ceiling
                 or estimate + output_tokens > remaining
             ):
                 reason = ("model_call_limit" if usage.model_calls >= limits.model_calls else
-                          "input_budget" if estimate > self._budget.input_limit else "token_budget")
+                          "input_budget" if estimate > plan.input_ceiling else "token_budget")
                 run.finish("budget_exhausted", reason)
                 return
             self._model.validate_request(request, session, output_tokens, final=final)
@@ -267,15 +324,15 @@ class RAGBiz:
             start = len(messages)
             for call in result.tool_calls:
                 messages.append(self._denied(call, "RUN_STOPPED").to_message())
-            final_estimate = self._model.estimate([*messages, _FINAL_CONTROL], session, final=True)
-            if final_estimate > self._budget.input_limit or final_estimate + output_tokens > limits.total_tokens - usage.settled_tokens:
+            reason = self._budget_plan(messages, session, run, output_tokens).stop_reason(final=True)
+            if reason:
                 # 尚未执行任何动作，无需把无法容纳的请求加入后续原生协议。
                 # 保留上一份完整上下文和预留额度，用最后一轮回答明确结束。
                 del messages[before_action:]
-                reason = "input_budget" if final_estimate > self._budget.input_limit else "token_budget"
                 run.stop_exploration(reason)
                 run.emit("tool_rejected", reason=reason, count=len(result.tool_calls))
                 continue
+            batch_results: list[ToolResult] = []
             for index, call in enumerate(result.tool_calls):
                 self._check_active(run, session)
                 if run.exploration_stop_reason:
@@ -324,59 +381,54 @@ class RAGBiz:
                 self._check_active(run, session)
                 if result_tool.errors or result_tool.status in ("error", "partial"):
                     code = result_tool.errors[0].code if result_tool.errors else "TOOL_ERROR"
-                    run.finish(
-                        "timeout" if code == "TOOL_TIMEOUT" else "tool_failed",
-                        "tool_timeout" if code == "TOOL_TIMEOUT" else "tool_error",
-                        code,
+                    window_limited = call.name == "web_read" and code in (
+                        "WEB_CODE_BLOCK_TOO_LARGE", "TOOL_RESULT_TOO_LARGE",
                     )
-                    return
+                    if not window_limited:
+                        run.finish(
+                            "timeout" if code == "TOOL_TIMEOUT" else "tool_failed",
+                            "tool_timeout" if code == "TOOL_TIMEOUT" else "tool_error",
+                            code,
+                        )
+                        return
                 if result_tool.selection is not None:
                     run.evidence_selection = result_tool.selection
                     run.stop_exploration("evidence_complete" if result_tool.selection["outcome"] == "answered" else "evidence_insufficient")
-                bounded = self._fit_result(
-                    result_tool,
-                    run,
-                    pending_sources,
-                    messages,
-                    start + index,
-                    session,
-                    output_tokens,
-                )
-                if bounded is None:
-                    messages[start + index] = self._denied(
-                        call, "INPUT_BUDGET_EXCEEDED"
-                    ).to_message()
-                    run.stop_exploration("input_budget")
-                    break
+                batch_results.append(result_tool)
+            bounded_results, reason = self._fit_results(
+                batch_results, run, messages, start, session, output_tokens,
+            )
+            if bounded_results is None:
+                # 保留已经预留过的未送模占位结果，不增加错误说明挤掉收尾空间。
+                run.stop_exploration(reason)
+                run.emit("materials_rejected", call_ids=[item.call_id for item in batch_results], reason=reason)
+                continue
+            for index, bounded in enumerate(bounded_results):
+                if bounded.errors:
+                    run.emit("materials_limited", call_id=bounded.call_id,
+                             errors=[error.code for error in bounded.errors])
                 new_matches = {
                     (match["source_id"], match["start"], match["end"])
                     for match in bounded.matches
                 } - seen_matches
                 seen_matches.update(new_matches)
                 no_progress = 0 if bounded.sources or bounded.directory or new_matches else no_progress + 1
-                if no_progress >= 2:
-                    run.stop_exploration("no_new_evidence")
                 messages[start + index] = bounded.to_message()
                 pending_sources.extend(bounded.sources)
                 run.emit(
                     "materials_prepared",
-                    call_id=call.id,
+                    call_id=bounded.call_id,
                     citation_ids=[source.citation_id for source in bounded.sources],
                     truncated=any(source.truncated for source in bounded.sources),
                 )
+            if no_progress >= 2:
+                run.stop_exploration("no_new_evidence")
 
-    def _fit_result(
-        self,
-        result: ToolResult,
-        run: AnswerRun,
-        pending: list[AnswerSource | WebSource],
-        messages: list[dict],
-        index: int,
-        session: ToolSession,
-        output_tokens: int,
-    ) -> ToolResult | None:
+    @staticmethod
+    def _new_sources(
+        result: ToolResult, registry: list[AnswerSource | WebSource],
+    ) -> list[AnswerSource | WebSource]:
         # 只向后续模型发送尚未见过的原文范围；重排分变化不构成新证据。
-        registry = [*run.sources, *pending]
         next_id = max((source.citation_id for source in registry), default=0) + 1
         sources = []
         for original in result.sources:
@@ -417,30 +469,74 @@ class RAGBiz:
             if not source.content.strip():
                 continue
             sources.append(replace(source, citation_id=next_id + len(sources)))
-        bounded = replace(result)
-        empty = list(messages)
-        empty[index] = replace(bounded, sources=[]).to_message()
-        base = self._model.estimate([*empty, _FINAL_CONTROL], session, final=True)
-        remaining = run.limits.total_tokens - run.usage.settled_tokens
-        ceiling = min(self._budget.input_limit - self._budget.output_limit, remaining - output_tokens)
-        if base > ceiling:
-            return None
-        # 当前资料只使用剩余输入空间的一半，为缺失子问题的新证据保留空间。
-        limit = base + max(0, ceiling - base) // 2
-        def fits(values):
+        return sources
+
+    def _fit_results(
+        self, results: list[ToolResult], run: AnswerRun, messages: list[dict], start: int,
+        session: ToolSession, output_tokens: int,
+    ) -> tuple[list[ToolResult] | None, str]:
+        """整批保留实际元数据后分配正文，避免前一个工具挤掉后一个工具的结果。"""
+        bounded = [replace(result, sources=[]) for result in results]
+        candidates: list[AnswerSource | WebSource] = []
+        owners: dict[int, int] = {}
+        for index, result in enumerate(results):
+            sources = self._new_sources(result, [*run.sources, *candidates])
+            owners.update((source.citation_id, index) for source in sources)
+            candidates.extend(sources)
+        final_only = (bool(run.exploration_stop_reason)
+                      or run.usage.model_calls >= run.limits.model_calls - 1
+                      or run.usage.tool_calls >= run.limits.tool_calls)
+
+        def project(values):
+            grouped = [[] for _ in bounded]
+            for source in values:
+                grouped[owners[source.citation_id]].append(source)
+            projected = [replace(item, sources=grouped[i]) for i, item in enumerate(bounded)]
             trial = list(messages)
-            trial[index] = replace(bounded, sources=values).to_message()
-            return self._model.estimate([*trial, _FINAL_CONTROL], session, final=True) <= limit
-        bounded.sources = [source for source in pack_sources(sources, fits) if source.content.strip()]
-        if not fits(bounded.sources) or (sources and not bounded.sources and not bounded.directory):
-            return None
-        trial = list(messages)
-        trial[index] = bounded.to_message()
-        run.usage.final_reserved_tokens = self._model.estimate([*trial, _FINAL_CONTROL], session, final=True) + output_tokens
-        run.emit("materials_budgeted", remaining_tokens=remaining,
+            for i, item in enumerate(projected):
+                trial[start + i] = item.to_message()
+            return projected, trial
+
+        def fits(values):
+            _, trial = project(values)
+            return not self._budget_plan(trial, session, run, output_tokens).stop_reason(final=final_only)
+
+        limited: set[int] = set()
+        while True:
+            _, empty = project([])
+            empty_plan = self._budget_plan(empty, session, run, output_tokens)
+            reason = empty_plan.stop_reason(final=final_only)
+            if reason and not final_only and not empty_plan.stop_reason(final=True):
+                # 已不能支付下一次探索，但仍能把本批资料交给最终回答。
+                run.stop_exploration(reason)
+                final_only = True
+                reason = ""
+            if reason:
+                return None, reason
+            packed = [source for source in pack_sources(candidates, fits) if source.content.strip()]
+            present = {owners[source.citation_id] for source in packed}
+            missing = {owners[source.citation_id] for source in candidates} - present
+            if not missing:
+                break
+            # 不能完整保留的窗口显式报告；重新分配时也计入这些说明的实际开销。
+            for index in missing:
+                if not bounded[index].directory and not bounded[index].matches:
+                    bounded[index] = replace(bounded[index], status="error", errors=[ToolFailure(
+                        "MATERIAL_WINDOW_TOO_LARGE",
+                        "该正文窗口无法在完整请求预算内保留可用原文；此窗口未送模。请用更小的 max_chars 或选择其他定位读取，不能引用未读取的内容。",
+                    )])
+            limited.update(missing)
+            candidates = [source for source in candidates if owners[source.citation_id] not in limited]
+        projected, trial = project(packed)
+        plan = self._budget_plan(trial, session, run, output_tokens)
+        if reason := plan.stop_reason(final=final_only):
+            return None, reason
+        run.usage.final_reserved_tokens = plan.final_reservation
+        run.emit("materials_budgeted", remaining_tokens=plan.remaining_tokens,
+                 exploration_input=plan.exploration_input, final_input=plan.final_input,
                  final_reservation=run.usage.final_reserved_tokens,
-                 available_for_exploration=remaining - run.usage.final_reserved_tokens)
-        return bounded
+                 available_for_exploration=plan.remaining_tokens - run.usage.final_reserved_tokens)
+        return projected, ""
 
     def _account(
         self,
@@ -468,6 +564,7 @@ class RAGBiz:
         if (
             result.prompt_tokens > self._budget.input_limit
             or result.completion_tokens > entry.output_limit
+            or result.prompt_tokens + result.completion_tokens > self._budget.context_capacity
             or usage.settled_tokens > run.limits.total_tokens
         ):
             run.finish("budget_exhausted", "actual_usage_exceeded", "MODEL_USAGE_EXCEEDED")
@@ -530,7 +627,10 @@ class RAGBiz:
             outcome=value.status,
             semantic_support="not_evaluated",
         )
-        run.finish(
-            "completed" if value.status == "answered" else "insufficient",
-            "answer_completed" if value.status == "answered" else "insufficient_material",
-        )
+        if value.status == "insufficient" and run.exploration_stop_reason in _BUDGET_STOPS:
+            run.finish("budget_exhausted", run.exploration_stop_reason)
+        else:
+            run.finish(
+                "completed" if value.status == "answered" else "insufficient",
+                "answer_completed" if value.status == "answered" else "insufficient_material",
+            )

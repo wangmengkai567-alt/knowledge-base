@@ -1,0 +1,2393 @@
+{
+  "offline_only": true,
+  "real_model_calls": 0,
+  "real_network_calls": 0,
+  "synthetic_model_and_provider": true,
+  "all_checks_passed": false,
+  "scenarios": [
+    {
+      "scenario": "full_W02",
+      "passed": false,
+      "status": "insufficient",
+      "stop_reason": "insufficient_material",
+      "exploration_stop_reason": "evidence_insufficient",
+      "model_calls": 6,
+      "tool_calls": 7,
+      "peak_estimated_input": 16000,
+      "model_usage_is_synthetic": true,
+      "simulated_provider_searches": 1,
+      "simulated_page_fetches": 1,
+      "definition_ranges": [
+        [
+          4246,
+          4249
+        ]
+      ],
+      "integrity_checks": {
+        "generation_protocol_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true
+      },
+      "snapshot": {
+        "version": 5,
+        "tool_contract_version": 2,
+        "scope": {
+          "user_id": 1,
+          "knowledge_base_ids": [
+            3
+          ],
+          "allow_web": true
+        },
+        "limits": {
+          "model_calls": 6,
+          "tool_calls": 10,
+          "total_tokens": 64000,
+          "timeout": 120
+        },
+        "web_pages": {
+          "web_1": {
+            "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+            "title": "Tavily Search - Tavily Docs",
+            "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+            "content": "Python SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nPOST\n\n/\n\nsearch\n\nPython SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nAuthorizations\n\n​\n\nAuthorization\n\nstring\n\nheader\n\nrequired\n\nBearer authentication header in the form Bearer , where is your Tavily API key (e.g., Bearer tvly-YOUR_API_KEY).\n\nBody\n\napplication/json\n\nParameters for the Tavily Search request.\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query to execute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs. relevance tradeoff and how results[].content is generated:\n\nadvanced: Highest relevance with increased latency. Best for detailed, high-precision queries. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nbasic: A balanced option for relevance and latency. Ideal for general-purpose searches. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nfast: Prioritizes lower latency while maintaining good relevance. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nultra-fast: Minimizes latency above all else. Best for time-critical use cases. Returns one NLP summary per URL.\n\nCost:\n\nbasic, fast, ultra-fast: 1 API Credit\n\nadvanced: 2 API Credits\n\nSee Search Best Practices for guidance on choosing the right search depth.\n\nAvailable options:\n\nadvanced,\n\nbasic,\n\nfast,\n\nultra-fast\n\n​\n\nchunks_per_source\n\ninteger\n\ndefault:3\n\nChunks are short content snippets (about 500 characters each for basic and fast, 800 for advanced) pulled directly from the source. Use chunks_per_source to define the maximum number of relevant chunks returned per source and to control the content length. Chunks will appear in the content field as: <chunk 1> [...] <chunk 2> [...] <chunk 3>. Adjacent chunks may be joined into one longer passage, so chunk length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <= 3\n\n​\n\nmax_results\n\ninteger\n\ndefault:10\n\nThe maximum number of search results to return.\n\nRequired range: 0 <= x <= 20\n\nExample:\n\n1\n\n​\n\ntopic\n\nenum<string>\n\ndefault:general\n\nThe category of the search.news is useful for retrieving real-time updates, particularly about politics, sports, and major current events covered by mainstream media sources. general is for broader, more general-purpose searches that may include a wide range of sources.\n\nAvailable options:\n\ngeneral,\n\nnews,\n\nfinance\n\n​\n\ntime_range\n\nenum<string>\n\nThe time range back from the current date to filter results based on publish date or last updated date. Useful when looking for sources that have published or updated data. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nAvailable options:\n\nday,\n\nweek,\n\nmonth,\n\nyear,\n\nd,\n\nw,\n\nm,\n\ny\n\n​\n\nstart_date\n\nstring\n\nWill return all results after the specified start date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-02-09\"\n\n​\n\nend_date\n\nstring\n\nWill return all results before the specified end date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-12-29\"\n\n​\n\ninclude_published_date\n\nboolean\n\ndefault:false\n\nInclude a published_date field in each result. The date is Tavily's best estimate of when the source was published or last updated, so it can be later than the original publish date. Results with no detectable date return null. Automatically enabled when topic is news.\n\nNote: this feature is currently in beta.\n\n​\n\nfilter_by_published_date\n\nboolean\n\ndefault:false\n\nRemove results whose published date falls outside the time_range, start_date, or end_date window. Results with no detectable published date are also removed. Setting this to true also enables include_published_date.\n\nIf you want date-window filtering but don't want to lose sources without a detectable date, leave this false and set include_published_date: true together with a date range instead.\n\n​\n\nmax_age_hours\n\ninteger\n\nThe maximum age in hours of Tavily's cached copy of each result.\n\nAccepted values:\n\nunset (default): Tavily serves cached copies and fetches pages live as needed.\n\n1 to 720 (30 days): only return a cached copy fetched within that many hours.\n\n0: always fetch the page live.\n\n-1: never fetch live.\n\nLower values do not cost more credits, but fetching live adds latency. Results whose cached copy is too old and can't be fetched live are left out, so you may get fewer than max_results.\n\nOn non-paying plans, live fetching is best-effort. While Tavily is under heavy load, requests that set max_age_hours may be refused with 434 Flex tier capacity exceeded.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-generated answer to the provided query. basic or true returns a quick answer. advanced returns a more detailed answer.\n\n​\n\ninclude_raw_content\n\nbooleanenum<string>\n\ndefault:false\n\nInclude the cleaned and parsed HTML content of each search result. markdown or true returns search result content in markdown format. text returns the plain text from the results and may increase latency.\n\n​\n\ninclude_images\n\nboolean\n\ndefault:false\n\nInclude images in the response. Returns both a top-level images list of query-related images and an images array inside each result object with images extracted from that specific source.\n\n​\n\ninclude_image_descriptions\n\nboolean\n\ndefault:false\n\nWhen include_images is true, also add a descriptive text for each image.\n\n​\n\ninclude_favicon\n\nboolean\n\ndefault:false\n\nWhether to include the favicon URL for each result.\n\n​\n\ninclude_domains\n\nstring[]\n\nA list of domains to specifically include in the search results. Maximum 300 domains.\n\n​\n\nexclude_domains\n\nstring[]\n\nA list of domains to specifically exclude from the search results. Maximum 150 domains.\n\n​\n\ninclude_domains_mode\n\nenum<string>\n\ndefault:restrict\n\nControls how include_domains is applied. restrict limits results to only the listed domains. prefer also searches the rest of the web, so results outside include_domains can still surface, rather than excluding them. Defaults to restrict, so include_domains acts as a hard filter unless set to prefer. Setting it without include_domains returns a 400 error.\n\nAvailable options:\n\nrestrict,\n\nprefer\n\n​\n\ncountry\n\nenum<string>\n\nBoost search results from a specific country. This will prioritize content from the selected country in the search results. Available only if topic is general.\n\nAvailable options:\n\nafghanistan,\n\nalbania,\n\nalgeria,\n\nandorra,\n\nangola,\n\nargentina,\n\narmenia,\n\naustralia,\n\naustria,\n\nazerbaijan,\n\nbahamas,\n\nbahrain,\n\nbangladesh,\n\nbarbados,\n\nbelarus,\n\nbelgium,\n\nbelize,\n\nbenin,\n\nbhutan,\n\nbolivia,\n\nbosnia and herzegovina,\n\nbotswana,\n\nbrazil,\n\nbrunei,\n\nbulgaria,\n\nburkina faso,\n\nburundi,\n\ncambodia,\n\ncameroon,\n\ncanada,\n\ncape verde,\n\ncentral african republic,\n\nchad,\n\nchile,\n\nchina,\n\ncolombia,\n\ncomoros,\n\ncongo,\n\ncosta rica,\n\ncroatia,\n\ncuba,\n\ncyprus,\n\nczech republic,\n\ndenmark,\n\ndjibouti,\n\ndominican republic,\n\necuador,\n\negypt,\n\nel salvador,\n\nequatorial guinea,\n\neritrea,\n\nestonia,\n\nethiopia,\n\nfiji,\n\nfinland,\n\nfrance,\n\ngabon,\n\ngambia,\n\ngeorgia,\n\ngermany,\n\nghana,\n\ngreece,\n\nguatemala,\n\nguinea,\n\nhaiti,\n\nhonduras,\n\nhungary,\n\niceland,\n\nindia,\n\nindonesia,\n\niran,\n\niraq,\n\nireland,\n\nisrael,\n\nitaly,\n\njamaica,\n\njapan,\n\njordan,\n\nkazakhstan,\n\nkenya,\n\nkuwait,\n\nkyrgyzstan,\n\nlatvia,\n\nlebanon,\n\nlesotho,\n\nliberia,\n\nlibya,\n\nliechtenstein,\n\nlithuania,\n\nluxembourg,\n\nmadagascar,\n\nmalawi,\n\nmalaysia,\n\nmaldives,\n\nmali,\n\nmalta,\n\nmauritania,\n\nmauritius,\n\nmexico,\n\nmoldova,\n\nmonaco,\n\nmongolia,\n\nmontenegro,\n\nmorocco,\n\nmozambique,\n\nmyanmar,\n\nnamibia,\n\nnepal,\n\nnetherlands,\n\nnew zealand,\n\nnicaragua,\n\nniger,\n\nnigeria,\n\nnorth korea,\n\nnorth macedonia,\n\nnorway,\n\noman,\n\npakistan,\n\npanama,\n\npapua new guinea,\n\nparaguay,\n\nperu,\n\nphilippines,\n\npoland,\n\nportugal,\n\nqatar,\n\nromania,\n\nrussia,\n\nrwanda,\n\nsaudi arabia,\n\nsenegal,\n\nserbia,\n\nsingapore,\n\nslovakia,\n\nslovenia,\n\nsomalia,\n\nsouth africa,\n\nsouth korea,\n\nsouth sudan,\n\nspain,\n\nsri lanka,\n\nsudan,\n\nsweden,\n\nswitzerland,\n\nsyria,\n\ntaiwan,\n\ntajikistan,\n\ntanzania,\n\nthailand,\n\ntogo,\n\ntrinidad and tobago,\n\ntunisia,\n\nturkey,\n\nturkmenistan,\n\nuganda,\n\nukraine,\n\nunited arab emirates,\n\nunited kingdom,\n\nunited states,\n\nuruguay,\n\nuzbekistan,\n\nvenezuela,\n\nvietnam,\n\nyemen,\n\nzambia,\n\nzimbabwe\n\n​\n\nlanguage\n\nstring\n\nBoost search results in a specific language. Accepts an ISO 639-1 code (e.g. en, fr, zh-cn) or an English language name (e.g. english, french). By default this only boosts matching-language results in ranking; pass filter_by_language: true to strictly filter out non-matching results instead. For best results, write your query in the same language you set here.\n\nExample:\n\n\"en\"\n\n​\n\nfilter_by_language\n\nboolean\n\ndefault:false\n\nStrictly filter out search results that don't match the language parameter, instead of only boosting them in ranking. Requires language to be set; returns a 400 error otherwise.\n\n​\n\nauto_parameters\n\nboolean\n\ndefault:false\n\nWhen auto_parameters is enabled, Tavily automatically configures search parameters based on your query's content and intent. You can still set other parameters manually, and your explicit values will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be set manually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely to improve results. This uses 2 API credits per request. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEnsure that only search results containing the exact quoted phrase(s) in the query are returned, bypassing synonyms or semantic variations. Wrap target phrases in quotes within your query (e.g. \"John Smith\" CEO Acme Corp). Punctuation is typically ignored inside quotes.\n\n​\n\ninclude_usage\n\nboolean\n\ndefault:false\n\nWhether to include credit usage information in the response.\n\n​\n\nsafe_search\n\nboolean\n\ndefault:false\n\nWhether to filter out adult or unsafe content from results. Not supported for fast or ultra-fast search depths.\n\nResponse\n\nSearch results returned successfully\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query that was executed.\n\nExample:\n\n\"Who is Leo Messi?\"\n\n​\n\nanswer\n\nstring\n\nrequired\n\nA short answer to the user's query, generated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)\n\nExample:\n\n\"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\"\n\n​\n\nimages\n\nobject[]\n\nrequired\n\nA list of query-related images from image search. If include_image_descriptions is true, each item will have url and description. Note: per-result images are also returned inside each result object's images field.\n\nShow child attributes\n\nExample:\n\n```\n[]\n```\n\n​\n\nresults\n\nobject[]\n\nrequired\n\nA list of sorted search results, ranked by relevancy.\n\nShow child attributes\n\n​\n\nresponse_time\n\nnumber<float>\n\nrequired\n\nTime in seconds it took to complete the request.\n\nExample:\n\n\"1.67\"\n\n​\n\nauto_parameters\n\nobject\n\nA dictionary of the selected auto_parameters, only shown when auto_parameters is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage details for the request.\n\nExample:\n\n```\n{ \"credits\": 1 }\n```\n\n​\n\nrequest_id\n\nstring\n\nA unique request identifier you can share with customer support to help resolve issues with specific requests.\n\nExample:\n\n\"123e4567-e89b-12d3-a456-426614174111\"",
+            "code_ranges": [
+              [
+                12,
+                180
+              ],
+              [
+                182,
+                1940
+              ],
+              [
+                1971,
+                2139
+              ],
+              [
+                2141,
+                3899
+              ],
+              [
+                15602,
+                15612
+              ],
+              [
+                15961,
+                16020
+              ],
+              [
+                16089,
+                16113
+              ]
+            ]
+          }
+        },
+        "result": {
+          "version": 5,
+          "tool_contract_version": 2,
+          "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+          "status": "insufficient",
+          "stop_reason": "insufficient_material",
+          "exploration_stop_reason": "evidence_insufficient",
+          "error_code": null,
+          "usage": {
+            "model_calls": 6,
+            "tool_calls": 7,
+            "estimated_input_tokens": 72989,
+            "prompt_tokens": 120,
+            "completion_tokens": 60,
+            "settled_tokens": 180,
+            "actual_total_tokens": 180,
+            "reserved_tokens": 0,
+            "final_reserved_tokens": 0,
+            "calls": [
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 1,
+                "phase": "exploration",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048,
+                "reservation": 9518,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 2,
+                "phase": "exploration",
+                "estimated_input_tokens": 10062,
+                "output_limit": 2048,
+                "reservation": 12110,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 3,
+                "phase": "exploration",
+                "estimated_input_tokens": 11031,
+                "output_limit": 2048,
+                "reservation": 13079,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 4,
+                "phase": "exploration",
+                "estimated_input_tokens": 14622,
+                "output_limit": 2048,
+                "reservation": 16670,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 5,
+                "phase": "exploration",
+                "estimated_input_tokens": 16000,
+                "output_limit": 2048,
+                "reservation": 18048,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "0c8b7352-795a-4ca0-b531-8aac44a649ae",
+                "call": 6,
+                "phase": "final",
+                "estimated_input_tokens": 13804,
+                "output_limit": 2048,
+                "reservation": 15852,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              }
+            ],
+            "unreported_model_calls": 0
+          },
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "run_started",
+              "elapsed_ms": 0,
+              "data": {
+                "knowledge_base_ids": [
+                  3
+                ],
+                "allow_web": true
+              }
+            },
+            {
+              "sequence": 2,
+              "kind": "budget_planned",
+              "elapsed_ms": 0,
+              "data": {
+                "settled_tokens": 0,
+                "remaining_tokens": 64000,
+                "final_reservation": 6805,
+                "available_for_exploration": 57195,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 3,
+              "kind": "model_started",
+              "elapsed_ms": 0,
+              "data": {
+                "call": 1,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 4,
+              "kind": "model_finished",
+              "elapsed_ms": 15,
+              "data": {
+                "call": 1,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 30,
+                "released_reservation": 9518,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 5,
+              "kind": "tool_started",
+              "elapsed_ms": 15,
+              "data": {
+                "call_id": "s",
+                "tool": "web_search",
+                "arguments_summary": "{\"query\": \"Tavily Search API documentation search_depth include_answer\", \"max_results\": 1}",
+                "call_key": "[\"web_search\", \"tavily search api documentation search_depth include_answer\"]"
+              }
+            },
+            {
+              "sequence": 6,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 15,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+                    "read": false
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 7,
+              "kind": "tool_finished",
+              "elapsed_ms": 15,
+              "data": {
+                "call_id": "s",
+                "tool": "web_search",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+                    "read": false
+                  }
+                ],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 8,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 15,
+              "data": {
+                "remaining_tokens": 63970,
+                "exploration_input": 10062,
+                "final_input": 7349,
+                "final_reservation": 9397,
+                "available_for_exploration": 54573
+              }
+            },
+            {
+              "sequence": 9,
+              "kind": "materials_prepared",
+              "elapsed_ms": 15,
+              "data": {
+                "call_id": "s",
+                "citation_ids": [
+                  1
+                ],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 10,
+              "kind": "budget_planned",
+              "elapsed_ms": 15,
+              "data": {
+                "settled_tokens": 30,
+                "remaining_tokens": 63970,
+                "final_reservation": 9397,
+                "available_for_exploration": 54573,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 11,
+              "kind": "sources_updated",
+              "elapsed_ms": 31,
+              "data": {
+                "citation_ids": [
+                  1
+                ]
+              }
+            },
+            {
+              "sequence": 12,
+              "kind": "model_started",
+              "elapsed_ms": 31,
+              "data": {
+                "call": 2,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 10062,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 13,
+              "kind": "model_finished",
+              "elapsed_ms": 31,
+              "data": {
+                "call": 2,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 60,
+                "released_reservation": 12110,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 14,
+              "kind": "tool_started",
+              "elapsed_ms": 45,
+              "data": {
+                "call_id": "overview",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 0, \"max_chars\": 300}",
+                "call_key": "[\"web_read\", [\"web_1\", 0, 300]]"
+              }
+            },
+            {
+              "sequence": 15,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 45,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 16,
+              "kind": "tool_finished",
+              "elapsed_ms": 45,
+              "data": {
+                "call_id": "overview",
+                "tool": "web_read",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 17,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 45,
+              "data": {
+                "remaining_tokens": 63940,
+                "exploration_input": 11031,
+                "final_input": 8318,
+                "final_reservation": 10366,
+                "available_for_exploration": 53574
+              }
+            },
+            {
+              "sequence": 18,
+              "kind": "materials_prepared",
+              "elapsed_ms": 45,
+              "data": {
+                "call_id": "overview",
+                "citation_ids": [
+                  2
+                ],
+                "truncated": true
+              }
+            },
+            {
+              "sequence": 19,
+              "kind": "budget_planned",
+              "elapsed_ms": 45,
+              "data": {
+                "settled_tokens": 60,
+                "remaining_tokens": 63940,
+                "final_reservation": 10366,
+                "available_for_exploration": 53574,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 20,
+              "kind": "sources_updated",
+              "elapsed_ms": 45,
+              "data": {
+                "citation_ids": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "sequence": 21,
+              "kind": "model_started",
+              "elapsed_ms": 45,
+              "data": {
+                "call": 3,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 11031,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 22,
+              "kind": "model_finished",
+              "elapsed_ms": 61,
+              "data": {
+                "call": 3,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 90,
+                "released_reservation": 13079,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 23,
+              "kind": "tool_started",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f1",
+                "tool": "web_find",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"search_depth\"}",
+                "call_key": "[\"web_find\", [\"web_1\", \"search_depth\"]]"
+              }
+            },
+            {
+              "sequence": 24,
+              "kind": "tool_finished",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f1",
+                "tool": "web_find",
+                "status": "success",
+                "source_count": 0,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [
+                  {
+                    "source_id": "web_1",
+                    "start": 1817,
+                    "end": 1829,
+                    "preview_start": 1763,
+                    "preview_end": 1883,
+                    "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                    "in_code": true
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 3776,
+                    "end": 3788,
+                    "preview_start": 3722,
+                    "preview_end": 3842,
+                    "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                    "in_code": true
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 4246,
+                    "end": 4258,
+                    "preview_start": 4192,
+                    "preview_end": 4312,
+                    "preview": "ecute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 5730,
+                    "end": 5742,
+                    "preview_start": 5676,
+                    "preview_end": 5796,
+                    "preview": " length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 13534,
+                    "end": 13546,
+                    "preview_start": 13480,
+                    "preview_end": 13600,
+                    "preview": "anually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 13706,
+                    "end": 13718,
+                    "preview_start": 13652,
+                    "preview_end": 13772,
+                    "preview": "uest. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEn",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 15992,
+                    "end": 16004,
+                    "preview_start": 15938,
+                    "preview_end": 16058,
+                    "preview": "rs is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage detai",
+                    "in_code": true
+                  }
+                ],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 25,
+              "kind": "tool_started",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f2",
+                "tool": "web_find",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"include_answer\"}",
+                "call_key": "[\"web_find\", [\"web_1\", \"include_answer\"]]"
+              }
+            },
+            {
+              "sequence": 26,
+              "kind": "tool_finished",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f2",
+                "tool": "web_find",
+                "status": "success",
+                "source_count": 0,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [
+                  {
+                    "source_id": "web_1",
+                    "start": 8866,
+                    "end": 8880,
+                    "preview_start": 8813,
+                    "preview_end": 8933,
+                    "preview": "d.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 13407,
+                    "end": 13421,
+                    "preview_start": 13354,
+                    "preview_end": 13474,
+                    "preview": "ues will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 14562,
+                    "end": 14576,
+                    "preview_start": 14509,
+                    "preview_end": 14629,
+                    "preview": "enerated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)",
+                    "in_code": false
+                  }
+                ],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 27,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 61,
+              "data": {
+                "remaining_tokens": 63910,
+                "exploration_input": 14622,
+                "final_input": 11909,
+                "final_reservation": 13957,
+                "available_for_exploration": 49953
+              }
+            },
+            {
+              "sequence": 28,
+              "kind": "materials_prepared",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f1",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 29,
+              "kind": "materials_prepared",
+              "elapsed_ms": 61,
+              "data": {
+                "call_id": "f2",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 30,
+              "kind": "budget_planned",
+              "elapsed_ms": 61,
+              "data": {
+                "settled_tokens": 90,
+                "remaining_tokens": 63910,
+                "final_reservation": 13957,
+                "available_for_exploration": 49953,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 31,
+              "kind": "model_started",
+              "elapsed_ms": 61,
+              "data": {
+                "call": 4,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 14622,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 32,
+              "kind": "model_finished",
+              "elapsed_ms": 77,
+              "data": {
+                "call": 4,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 120,
+                "released_reservation": 16670,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 33,
+              "kind": "tool_started",
+              "elapsed_ms": 77,
+              "data": {
+                "call_id": "r1",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 4246, \"max_chars\": 700}",
+                "call_key": "[\"web_read\", [\"web_1\", 4246, 700]]"
+              }
+            },
+            {
+              "sequence": 34,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 77,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 35,
+              "kind": "tool_finished",
+              "elapsed_ms": 77,
+              "data": {
+                "call_id": "r1",
+                "tool": "web_read",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [
+                  {
+                    "endpoint": "web_cache",
+                    "phase": "complete",
+                    "category": "cache_hit",
+                    "elapsed_seconds": 0,
+                    "http_status": null,
+                    "request_id": null,
+                    "exception_type": null,
+                    "timeout_layer": null,
+                    "client_timeout_seconds": null,
+                    "connected_ip": null,
+                    "redirect_count": 0,
+                    "final_url": null
+                  }
+                ],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 36,
+              "kind": "tool_started",
+              "elapsed_ms": 77,
+              "data": {
+                "call_id": "r2",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 8866, \"max_chars\": 300}",
+                "call_key": "[\"web_read\", [\"web_1\", 8866, 300]]"
+              }
+            },
+            {
+              "sequence": 37,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 77,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 38,
+              "kind": "tool_finished",
+              "elapsed_ms": 77,
+              "data": {
+                "call_id": "r2",
+                "tool": "web_read",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [
+                  {
+                    "endpoint": "web_cache",
+                    "phase": "complete",
+                    "category": "cache_hit",
+                    "elapsed_seconds": 0,
+                    "http_status": null,
+                    "request_id": null,
+                    "exception_type": null,
+                    "timeout_layer": null,
+                    "client_timeout_seconds": null,
+                    "connected_ip": null,
+                    "redirect_count": 0,
+                    "final_url": null
+                  }
+                ],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 39,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 108,
+              "data": {
+                "remaining_tokens": 63880,
+                "exploration_input": 16000,
+                "final_input": 13287,
+                "final_reservation": 15335,
+                "available_for_exploration": 48545
+              }
+            },
+            {
+              "sequence": 40,
+              "kind": "materials_prepared",
+              "elapsed_ms": 108,
+              "data": {
+                "call_id": "r1",
+                "citation_ids": [
+                  3
+                ],
+                "truncated": true
+              }
+            },
+            {
+              "sequence": 41,
+              "kind": "materials_limited",
+              "elapsed_ms": 108,
+              "data": {
+                "call_id": "r2",
+                "errors": [
+                  "MATERIAL_WINDOW_TOO_LARGE"
+                ]
+              }
+            },
+            {
+              "sequence": 42,
+              "kind": "materials_prepared",
+              "elapsed_ms": 108,
+              "data": {
+                "call_id": "r2",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 43,
+              "kind": "budget_planned",
+              "elapsed_ms": 108,
+              "data": {
+                "settled_tokens": 120,
+                "remaining_tokens": 63880,
+                "final_reservation": 15335,
+                "available_for_exploration": 48545,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 44,
+              "kind": "sources_updated",
+              "elapsed_ms": 125,
+              "data": {
+                "citation_ids": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            },
+            {
+              "sequence": 45,
+              "kind": "model_started",
+              "elapsed_ms": 125,
+              "data": {
+                "call": 5,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 16000,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 46,
+              "kind": "model_finished",
+              "elapsed_ms": 125,
+              "data": {
+                "call": 5,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 150,
+                "released_reservation": 18048,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 47,
+              "kind": "tool_started",
+              "elapsed_ms": 125,
+              "data": {
+                "call_id": "done",
+                "tool": "finish_research",
+                "arguments_summary": "{\"outcome\": \"insufficient\", \"citation_ids\": [3]}",
+                "call_key": "[\"finish_research\", [\"insufficient\", [3]]]"
+              }
+            },
+            {
+              "sequence": 48,
+              "kind": "tool_finished",
+              "elapsed_ms": 125,
+              "data": {
+                "call_id": "done",
+                "tool": "finish_research",
+                "status": "success",
+                "source_count": 0,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [],
+                "selection": {
+                  "outcome": "insufficient",
+                  "citation_ids": [
+                    3
+                  ]
+                }
+              }
+            },
+            {
+              "sequence": 49,
+              "kind": "exploration_stopped",
+              "elapsed_ms": 125,
+              "data": {
+                "reason": "evidence_insufficient"
+              }
+            },
+            {
+              "sequence": 50,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 125,
+              "data": {
+                "remaining_tokens": 63850,
+                "exploration_input": 16559,
+                "final_input": 13846,
+                "final_reservation": 15894,
+                "available_for_exploration": 47956
+              }
+            },
+            {
+              "sequence": 51,
+              "kind": "materials_prepared",
+              "elapsed_ms": 125,
+              "data": {
+                "call_id": "done",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 52,
+              "kind": "budget_planned",
+              "elapsed_ms": 140,
+              "data": {
+                "settled_tokens": 150,
+                "remaining_tokens": 63850,
+                "final_reservation": 15894,
+                "available_for_exploration": 47956,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 53,
+              "kind": "model_started",
+              "elapsed_ms": 140,
+              "data": {
+                "call": 6,
+                "final": true,
+                "request_mode": "strict_answer",
+                "tool_definition_count": 0,
+                "tool_choice": null,
+                "exploration_stop_reason": "evidence_insufficient",
+                "estimated_input_tokens": 13804,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 54,
+              "kind": "model_finished",
+              "elapsed_ms": 140,
+              "data": {
+                "call": 6,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 180,
+                "released_reservation": 15852,
+                "finish_reason": "stop"
+              }
+            },
+            {
+              "sequence": 55,
+              "kind": "answer_check_started",
+              "elapsed_ms": 140,
+              "data": {}
+            },
+            {
+              "sequence": 56,
+              "kind": "answer_validated",
+              "elapsed_ms": 140,
+              "data": {
+                "citation_ids": [],
+                "outcome": "insufficient",
+                "semantic_support": "not_evaluated"
+              }
+            },
+            {
+              "sequence": 57,
+              "kind": "run_finished",
+              "elapsed_ms": 140,
+              "data": {
+                "status": "insufficient",
+                "stop_reason": "insufficient_material",
+                "error_code": null,
+                "exploration_stop_reason": "evidence_insufficient"
+              }
+            }
+          ],
+          "answer": "本次已读取的正文未覆盖全部参数定义。",
+          "model": "qwen3.8-flash",
+          "web_directory": [
+            {
+              "source_id": "web_1",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "origin": "search",
+              "discovered_at": "2026-11-01T14:25:24.938553+00:00",
+              "read": true
+            }
+          ],
+          "sources": [
+            {
+              "citation_id": 1,
+              "source_type": "web_search_summary",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "fetched_at": "2026-10-30T09:56:42.115736+00:00",
+              "content": "When `auto_parameters` is enabled, Tavily automatically configures search parameters based on your query's content and intent. You can still set other parameters manually, and your explicit values will override the automatic ones. The parameters `include_answer`, `include_raw_content`, and `max_results` must always be set manually, as they directly affect response size. Note: `search_depth` may be automatically set to advanced when it's likely to improve results. This uses 2 API credits per [...] HttpResponse response = Unirest.post(\" .header(\"Authorization\", \"Bearer \") .header(\"Content-Type\", \"application/json\") .body(\"{\\n \\\"query\\\": \\\"who is Leo Messi?\\\",\\n \\\"search_depth\\\": \\\"basic\\\",\\n \\\"chunks_per_source\\\": 3,\\n \\\"max_results\\\": 1,\\n \\\"topic\\\": \\\"general\\\",\\n \\\"time_range\\\": null,\\n \\\"start_date\\\": \\\"2025-02-09\\\",\\n \\\"end_date\\\": \\\"2025-12-29\\\",\\n \\\"include_published_date\\\": false,\\n \\\"filter_by_published_date\\\": false,\\n \\\"include_answer\\\": false,\\n \\\"include_raw_content\\\": [...] HttpResponse response = Unirest.post(\" .header(\"Authorization\", \"Bearer \") .header(\"Content-Type\", \"application/json\") .body(\"{\\n \\\"query\\\": \\\"who is Leo Messi?\\\",\\n \\\"search_depth\\\": \\\"basic\\\",\\n \\\"",
+              "truncated": false,
+              "source_id": "web_1",
+              "start": 0,
+              "end": 1200,
+              "total_chars": 1200,
+              "code_ranges": []
+            },
+            {
+              "citation_id": 2,
+              "source_type": "web_page",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+              "content": "Python SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n",
+              "truncated": true,
+              "source_id": "web_1",
+              "start": 0,
+              "end": 182,
+              "total_chars": 16298,
+              "code_ranges": [
+                [
+                  12,
+                  180
+                ]
+              ]
+            },
+            {
+              "citation_id": 3,
+              "source_type": "web_page",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+              "content": "sea",
+              "truncated": true,
+              "source_id": "web_1",
+              "start": 4246,
+              "end": 4249,
+              "total_chars": 16298,
+              "code_ranges": []
+            }
+          ],
+          "source_count": 3,
+          "retrieval_results": [],
+          "input_measurement": "utf8_bytes_estimate",
+          "estimated_input_tokens": 72989,
+          "prompt_tokens": 120,
+          "completion_tokens": 60
+        }
+      }
+    },
+    {
+      "scenario": "window_then_definition",
+      "passed": true,
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "evidence_complete",
+      "model_calls": 5,
+      "tool_calls": 4,
+      "peak_estimated_input": 12252,
+      "model_usage_is_synthetic": true,
+      "simulated_provider_searches": 0,
+      "simulated_page_fetches": 0,
+      "definition_ranges": [
+        [
+          4246,
+          4946
+        ]
+      ],
+      "integrity_checks": {
+        "generation_protocol_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true
+      },
+      "snapshot": {
+        "version": 5,
+        "tool_contract_version": 2,
+        "scope": {
+          "user_id": 1,
+          "knowledge_base_ids": [
+            3
+          ],
+          "allow_web": true
+        },
+        "limits": {
+          "model_calls": 6,
+          "tool_calls": 10,
+          "total_tokens": 64000,
+          "timeout": 120
+        },
+        "web_pages": {
+          "web_1": {
+            "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+            "title": "Tavily Search - Tavily Docs",
+            "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+            "content": "Python SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nPOST\n\n/\n\nsearch\n\nPython SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nAuthorizations\n\n​\n\nAuthorization\n\nstring\n\nheader\n\nrequired\n\nBearer authentication header in the form Bearer , where is your Tavily API key (e.g., Bearer tvly-YOUR_API_KEY).\n\nBody\n\napplication/json\n\nParameters for the Tavily Search request.\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query to execute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs. relevance tradeoff and how results[].content is generated:\n\nadvanced: Highest relevance with increased latency. Best for detailed, high-precision queries. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nbasic: A balanced option for relevance and latency. Ideal for general-purpose searches. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nfast: Prioritizes lower latency while maintaining good relevance. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nultra-fast: Minimizes latency above all else. Best for time-critical use cases. Returns one NLP summary per URL.\n\nCost:\n\nbasic, fast, ultra-fast: 1 API Credit\n\nadvanced: 2 API Credits\n\nSee Search Best Practices for guidance on choosing the right search depth.\n\nAvailable options:\n\nadvanced,\n\nbasic,\n\nfast,\n\nultra-fast\n\n​\n\nchunks_per_source\n\ninteger\n\ndefault:3\n\nChunks are short content snippets (about 500 characters each for basic and fast, 800 for advanced) pulled directly from the source. Use chunks_per_source to define the maximum number of relevant chunks returned per source and to control the content length. Chunks will appear in the content field as: <chunk 1> [...] <chunk 2> [...] <chunk 3>. Adjacent chunks may be joined into one longer passage, so chunk length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <= 3\n\n​\n\nmax_results\n\ninteger\n\ndefault:10\n\nThe maximum number of search results to return.\n\nRequired range: 0 <= x <= 20\n\nExample:\n\n1\n\n​\n\ntopic\n\nenum<string>\n\ndefault:general\n\nThe category of the search.news is useful for retrieving real-time updates, particularly about politics, sports, and major current events covered by mainstream media sources. general is for broader, more general-purpose searches that may include a wide range of sources.\n\nAvailable options:\n\ngeneral,\n\nnews,\n\nfinance\n\n​\n\ntime_range\n\nenum<string>\n\nThe time range back from the current date to filter results based on publish date or last updated date. Useful when looking for sources that have published or updated data. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nAvailable options:\n\nday,\n\nweek,\n\nmonth,\n\nyear,\n\nd,\n\nw,\n\nm,\n\ny\n\n​\n\nstart_date\n\nstring\n\nWill return all results after the specified start date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-02-09\"\n\n​\n\nend_date\n\nstring\n\nWill return all results before the specified end date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-12-29\"\n\n​\n\ninclude_published_date\n\nboolean\n\ndefault:false\n\nInclude a published_date field in each result. The date is Tavily's best estimate of when the source was published or last updated, so it can be later than the original publish date. Results with no detectable date return null. Automatically enabled when topic is news.\n\nNote: this feature is currently in beta.\n\n​\n\nfilter_by_published_date\n\nboolean\n\ndefault:false\n\nRemove results whose published date falls outside the time_range, start_date, or end_date window. Results with no detectable published date are also removed. Setting this to true also enables include_published_date.\n\nIf you want date-window filtering but don't want to lose sources without a detectable date, leave this false and set include_published_date: true together with a date range instead.\n\n​\n\nmax_age_hours\n\ninteger\n\nThe maximum age in hours of Tavily's cached copy of each result.\n\nAccepted values:\n\nunset (default): Tavily serves cached copies and fetches pages live as needed.\n\n1 to 720 (30 days): only return a cached copy fetched within that many hours.\n\n0: always fetch the page live.\n\n-1: never fetch live.\n\nLower values do not cost more credits, but fetching live adds latency. Results whose cached copy is too old and can't be fetched live are left out, so you may get fewer than max_results.\n\nOn non-paying plans, live fetching is best-effort. While Tavily is under heavy load, requests that set max_age_hours may be refused with 434 Flex tier capacity exceeded.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-generated answer to the provided query. basic or true returns a quick answer. advanced returns a more detailed answer.\n\n​\n\ninclude_raw_content\n\nbooleanenum<string>\n\ndefault:false\n\nInclude the cleaned and parsed HTML content of each search result. markdown or true returns search result content in markdown format. text returns the plain text from the results and may increase latency.\n\n​\n\ninclude_images\n\nboolean\n\ndefault:false\n\nInclude images in the response. Returns both a top-level images list of query-related images and an images array inside each result object with images extracted from that specific source.\n\n​\n\ninclude_image_descriptions\n\nboolean\n\ndefault:false\n\nWhen include_images is true, also add a descriptive text for each image.\n\n​\n\ninclude_favicon\n\nboolean\n\ndefault:false\n\nWhether to include the favicon URL for each result.\n\n​\n\ninclude_domains\n\nstring[]\n\nA list of domains to specifically include in the search results. Maximum 300 domains.\n\n​\n\nexclude_domains\n\nstring[]\n\nA list of domains to specifically exclude from the search results. Maximum 150 domains.\n\n​\n\ninclude_domains_mode\n\nenum<string>\n\ndefault:restrict\n\nControls how include_domains is applied. restrict limits results to only the listed domains. prefer also searches the rest of the web, so results outside include_domains can still surface, rather than excluding them. Defaults to restrict, so include_domains acts as a hard filter unless set to prefer. Setting it without include_domains returns a 400 error.\n\nAvailable options:\n\nrestrict,\n\nprefer\n\n​\n\ncountry\n\nenum<string>\n\nBoost search results from a specific country. This will prioritize content from the selected country in the search results. Available only if topic is general.\n\nAvailable options:\n\nafghanistan,\n\nalbania,\n\nalgeria,\n\nandorra,\n\nangola,\n\nargentina,\n\narmenia,\n\naustralia,\n\naustria,\n\nazerbaijan,\n\nbahamas,\n\nbahrain,\n\nbangladesh,\n\nbarbados,\n\nbelarus,\n\nbelgium,\n\nbelize,\n\nbenin,\n\nbhutan,\n\nbolivia,\n\nbosnia and herzegovina,\n\nbotswana,\n\nbrazil,\n\nbrunei,\n\nbulgaria,\n\nburkina faso,\n\nburundi,\n\ncambodia,\n\ncameroon,\n\ncanada,\n\ncape verde,\n\ncentral african republic,\n\nchad,\n\nchile,\n\nchina,\n\ncolombia,\n\ncomoros,\n\ncongo,\n\ncosta rica,\n\ncroatia,\n\ncuba,\n\ncyprus,\n\nczech republic,\n\ndenmark,\n\ndjibouti,\n\ndominican republic,\n\necuador,\n\negypt,\n\nel salvador,\n\nequatorial guinea,\n\neritrea,\n\nestonia,\n\nethiopia,\n\nfiji,\n\nfinland,\n\nfrance,\n\ngabon,\n\ngambia,\n\ngeorgia,\n\ngermany,\n\nghana,\n\ngreece,\n\nguatemala,\n\nguinea,\n\nhaiti,\n\nhonduras,\n\nhungary,\n\niceland,\n\nindia,\n\nindonesia,\n\niran,\n\niraq,\n\nireland,\n\nisrael,\n\nitaly,\n\njamaica,\n\njapan,\n\njordan,\n\nkazakhstan,\n\nkenya,\n\nkuwait,\n\nkyrgyzstan,\n\nlatvia,\n\nlebanon,\n\nlesotho,\n\nliberia,\n\nlibya,\n\nliechtenstein,\n\nlithuania,\n\nluxembourg,\n\nmadagascar,\n\nmalawi,\n\nmalaysia,\n\nmaldives,\n\nmali,\n\nmalta,\n\nmauritania,\n\nmauritius,\n\nmexico,\n\nmoldova,\n\nmonaco,\n\nmongolia,\n\nmontenegro,\n\nmorocco,\n\nmozambique,\n\nmyanmar,\n\nnamibia,\n\nnepal,\n\nnetherlands,\n\nnew zealand,\n\nnicaragua,\n\nniger,\n\nnigeria,\n\nnorth korea,\n\nnorth macedonia,\n\nnorway,\n\noman,\n\npakistan,\n\npanama,\n\npapua new guinea,\n\nparaguay,\n\nperu,\n\nphilippines,\n\npoland,\n\nportugal,\n\nqatar,\n\nromania,\n\nrussia,\n\nrwanda,\n\nsaudi arabia,\n\nsenegal,\n\nserbia,\n\nsingapore,\n\nslovakia,\n\nslovenia,\n\nsomalia,\n\nsouth africa,\n\nsouth korea,\n\nsouth sudan,\n\nspain,\n\nsri lanka,\n\nsudan,\n\nsweden,\n\nswitzerland,\n\nsyria,\n\ntaiwan,\n\ntajikistan,\n\ntanzania,\n\nthailand,\n\ntogo,\n\ntrinidad and tobago,\n\ntunisia,\n\nturkey,\n\nturkmenistan,\n\nuganda,\n\nukraine,\n\nunited arab emirates,\n\nunited kingdom,\n\nunited states,\n\nuruguay,\n\nuzbekistan,\n\nvenezuela,\n\nvietnam,\n\nyemen,\n\nzambia,\n\nzimbabwe\n\n​\n\nlanguage\n\nstring\n\nBoost search results in a specific language. Accepts an ISO 639-1 code (e.g. en, fr, zh-cn) or an English language name (e.g. english, french). By default this only boosts matching-language results in ranking; pass filter_by_language: true to strictly filter out non-matching results instead. For best results, write your query in the same language you set here.\n\nExample:\n\n\"en\"\n\n​\n\nfilter_by_language\n\nboolean\n\ndefault:false\n\nStrictly filter out search results that don't match the language parameter, instead of only boosting them in ranking. Requires language to be set; returns a 400 error otherwise.\n\n​\n\nauto_parameters\n\nboolean\n\ndefault:false\n\nWhen auto_parameters is enabled, Tavily automatically configures search parameters based on your query's content and intent. You can still set other parameters manually, and your explicit values will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be set manually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely to improve results. This uses 2 API credits per request. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEnsure that only search results containing the exact quoted phrase(s) in the query are returned, bypassing synonyms or semantic variations. Wrap target phrases in quotes within your query (e.g. \"John Smith\" CEO Acme Corp). Punctuation is typically ignored inside quotes.\n\n​\n\ninclude_usage\n\nboolean\n\ndefault:false\n\nWhether to include credit usage information in the response.\n\n​\n\nsafe_search\n\nboolean\n\ndefault:false\n\nWhether to filter out adult or unsafe content from results. Not supported for fast or ultra-fast search depths.\n\nResponse\n\nSearch results returned successfully\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query that was executed.\n\nExample:\n\n\"Who is Leo Messi?\"\n\n​\n\nanswer\n\nstring\n\nrequired\n\nA short answer to the user's query, generated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)\n\nExample:\n\n\"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\"\n\n​\n\nimages\n\nobject[]\n\nrequired\n\nA list of query-related images from image search. If include_image_descriptions is true, each item will have url and description. Note: per-result images are also returned inside each result object's images field.\n\nShow child attributes\n\nExample:\n\n```\n[]\n```\n\n​\n\nresults\n\nobject[]\n\nrequired\n\nA list of sorted search results, ranked by relevancy.\n\nShow child attributes\n\n​\n\nresponse_time\n\nnumber<float>\n\nrequired\n\nTime in seconds it took to complete the request.\n\nExample:\n\n\"1.67\"\n\n​\n\nauto_parameters\n\nobject\n\nA dictionary of the selected auto_parameters, only shown when auto_parameters is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage details for the request.\n\nExample:\n\n```\n{ \"credits\": 1 }\n```\n\n​\n\nrequest_id\n\nstring\n\nA unique request identifier you can share with customer support to help resolve issues with specific requests.\n\nExample:\n\n\"123e4567-e89b-12d3-a456-426614174111\"",
+            "code_ranges": [
+              [
+                12,
+                180
+              ],
+              [
+                182,
+                1940
+              ],
+              [
+                1971,
+                2139
+              ],
+              [
+                2141,
+                3899
+              ],
+              [
+                15602,
+                15612
+              ],
+              [
+                15961,
+                16020
+              ],
+              [
+                16089,
+                16113
+              ]
+            ]
+          }
+        },
+        "result": {
+          "version": 5,
+          "tool_contract_version": 2,
+          "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+          "status": "completed",
+          "stop_reason": "answer_completed",
+          "exploration_stop_reason": "evidence_complete",
+          "error_code": null,
+          "usage": {
+            "model_calls": 5,
+            "tool_calls": 4,
+            "estimated_input_tokens": 48875,
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "settled_tokens": 150,
+            "actual_total_tokens": 150,
+            "reserved_tokens": 0,
+            "final_reserved_tokens": 0,
+            "calls": [
+              {
+                "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+                "call": 1,
+                "phase": "exploration",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048,
+                "reservation": 9518,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+                "call": 2,
+                "phase": "exploration",
+                "estimated_input_tokens": 8345,
+                "output_limit": 2048,
+                "reservation": 10393,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+                "call": 3,
+                "phase": "exploration",
+                "estimated_input_tokens": 10776,
+                "output_limit": 2048,
+                "reservation": 12824,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+                "call": 4,
+                "phase": "exploration",
+                "estimated_input_tokens": 12252,
+                "output_limit": 2048,
+                "reservation": 14300,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "9a039ef6-c7cf-42bd-b7cf-125ad26c4893",
+                "call": 5,
+                "phase": "final",
+                "estimated_input_tokens": 10032,
+                "output_limit": 2048,
+                "reservation": 12080,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              }
+            ],
+            "unreported_model_calls": 0
+          },
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "run_started",
+              "elapsed_ms": 0,
+              "data": {
+                "knowledge_base_ids": [
+                  3
+                ],
+                "allow_web": true
+              }
+            },
+            {
+              "sequence": 2,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 0,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:25.066011+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 3,
+              "kind": "budget_planned",
+              "elapsed_ms": 0,
+              "data": {
+                "settled_tokens": 0,
+                "remaining_tokens": 64000,
+                "final_reservation": 6805,
+                "available_for_exploration": 57195,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 4,
+              "kind": "model_started",
+              "elapsed_ms": 0,
+              "data": {
+                "call": 1,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 5,
+              "kind": "model_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "call": 1,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 30,
+                "released_reservation": 9518,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 6,
+              "kind": "tool_started",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "blocked",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 182, \"max_chars\": 100}",
+                "call_key": "[\"web_read\", [\"web_1\", 182, 100]]"
+              }
+            },
+            {
+              "sequence": 7,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 16,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:25.066011+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 8,
+              "kind": "tool_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "blocked",
+                "tool": "web_read",
+                "status": "error",
+                "source_count": 0,
+                "errors": [
+                  "WEB_CODE_BLOCK_TOO_LARGE"
+                ],
+                "error_summaries": [
+                  {
+                    "code": "WEB_CODE_BLOCK_TOO_LARGE",
+                    "message": "完整代码块超过本次片段上限，不能返回半段代码",
+                    "url": null,
+                    "diagnostics": {
+                      "endpoint": "web_cache",
+                      "phase": "page_window",
+                      "category": "web_code_block_too_large",
+                      "elapsed_seconds": 0,
+                      "http_status": null,
+                      "request_id": null,
+                      "exception_type": null,
+                      "timeout_layer": null,
+                      "client_timeout_seconds": null,
+                      "connected_ip": null,
+                      "redirect_count": 0,
+                      "final_url": null
+                    }
+                  }
+                ],
+                "web_diagnostics": [
+                  {
+                    "endpoint": "web_cache",
+                    "phase": "page_window",
+                    "category": "web_code_block_too_large",
+                    "elapsed_seconds": 0,
+                    "http_status": null,
+                    "request_id": null,
+                    "exception_type": null,
+                    "timeout_layer": null,
+                    "client_timeout_seconds": null,
+                    "connected_ip": null,
+                    "redirect_count": 0,
+                    "final_url": null
+                  }
+                ],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 9,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 16,
+              "data": {
+                "remaining_tokens": 63970,
+                "exploration_input": 8345,
+                "final_input": 5632,
+                "final_reservation": 7680,
+                "available_for_exploration": 56290
+              }
+            },
+            {
+              "sequence": 10,
+              "kind": "materials_limited",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "blocked",
+                "errors": [
+                  "WEB_CODE_BLOCK_TOO_LARGE"
+                ]
+              }
+            },
+            {
+              "sequence": 11,
+              "kind": "materials_prepared",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "blocked",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 12,
+              "kind": "budget_planned",
+              "elapsed_ms": 16,
+              "data": {
+                "settled_tokens": 30,
+                "remaining_tokens": 63970,
+                "final_reservation": 7680,
+                "available_for_exploration": 56290,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 13,
+              "kind": "model_started",
+              "elapsed_ms": 16,
+              "data": {
+                "call": 2,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 8345,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 14,
+              "kind": "model_finished",
+              "elapsed_ms": 30,
+              "data": {
+                "call": 2,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 60,
+                "released_reservation": 10393,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 15,
+              "kind": "tool_started",
+              "elapsed_ms": 30,
+              "data": {
+                "call_id": "f",
+                "tool": "web_find",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"pattern\": \"search_depth\"}",
+                "call_key": "[\"web_find\", [\"web_1\", \"search_depth\"]]"
+              }
+            },
+            {
+              "sequence": 16,
+              "kind": "tool_finished",
+              "elapsed_ms": 30,
+              "data": {
+                "call_id": "f",
+                "tool": "web_find",
+                "status": "success",
+                "source_count": 0,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [
+                  {
+                    "source_id": "web_1",
+                    "start": 1817,
+                    "end": 1829,
+                    "preview_start": 1763,
+                    "preview_end": 1883,
+                    "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                    "in_code": true
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 3776,
+                    "end": 3788,
+                    "preview_start": 3722,
+                    "preview_end": 3842,
+                    "preview": ",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"",
+                    "in_code": true
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 4246,
+                    "end": 4258,
+                    "preview_start": 4192,
+                    "preview_end": 4312,
+                    "preview": "ecute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 5730,
+                    "end": 5742,
+                    "preview_start": 5676,
+                    "preview_end": 5796,
+                    "preview": " length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 13534,
+                    "end": 13546,
+                    "preview_start": 13480,
+                    "preview_end": 13600,
+                    "preview": "anually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 13706,
+                    "end": 13718,
+                    "preview_start": 13652,
+                    "preview_end": 13772,
+                    "preview": "uest. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEn",
+                    "in_code": false
+                  },
+                  {
+                    "source_id": "web_1",
+                    "start": 15992,
+                    "end": 16004,
+                    "preview_start": 15938,
+                    "preview_end": 16058,
+                    "preview": "rs is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage detai",
+                    "in_code": true
+                  }
+                ],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 17,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 30,
+              "data": {
+                "remaining_tokens": 63940,
+                "exploration_input": 10776,
+                "final_input": 8063,
+                "final_reservation": 10111,
+                "available_for_exploration": 53829
+              }
+            },
+            {
+              "sequence": 18,
+              "kind": "materials_prepared",
+              "elapsed_ms": 30,
+              "data": {
+                "call_id": "f",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 19,
+              "kind": "budget_planned",
+              "elapsed_ms": 30,
+              "data": {
+                "settled_tokens": 60,
+                "remaining_tokens": 63940,
+                "final_reservation": 10111,
+                "available_for_exploration": 53829,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 20,
+              "kind": "model_started",
+              "elapsed_ms": 46,
+              "data": {
+                "call": 3,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 10776,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 21,
+              "kind": "model_finished",
+              "elapsed_ms": 46,
+              "data": {
+                "call": 3,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 90,
+                "released_reservation": 12824,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 22,
+              "kind": "tool_started",
+              "elapsed_ms": 46,
+              "data": {
+                "call_id": "r1",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 4246, \"max_chars\": 700}",
+                "call_key": "[\"web_read\", [\"web_1\", 4246, 700]]"
+              }
+            },
+            {
+              "sequence": 23,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 46,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:25.066011+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 24,
+              "kind": "tool_finished",
+              "elapsed_ms": 46,
+              "data": {
+                "call_id": "r1",
+                "tool": "web_read",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [
+                  {
+                    "endpoint": "web_cache",
+                    "phase": "complete",
+                    "category": "cache_hit",
+                    "elapsed_seconds": 0,
+                    "http_status": null,
+                    "request_id": null,
+                    "exception_type": null,
+                    "timeout_layer": null,
+                    "client_timeout_seconds": null,
+                    "connected_ip": null,
+                    "redirect_count": 0,
+                    "final_url": null
+                  }
+                ],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 25,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 46,
+              "data": {
+                "remaining_tokens": 63910,
+                "exploration_input": 12252,
+                "final_input": 9539,
+                "final_reservation": 11587,
+                "available_for_exploration": 52323
+              }
+            },
+            {
+              "sequence": 26,
+              "kind": "materials_prepared",
+              "elapsed_ms": 46,
+              "data": {
+                "call_id": "r1",
+                "citation_ids": [
+                  1
+                ],
+                "truncated": true
+              }
+            },
+            {
+              "sequence": 27,
+              "kind": "budget_planned",
+              "elapsed_ms": 46,
+              "data": {
+                "settled_tokens": 90,
+                "remaining_tokens": 63910,
+                "final_reservation": 11587,
+                "available_for_exploration": 52323,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 28,
+              "kind": "sources_updated",
+              "elapsed_ms": 46,
+              "data": {
+                "citation_ids": [
+                  1
+                ]
+              }
+            },
+            {
+              "sequence": 29,
+              "kind": "model_started",
+              "elapsed_ms": 62,
+              "data": {
+                "call": 4,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 12252,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 30,
+              "kind": "model_finished",
+              "elapsed_ms": 62,
+              "data": {
+                "call": 4,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 120,
+                "released_reservation": 14300,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 31,
+              "kind": "tool_started",
+              "elapsed_ms": 62,
+              "data": {
+                "call_id": "done",
+                "tool": "finish_research",
+                "arguments_summary": "{\"outcome\": \"answered\", \"citation_ids\": [1]}",
+                "call_key": "[\"finish_research\", [\"answered\", [1]]]"
+              }
+            },
+            {
+              "sequence": 32,
+              "kind": "tool_finished",
+              "elapsed_ms": 62,
+              "data": {
+                "call_id": "done",
+                "tool": "finish_research",
+                "status": "success",
+                "source_count": 0,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [],
+                "directory": [],
+                "matches": [],
+                "selection": {
+                  "outcome": "answered",
+                  "citation_ids": [
+                    1
+                  ]
+                }
+              }
+            },
+            {
+              "sequence": 33,
+              "kind": "exploration_stopped",
+              "elapsed_ms": 62,
+              "data": {
+                "reason": "evidence_complete"
+              }
+            },
+            {
+              "sequence": 34,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 62,
+              "data": {
+                "remaining_tokens": 63880,
+                "exploration_input": 12803,
+                "final_input": 10090,
+                "final_reservation": 12138,
+                "available_for_exploration": 51742
+              }
+            },
+            {
+              "sequence": 35,
+              "kind": "materials_prepared",
+              "elapsed_ms": 62,
+              "data": {
+                "call_id": "done",
+                "citation_ids": [],
+                "truncated": false
+              }
+            },
+            {
+              "sequence": 36,
+              "kind": "budget_planned",
+              "elapsed_ms": 62,
+              "data": {
+                "settled_tokens": 120,
+                "remaining_tokens": 63880,
+                "final_reservation": 12138,
+                "available_for_exploration": 51742,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 37,
+              "kind": "model_started",
+              "elapsed_ms": 62,
+              "data": {
+                "call": 5,
+                "final": true,
+                "request_mode": "strict_answer",
+                "tool_definition_count": 0,
+                "tool_choice": null,
+                "exploration_stop_reason": "evidence_complete",
+                "estimated_input_tokens": 10032,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 38,
+              "kind": "model_finished",
+              "elapsed_ms": 62,
+              "data": {
+                "call": 5,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 150,
+                "released_reservation": 12080,
+                "finish_reason": "stop"
+              }
+            },
+            {
+              "sequence": 39,
+              "kind": "answer_check_started",
+              "elapsed_ms": 62,
+              "data": {}
+            },
+            {
+              "sequence": 40,
+              "kind": "answer_validated",
+              "elapsed_ms": 62,
+              "data": {
+                "citation_ids": [
+                  1
+                ],
+                "outcome": "answered",
+                "semantic_support": "not_evaluated"
+              }
+            },
+            {
+              "sequence": 41,
+              "kind": "run_finished",
+              "elapsed_ms": 62,
+              "data": {
+                "status": "completed",
+                "stop_reason": "answer_completed",
+                "error_code": null,
+                "exploration_stop_reason": "evidence_complete"
+              }
+            }
+          ],
+          "answer": "search_depth 控制延迟、相关性及搜索结果内容的生成方式。[来源 1]",
+          "model": "qwen3.8-flash",
+          "web_directory": [
+            {
+              "source_id": "web_1",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "origin": "search",
+              "discovered_at": "2026-11-01T14:25:25.066011+00:00",
+              "read": true
+            }
+          ],
+          "sources": [
+            {
+              "citation_id": 1,
+              "source_type": "web_page",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+              "content": "search_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs. relevance tradeoff and how results[].content is generated:\n\nadvanced: Highest relevance with increased latency. Best for detailed, high-precision queries. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nbasic: A balanced option for relevance and latency. Ideal for general-purpose searches. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nfast: Prioritizes lower latency while maintaining good relevance. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nultra-fast: Minimizes latency above al",
+              "truncated": true,
+              "source_id": "web_1",
+              "start": 4246,
+              "end": 4946,
+              "total_chars": 16298,
+              "code_ranges": []
+            }
+          ],
+          "source_count": 1,
+          "retrieval_results": [],
+          "input_measurement": "utf8_bytes_estimate",
+          "estimated_input_tokens": 48875,
+          "prompt_tokens": 100,
+          "completion_tokens": 50
+        }
+      }
+    },
+    {
+      "scenario": "model_limit",
+      "passed": true,
+      "status": "budget_exhausted",
+      "stop_reason": "model_call_limit",
+      "exploration_stop_reason": "model_call_limit",
+      "model_calls": 2,
+      "tool_calls": 1,
+      "peak_estimated_input": 7470,
+      "model_usage_is_synthetic": true,
+      "simulated_provider_searches": 0,
+      "simulated_page_fetches": 0,
+      "definition_ranges": [],
+      "integrity_checks": {
+        "generation_protocol_valid": true,
+        "ledger_valid": true,
+        "budget_valid": true,
+        "sequence_valid": true,
+        "evidence_valid": true,
+        "citations_valid": true
+      },
+      "snapshot": {
+        "version": 5,
+        "tool_contract_version": 2,
+        "scope": {
+          "user_id": 1,
+          "knowledge_base_ids": [
+            3
+          ],
+          "allow_web": true
+        },
+        "limits": {
+          "model_calls": 2,
+          "tool_calls": 10,
+          "total_tokens": 64000,
+          "timeout": 120
+        },
+        "web_pages": {
+          "web_1": {
+            "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+            "title": "Tavily Search - Tavily Docs",
+            "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+            "content": "Python SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nPOST\n\n/\n\nsearch\n\nPython SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n```\n{\n  \"query\": \"Who is Leo Messi?\",\n  \"answer\": \"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\",\n  \"images\": [],\n  \"results\": [\n    {\n      \"title\": \"Lionel Messi Facts | Britannica\",\n      \"url\": \"https://www.britannica.com/facts/Lionel-Messi\",\n      \"content\": \"Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation. Born in 1987, Messi spent the majority of his career playing for Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal\",\n      \"score\": 0.81025416,\n      \"raw_content\": null,\n      \"published_date\": \"Tue, 11 Mar 2025 17:00:00 GMT\",\n      \"favicon\": \"https://britannica.com/favicon.png\",\n      \"images\": [\n        {\n          \"url\": \"<string>\",\n          \"description\": \"<string>\"\n        }\n      ],\n      \"id\": \"a3f9c2-04\"\n    }\n  ],\n  \"response_time\": \"1.67\",\n  \"auto_parameters\": {\n    \"topic\": \"general\",\n    \"search_depth\": \"basic\"\n  },\n  \"usage\": {\n    \"credits\": 1\n  },\n  \"request_id\": \"123e4567-e89b-12d3-a456-426614174111\"\n}\n```\n\nAuthorizations\n\n​\n\nAuthorization\n\nstring\n\nheader\n\nrequired\n\nBearer authentication header in the form Bearer , where is your Tavily API key (e.g., Bearer tvly-YOUR_API_KEY).\n\nBody\n\napplication/json\n\nParameters for the Tavily Search request.\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query to execute with Tavily.\n\nExample:\n\n\"who is Leo Messi?\"\n\n​\n\nsearch_depth\n\nenum<string>\n\ndefault:basic\n\nControls the latency vs. relevance tradeoff and how results[].content is generated:\n\nadvanced: Highest relevance with increased latency. Best for detailed, high-precision queries. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nbasic: A balanced option for relevance and latency. Ideal for general-purpose searches. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nfast: Prioritizes lower latency while maintaining good relevance. Returns multiple semantically relevant snippets per URL (configurable via chunks_per_source).\n\nultra-fast: Minimizes latency above all else. Best for time-critical use cases. Returns one NLP summary per URL.\n\nCost:\n\nbasic, fast, ultra-fast: 1 API Credit\n\nadvanced: 2 API Credits\n\nSee Search Best Practices for guidance on choosing the right search depth.\n\nAvailable options:\n\nadvanced,\n\nbasic,\n\nfast,\n\nultra-fast\n\n​\n\nchunks_per_source\n\ninteger\n\ndefault:3\n\nChunks are short content snippets (about 500 characters each for basic and fast, 800 for advanced) pulled directly from the source. Use chunks_per_source to define the maximum number of relevant chunks returned per source and to control the content length. Chunks will appear in the content field as: <chunk 1> [...] <chunk 2> [...] <chunk 3>. Adjacent chunks may be joined into one longer passage, so chunk length is a target, not a hard limit. Available when search_depth is advanced, basic or fast.\n\nRequired range: 1 <= x <= 3\n\n​\n\nmax_results\n\ninteger\n\ndefault:10\n\nThe maximum number of search results to return.\n\nRequired range: 0 <= x <= 20\n\nExample:\n\n1\n\n​\n\ntopic\n\nenum<string>\n\ndefault:general\n\nThe category of the search.news is useful for retrieving real-time updates, particularly about politics, sports, and major current events covered by mainstream media sources. general is for broader, more general-purpose searches that may include a wide range of sources.\n\nAvailable options:\n\ngeneral,\n\nnews,\n\nfinance\n\n​\n\ntime_range\n\nenum<string>\n\nThe time range back from the current date to filter results based on publish date or last updated date. Useful when looking for sources that have published or updated data. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nAvailable options:\n\nday,\n\nweek,\n\nmonth,\n\nyear,\n\nd,\n\nw,\n\nm,\n\ny\n\n​\n\nstart_date\n\nstring\n\nWill return all results after the specified start date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-02-09\"\n\n​\n\nend_date\n\nstring\n\nWill return all results before the specified end date based on publish date or last updated date. Required to be written in the format YYYY-MM-DD. By default, results with no detectable published date are not removed; set filter_by_published_date to true to remove them.\n\nExample:\n\n\"2025-12-29\"\n\n​\n\ninclude_published_date\n\nboolean\n\ndefault:false\n\nInclude a published_date field in each result. The date is Tavily's best estimate of when the source was published or last updated, so it can be later than the original publish date. Results with no detectable date return null. Automatically enabled when topic is news.\n\nNote: this feature is currently in beta.\n\n​\n\nfilter_by_published_date\n\nboolean\n\ndefault:false\n\nRemove results whose published date falls outside the time_range, start_date, or end_date window. Results with no detectable published date are also removed. Setting this to true also enables include_published_date.\n\nIf you want date-window filtering but don't want to lose sources without a detectable date, leave this false and set include_published_date: true together with a date range instead.\n\n​\n\nmax_age_hours\n\ninteger\n\nThe maximum age in hours of Tavily's cached copy of each result.\n\nAccepted values:\n\nunset (default): Tavily serves cached copies and fetches pages live as needed.\n\n1 to 720 (30 days): only return a cached copy fetched within that many hours.\n\n0: always fetch the page live.\n\n-1: never fetch live.\n\nLower values do not cost more credits, but fetching live adds latency. Results whose cached copy is too old and can't be fetched live are left out, so you may get fewer than max_results.\n\nOn non-paying plans, live fetching is best-effort. While Tavily is under heavy load, requests that set max_age_hours may be refused with 434 Flex tier capacity exceeded.\n\nRequired range: -1 <= x <= 720\n\nExample:\n\n24\n\n​\n\ninclude_answer\n\nbooleanenum<string>\n\ndefault:false\n\nInclude an LLM-generated answer to the provided query. basic or true returns a quick answer. advanced returns a more detailed answer.\n\n​\n\ninclude_raw_content\n\nbooleanenum<string>\n\ndefault:false\n\nInclude the cleaned and parsed HTML content of each search result. markdown or true returns search result content in markdown format. text returns the plain text from the results and may increase latency.\n\n​\n\ninclude_images\n\nboolean\n\ndefault:false\n\nInclude images in the response. Returns both a top-level images list of query-related images and an images array inside each result object with images extracted from that specific source.\n\n​\n\ninclude_image_descriptions\n\nboolean\n\ndefault:false\n\nWhen include_images is true, also add a descriptive text for each image.\n\n​\n\ninclude_favicon\n\nboolean\n\ndefault:false\n\nWhether to include the favicon URL for each result.\n\n​\n\ninclude_domains\n\nstring[]\n\nA list of domains to specifically include in the search results. Maximum 300 domains.\n\n​\n\nexclude_domains\n\nstring[]\n\nA list of domains to specifically exclude from the search results. Maximum 150 domains.\n\n​\n\ninclude_domains_mode\n\nenum<string>\n\ndefault:restrict\n\nControls how include_domains is applied. restrict limits results to only the listed domains. prefer also searches the rest of the web, so results outside include_domains can still surface, rather than excluding them. Defaults to restrict, so include_domains acts as a hard filter unless set to prefer. Setting it without include_domains returns a 400 error.\n\nAvailable options:\n\nrestrict,\n\nprefer\n\n​\n\ncountry\n\nenum<string>\n\nBoost search results from a specific country. This will prioritize content from the selected country in the search results. Available only if topic is general.\n\nAvailable options:\n\nafghanistan,\n\nalbania,\n\nalgeria,\n\nandorra,\n\nangola,\n\nargentina,\n\narmenia,\n\naustralia,\n\naustria,\n\nazerbaijan,\n\nbahamas,\n\nbahrain,\n\nbangladesh,\n\nbarbados,\n\nbelarus,\n\nbelgium,\n\nbelize,\n\nbenin,\n\nbhutan,\n\nbolivia,\n\nbosnia and herzegovina,\n\nbotswana,\n\nbrazil,\n\nbrunei,\n\nbulgaria,\n\nburkina faso,\n\nburundi,\n\ncambodia,\n\ncameroon,\n\ncanada,\n\ncape verde,\n\ncentral african republic,\n\nchad,\n\nchile,\n\nchina,\n\ncolombia,\n\ncomoros,\n\ncongo,\n\ncosta rica,\n\ncroatia,\n\ncuba,\n\ncyprus,\n\nczech republic,\n\ndenmark,\n\ndjibouti,\n\ndominican republic,\n\necuador,\n\negypt,\n\nel salvador,\n\nequatorial guinea,\n\neritrea,\n\nestonia,\n\nethiopia,\n\nfiji,\n\nfinland,\n\nfrance,\n\ngabon,\n\ngambia,\n\ngeorgia,\n\ngermany,\n\nghana,\n\ngreece,\n\nguatemala,\n\nguinea,\n\nhaiti,\n\nhonduras,\n\nhungary,\n\niceland,\n\nindia,\n\nindonesia,\n\niran,\n\niraq,\n\nireland,\n\nisrael,\n\nitaly,\n\njamaica,\n\njapan,\n\njordan,\n\nkazakhstan,\n\nkenya,\n\nkuwait,\n\nkyrgyzstan,\n\nlatvia,\n\nlebanon,\n\nlesotho,\n\nliberia,\n\nlibya,\n\nliechtenstein,\n\nlithuania,\n\nluxembourg,\n\nmadagascar,\n\nmalawi,\n\nmalaysia,\n\nmaldives,\n\nmali,\n\nmalta,\n\nmauritania,\n\nmauritius,\n\nmexico,\n\nmoldova,\n\nmonaco,\n\nmongolia,\n\nmontenegro,\n\nmorocco,\n\nmozambique,\n\nmyanmar,\n\nnamibia,\n\nnepal,\n\nnetherlands,\n\nnew zealand,\n\nnicaragua,\n\nniger,\n\nnigeria,\n\nnorth korea,\n\nnorth macedonia,\n\nnorway,\n\noman,\n\npakistan,\n\npanama,\n\npapua new guinea,\n\nparaguay,\n\nperu,\n\nphilippines,\n\npoland,\n\nportugal,\n\nqatar,\n\nromania,\n\nrussia,\n\nrwanda,\n\nsaudi arabia,\n\nsenegal,\n\nserbia,\n\nsingapore,\n\nslovakia,\n\nslovenia,\n\nsomalia,\n\nsouth africa,\n\nsouth korea,\n\nsouth sudan,\n\nspain,\n\nsri lanka,\n\nsudan,\n\nsweden,\n\nswitzerland,\n\nsyria,\n\ntaiwan,\n\ntajikistan,\n\ntanzania,\n\nthailand,\n\ntogo,\n\ntrinidad and tobago,\n\ntunisia,\n\nturkey,\n\nturkmenistan,\n\nuganda,\n\nukraine,\n\nunited arab emirates,\n\nunited kingdom,\n\nunited states,\n\nuruguay,\n\nuzbekistan,\n\nvenezuela,\n\nvietnam,\n\nyemen,\n\nzambia,\n\nzimbabwe\n\n​\n\nlanguage\n\nstring\n\nBoost search results in a specific language. Accepts an ISO 639-1 code (e.g. en, fr, zh-cn) or an English language name (e.g. english, french). By default this only boosts matching-language results in ranking; pass filter_by_language: true to strictly filter out non-matching results instead. For best results, write your query in the same language you set here.\n\nExample:\n\n\"en\"\n\n​\n\nfilter_by_language\n\nboolean\n\ndefault:false\n\nStrictly filter out search results that don't match the language parameter, instead of only boosting them in ranking. Requires language to be set; returns a 400 error otherwise.\n\n​\n\nauto_parameters\n\nboolean\n\ndefault:false\n\nWhen auto_parameters is enabled, Tavily automatically configures search parameters based on your query's content and intent. You can still set other parameters manually, and your explicit values will override the automatic ones. The parameters include_answer, include_raw_content, and max_results must always be set manually, as they directly affect response size. Note: search_depth may be automatically set to advanced when it's likely to improve results. This uses 2 API credits per request. To avoid the extra cost, you can explicitly set search_depth to basic.\n\n​\n\nexact_match\n\nboolean\n\ndefault:false\n\nEnsure that only search results containing the exact quoted phrase(s) in the query are returned, bypassing synonyms or semantic variations. Wrap target phrases in quotes within your query (e.g. \"John Smith\" CEO Acme Corp). Punctuation is typically ignored inside quotes.\n\n​\n\ninclude_usage\n\nboolean\n\ndefault:false\n\nWhether to include credit usage information in the response.\n\n​\n\nsafe_search\n\nboolean\n\ndefault:false\n\nWhether to filter out adult or unsafe content from results. Not supported for fast or ultra-fast search depths.\n\nResponse\n\nSearch results returned successfully\n\n​\n\nquery\n\nstring\n\nrequired\n\nThe search query that was executed.\n\nExample:\n\n\"Who is Leo Messi?\"\n\n​\n\nanswer\n\nstring\n\nrequired\n\nA short answer to the user's query, generated by an LLM. Included in the response only if include_answer is requested (i.e., set to true, basic, or advanced)\n\nExample:\n\n\"Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability. He has won multiple FIFA Ballon d'Or awards, numerous La Liga titles with Barcelona, and holds the record for most goals scored in a calendar year. In 2014, he led Argentina to the World Cup final, and in 2015, he helped Barcelona capture another treble. Despite turning 36 in June, Messi remains highly influential in the sport.\"\n\n​\n\nimages\n\nobject[]\n\nrequired\n\nA list of query-related images from image search. If include_image_descriptions is true, each item will have url and description. Note: per-result images are also returned inside each result object's images field.\n\nShow child attributes\n\nExample:\n\n```\n[]\n```\n\n​\n\nresults\n\nobject[]\n\nrequired\n\nA list of sorted search results, ranked by relevancy.\n\nShow child attributes\n\n​\n\nresponse_time\n\nnumber<float>\n\nrequired\n\nTime in seconds it took to complete the request.\n\nExample:\n\n\"1.67\"\n\n​\n\nauto_parameters\n\nobject\n\nA dictionary of the selected auto_parameters, only shown when auto_parameters is true.\n\nExample:\n\n```\n{\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\"\n}\n```\n\n​\n\nusage\n\nobject\n\nCredit usage details for the request.\n\nExample:\n\n```\n{ \"credits\": 1 }\n```\n\n​\n\nrequest_id\n\nstring\n\nA unique request identifier you can share with customer support to help resolve issues with specific requests.\n\nExample:\n\n\"123e4567-e89b-12d3-a456-426614174111\"",
+            "code_ranges": [
+              [
+                12,
+                180
+              ],
+              [
+                182,
+                1940
+              ],
+              [
+                1971,
+                2139
+              ],
+              [
+                2141,
+                3899
+              ],
+              [
+                15602,
+                15612
+              ],
+              [
+                15961,
+                16020
+              ],
+              [
+                16089,
+                16113
+              ]
+            ]
+          }
+        },
+        "result": {
+          "version": 5,
+          "tool_contract_version": 2,
+          "run_id": "b21564fb-415b-4673-91b8-1509d8e6739e",
+          "status": "budget_exhausted",
+          "stop_reason": "model_call_limit",
+          "exploration_stop_reason": "model_call_limit",
+          "error_code": null,
+          "usage": {
+            "model_calls": 2,
+            "tool_calls": 1,
+            "estimated_input_tokens": 13173,
+            "prompt_tokens": 40,
+            "completion_tokens": 20,
+            "settled_tokens": 60,
+            "actual_total_tokens": 60,
+            "reserved_tokens": 0,
+            "final_reserved_tokens": 0,
+            "calls": [
+              {
+                "run_id": "b21564fb-415b-4673-91b8-1509d8e6739e",
+                "call": 1,
+                "phase": "exploration",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048,
+                "reservation": 9518,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              },
+              {
+                "run_id": "b21564fb-415b-4673-91b8-1509d8e6739e",
+                "call": 2,
+                "phase": "final",
+                "estimated_input_tokens": 5703,
+                "output_limit": 2048,
+                "reservation": 7751,
+                "state": "settled",
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "unknown_reason": null
+              }
+            ],
+            "unreported_model_calls": 0
+          },
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "run_started",
+              "elapsed_ms": 0,
+              "data": {
+                "knowledge_base_ids": [
+                  3
+                ],
+                "allow_web": true
+              }
+            },
+            {
+              "sequence": 2,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 0,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:25.141766+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 3,
+              "kind": "budget_planned",
+              "elapsed_ms": 0,
+              "data": {
+                "settled_tokens": 0,
+                "remaining_tokens": 64000,
+                "final_reservation": 6805,
+                "available_for_exploration": 57195,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 4,
+              "kind": "model_started",
+              "elapsed_ms": 0,
+              "data": {
+                "call": 1,
+                "final": false,
+                "request_mode": "native_tools",
+                "tool_definition_count": 5,
+                "tool_choice": "required",
+                "exploration_stop_reason": "",
+                "estimated_input_tokens": 7470,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 5,
+              "kind": "model_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "call": 1,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 30,
+                "released_reservation": 9518,
+                "finish_reason": "tool_calls"
+              }
+            },
+            {
+              "sequence": 6,
+              "kind": "tool_started",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "overview",
+                "tool": "web_read",
+                "arguments_summary": "{\"source_id\": \"web_1\", \"start\": 0, \"max_chars\": 300}",
+                "call_key": "[\"web_read\", [\"web_1\", 0, 300]]"
+              }
+            },
+            {
+              "sequence": 7,
+              "kind": "web_directory_updated",
+              "elapsed_ms": 16,
+              "data": {
+                "directory": [
+                  {
+                    "source_id": "web_1",
+                    "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+                    "title": "Tavily Search - Tavily Docs",
+                    "origin": "search",
+                    "discovered_at": "2026-11-01T14:25:25.141766+00:00",
+                    "read": true
+                  }
+                ]
+              }
+            },
+            {
+              "sequence": 8,
+              "kind": "tool_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "overview",
+                "tool": "web_read",
+                "status": "success",
+                "source_count": 1,
+                "errors": [],
+                "error_summaries": [],
+                "web_diagnostics": [
+                  {
+                    "endpoint": "web_cache",
+                    "phase": "complete",
+                    "category": "cache_hit",
+                    "elapsed_seconds": 0,
+                    "http_status": null,
+                    "request_id": null,
+                    "exception_type": null,
+                    "timeout_layer": null,
+                    "client_timeout_seconds": null,
+                    "connected_ip": null,
+                    "redirect_count": 0,
+                    "final_url": null
+                  }
+                ],
+                "directory": [],
+                "matches": [],
+                "selection": null
+              }
+            },
+            {
+              "sequence": 9,
+              "kind": "materials_budgeted",
+              "elapsed_ms": 16,
+              "data": {
+                "remaining_tokens": 63970,
+                "exploration_input": 8439,
+                "final_input": 5726,
+                "final_reservation": 7774,
+                "available_for_exploration": 56196
+              }
+            },
+            {
+              "sequence": 10,
+              "kind": "materials_prepared",
+              "elapsed_ms": 16,
+              "data": {
+                "call_id": "overview",
+                "citation_ids": [
+                  1
+                ],
+                "truncated": true
+              }
+            },
+            {
+              "sequence": 11,
+              "kind": "exploration_stopped",
+              "elapsed_ms": 16,
+              "data": {
+                "reason": "model_call_limit"
+              }
+            },
+            {
+              "sequence": 12,
+              "kind": "budget_planned",
+              "elapsed_ms": 16,
+              "data": {
+                "settled_tokens": 30,
+                "remaining_tokens": 63970,
+                "final_reservation": 7774,
+                "available_for_exploration": 56196,
+                "input_measurement": "utf8_bytes_estimate"
+              }
+            },
+            {
+              "sequence": 13,
+              "kind": "sources_updated",
+              "elapsed_ms": 16,
+              "data": {
+                "citation_ids": [
+                  1
+                ]
+              }
+            },
+            {
+              "sequence": 14,
+              "kind": "model_started",
+              "elapsed_ms": 16,
+              "data": {
+                "call": 2,
+                "final": true,
+                "request_mode": "strict_answer",
+                "tool_definition_count": 0,
+                "tool_choice": null,
+                "exploration_stop_reason": "model_call_limit",
+                "estimated_input_tokens": 5703,
+                "output_limit": 2048
+              }
+            },
+            {
+              "sequence": 15,
+              "kind": "model_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "call": 2,
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "provider_total_tokens": 30,
+                "settled_tokens": 60,
+                "released_reservation": 7751,
+                "finish_reason": "stop"
+              }
+            },
+            {
+              "sequence": 16,
+              "kind": "answer_check_started",
+              "elapsed_ms": 16,
+              "data": {}
+            },
+            {
+              "sequence": 17,
+              "kind": "answer_validated",
+              "elapsed_ms": 16,
+              "data": {
+                "citation_ids": [],
+                "outcome": "insufficient",
+                "semantic_support": "not_evaluated"
+              }
+            },
+            {
+              "sequence": 18,
+              "kind": "run_finished",
+              "elapsed_ms": 16,
+              "data": {
+                "status": "budget_exhausted",
+                "stop_reason": "model_call_limit",
+                "error_code": null,
+                "exploration_stop_reason": "model_call_limit"
+              }
+            }
+          ],
+          "answer": "本次为最终回答保留了最后一次模型调用，未能完成参数取证。",
+          "model": "qwen3.8-flash",
+          "web_directory": [
+            {
+              "source_id": "web_1",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "origin": "search",
+              "discovered_at": "2026-11-01T14:25:25.141766+00:00",
+              "read": true
+            }
+          ],
+          "sources": [
+            {
+              "citation_id": 1,
+              "source_type": "web_page",
+              "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+              "title": "Tavily Search - Tavily Docs",
+              "fetched_at": "2026-10-30T09:56:44.355209+00:00",
+              "content": "Python SDK\n\n```\nfrom tavily import TavilyClient\n\ntavily_client = TavilyClient(api_key=\"tvly-YOUR_API_KEY\")\nresponse = tavily_client.search(\"Who is Leo Messi?\")\n\nprint(response)\n```\n\n",
+              "truncated": true,
+              "source_id": "web_1",
+              "start": 0,
+              "end": 182,
+              "total_chars": 16298,
+              "code_ranges": [
+                [
+                  12,
+                  180
+                ]
+              ]
+            }
+          ],
+          "source_count": 1,
+          "retrieval_results": [],
+          "input_measurement": "utf8_bytes_estimate",
+          "estimated_input_tokens": 13173,
+          "prompt_tokens": 40,
+          "completion_tokens": 20
+        }
+      }
+    }
+  ]
+}

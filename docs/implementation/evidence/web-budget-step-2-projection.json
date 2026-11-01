@@ -1,0 +1,12 @@
+{
+  "offline_only": true,
+  "original_find_results_unchanged": true,
+  "only_query_with_selected_match_compacted": true,
+  "other_query_on_same_page_keeps_previews": true,
+  "all_match_positions_retained": true,
+  "read_body_unchanged": true,
+  "native_message_pairs_unchanged": true,
+  "before_bytes": 5054,
+  "after_bytes": 3583,
+  "all_checks_passed": true
+}

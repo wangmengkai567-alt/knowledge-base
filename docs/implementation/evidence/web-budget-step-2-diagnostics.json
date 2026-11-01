@@ -1,0 +1,27 @@
+{
+  "offline_only": true,
+  "model_calls": 0,
+  "network_calls": 0,
+  "red_to_green_replay": {
+    "old_rejected": true,
+    "new_keeps_complete_code": true,
+    "range": [
+      182,
+      1940
+    ],
+    "native_estimate": 13992,
+    "final_estimate_reserved": 11955,
+    "total_required": 30043
+  },
+  "oversized_code_window_returns_local_error": true,
+  "native_and_final_requests_both_checked": true,
+  "input_and_total_budget_reasons_distinct": true,
+  "stop_explanation_envelope_reserved": true,
+  "paragraph_and_code_boundaries_valid": true,
+  "only_consumed_navigation_previews_compacted": true,
+  "original_navigation_results_unmodified": true,
+  "invalid_arguments_not_repaired": true,
+  "all_checks_passed": true,
+  "finalization_keeps_last_batch_when_exploration_budget_ends": true,
+  "future_finish_instruction_reserved": true
+}

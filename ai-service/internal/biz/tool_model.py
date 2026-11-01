@@ -6,8 +6,10 @@ import json
 from functools import partial
 from typing import TYPE_CHECKING
 
+from pydantic import ValidationError
+
 from internal.biz.tool_types import ANSWER_RESPONSE_FORMAT
-from internal.biz.tools import ReadOnlyToolExecutor, ToolSession, run_scoped
+from internal.biz.tools import ReadOnlyToolExecutor, ToolSession, WebReadArguments, run_scoped
 from pkg.errors.base import LLMError
 
 if TYPE_CHECKING:
@@ -100,10 +102,50 @@ class ToolModel:
         if not final and not definitions:
             raise LLMError(reason="NO_ALLOWED_TOOLS", message="本次未允许任何检索来源")
         self.validate_history(messages)
-        if self.estimate(messages, session, final=final) > self._budget.input_limit:
+        if self.estimate(messages, session, final=final) > self._budget.input_ceiling(max_tokens):
             raise LLMError(
                 reason="INPUT_BUDGET_EXCEEDED", message="提示、工具定义及执行记录超过输入预算"
             )
+
+    @staticmethod
+    def project_history(messages: list[dict]) -> list[dict]:
+        """已用于选择读取位置的导航只保留位置，原始查找结果仍由运行快照保存。"""
+        find_calls = {
+            call["id"]
+            for message in messages
+            for call in message.get("tool_calls", [])
+            if call["function"]["name"] == "web_find"
+        }
+        read_ranges: dict[str, list[tuple[int, int]]] = {}
+        projected = []
+        for message in reversed(messages):
+            for call in message.get("tool_calls", []):
+                if call["function"]["name"] == "web_read":
+                    if not isinstance(call["function"]["arguments"], str):
+                        continue
+                    try:
+                        arguments = WebReadArguments.model_validate_json(call["function"]["arguments"])
+                    except ValidationError:
+                        continue  # 不改写无效参数，仍由唯一工具入口校验。
+                    read_ranges.setdefault(arguments.source_id, []).append(
+                        (arguments.start, arguments.start + arguments.max_chars)
+                    )
+            if message["role"] == "tool" and message["tool_call_id"] in find_calls:
+                payload = json.loads(message["content"])
+                matches = payload["matches"]
+                if any(
+                    left <= match["start"] < match["end"] <= right
+                    for match in matches
+                    for left, right in read_ranges.get(match["source_id"], [])
+                ):
+                    payload["matches"] = [
+                        {key: match[key] for key in ("source_id", "start", "end", "in_code")}
+                        for match in matches
+                    ]
+                    payload["preview_omitted_after_read_selection"] = True
+                    message = {**message, "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}
+            projected.append(message)
+        return list(reversed(projected))
 
     @staticmethod
     def request_messages(messages: list[dict], session: ToolSession) -> list[dict]:
@@ -119,10 +161,11 @@ class ToolModel:
             instructions.append("用户指定网页目录，仅供选择、不可作为证据：" + json.dumps(user_directory, ensure_ascii=False))
         if session.finished:
             instructions.append("取证已结束，只能依据 finish_research 选定的引用生成最终答案。")
-        instructions.extend(message["content"] for message in messages if message["role"] == "system")
+        history = ToolModel.project_history(messages)
+        instructions.extend(message["content"] for message in history if message["role"] == "system")
         return [
             {"role": "system", "content": "\n\n".join(instructions)},
-            *(message for message in messages if message["role"] != "system"),
+            *(message for message in history if message["role"] != "system"),
         ]
 
     def estimate(self, messages: list[dict], session: ToolSession, *, final: bool = False) -> int:
