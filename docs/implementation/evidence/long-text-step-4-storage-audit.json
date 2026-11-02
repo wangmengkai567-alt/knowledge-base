@@ -1,0 +1,25 @@
+{
+  "data": {
+    "documents": {
+      "count": 29,
+      "sha256": "c94fb17abe57ebf478f7ddae61ac3790529ebe6c6625ff7eb9e0b56b0a3263bf"
+    },
+    "chunks": {
+      "count": 1167,
+      "sha256": "4a480201ef8a09033c44592284a654908f262f68c3e728fe516a4be434f0f658"
+    },
+    "vectors": {
+      "count": 1167,
+      "sha256": "cad1c02f5642e98184144e3957624557bb0a6bfb94e922cfa06388b04de072dc"
+    }
+  },
+  "runtime": {
+    "chat_model": "qwen3.8-flash",
+    "embedding_model": "qwen3.7-text-embedding-flash",
+    "reranker": "qwen3.7-text-rerank",
+    "embedding_batch_size": 20,
+    "chunk_size": 256,
+    "chunk_overlap": 32
+  },
+  "matches_preexisting_reference": true
+}

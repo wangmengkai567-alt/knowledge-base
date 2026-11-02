@@ -6,6 +6,7 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -246,6 +247,69 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         final_calls = [entry for entry in run.usage.calls if entry.phase == "final"]
         self.assertEqual(len(final_calls), 1)
         self.assertLessEqual(final_calls[0].estimated_input_tokens, biz._budget.input_limit)
+
+    async def test_unbroken_prose_is_budgeted_through_tools_and_final_request(self):
+        content = "A" * 10000 + " memory_limit 512MB " + "B" * 10000
+        biz, llm, _, _, _ = research_setup(
+            [action(query="memory_limit"), finish_action("answered", [1])],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            }]), contents=(content,),
+        )
+        generate_answer = llm.generate_answer.side_effect
+
+        async def select_matching_evidence(messages, **kwargs):
+            response = await generate_answer(messages, **kwargs)
+            entries = json.loads(messages[-1]["content"])["sources"][0]["evidence"]
+            entry = next(entry for entry in entries if "memory_limit 512MB" in entry["content"])
+            payload = json.loads(response.content)
+            payload["claims"][0]["evidence_ids"] = [entry["evidence_id"]]
+            return replace(response, content=json.dumps(payload, ensure_ascii=False))
+
+        llm.generate_answer.side_effect = select_matching_evidence
+        run = await biz.query(query="memory_limit?", knowledge_base_ids=[1], user_id=1)
+        self.assertEqual(run.status, "completed")
+        self.assertTrue(run.sources[0].truncated)
+        fragment = next(entry for entry in run.evidence_catalog if "memory_limit 512MB" in entry.content)
+        chunks = await biz._model.executor._materials._chunk_repo.list_by_document(1)
+        by_id = {chunk.id: chunk.content for chunk in chunks}
+        original = by_id[fragment.origin["chunk_id"]]
+        self.assertEqual(original[fragment.origin["start"]:fragment.origin["end"]], fragment.content)
+        self.assertTrue(any(part.end - part.start < len(by_id[part.chunk_id]) for part in run.sources[0].segments))
+        self.assertEqual(run.answer_claims[0]["evidence"][0]["quote"], fragment.content)
+        self.assertTrue(all(call.estimated_input_tokens <= biz._budget.input_limit for call in run.usage.calls))
+        self.assertEqual(run.usage.model_calls, 3)
+        llm.generate_answer.assert_awaited_once()
+
+    async def test_full_context_is_repacked_before_followup_tool_metadata(self):
+        content = ("```text\nmemory_limit 512MB\n```\n" * 150) + "memory_limit " + "A" * 10000
+        biz, llm, executor, retrieval, _ = research_setup(
+            [action(query="memory_limit"), action("c2", "memory_limit second source"), finish_action("answered", [1])],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            }]), contents=(content,),
+        )
+        run = await biz.query(query="memory_limit?", knowledge_base_ids=[1], user_id=1)
+        self.assertEqual(run.status, "completed")
+        self.assertEqual(run.exploration_stop_reason, "evidence_complete")
+        self.assertEqual(retrieval.retrieve_many.await_count, 2)
+        self.assertEqual([call.args[0].name for call in executor.execute.await_args_list],
+                         ["knowledge_base_search", "knowledge_base_search", "finish_research"])
+        self.assertEqual(run.usage.model_calls, 4)
+        self.assertTrue(all(call.estimated_input_tokens <= biz._budget.input_limit for call in run.usage.calls))
+        llm.generate_answer.assert_awaited_once()
+
+    async def test_oversized_code_reports_material_budget_instead_of_dependency_error(self):
+        content = "```text\n" + "A" * 20000 + "\n```\n"
+        biz, llm, _, _, _ = research_setup(
+            [action(query="代码")], grounded_answer("insufficient", missing=["代码原文"]), contents=(content,),
+        )
+        run = await biz.query(query="代码", knowledge_base_ids=[1], user_id=1)
+        self.assertEqual(run.error_code, "MATERIAL_BUDGET_EXCEEDED")
+        self.assertIn("代码块", run.tool_results[0].errors[0].message)
+        self.assertEqual(run.usage.model_calls, 1)
+        llm.generate_answer.assert_not_awaited()
+        self.assertEqual(run.sources, [])
 
     async def test_conflicting_versions_keep_separate_sources(self):
         # 两份分别存储的版本文档；同一文档的过期切片不能冒充当前版本。

@@ -308,7 +308,7 @@ class ReadOnlyToolExecutor:
         except APIError as exc:
             if exc.reason in {
                 "SOURCE_RECHUNK_REQUIRED", "SOURCE_CHANGED", "SOURCE_CODE_RANGE_INVALID",
-                "SOURCE_CONFIGURATION_INVALID",
+                "SOURCE_CONFIGURATION_INVALID", "MATERIAL_BUDGET_EXCEEDED",
             }:
                 return ToolResult(call.id, call.name, "error", errors=[ToolFailure(exc.reason, exc.message)])
             return ToolResult(

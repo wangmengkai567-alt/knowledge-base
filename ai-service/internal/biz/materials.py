@@ -160,7 +160,11 @@ class MaterialProcessor:
         )
         messages, size = measure(sources)
         if candidates and not sources:
-            raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message="输入预算不足以容纳资料")
+            message = "输入预算不足以容纳资料"
+            if any(any(part.code_ranges for part in source.segments) if isinstance(source, AnswerSource)
+                   else source.code_ranges for source in candidates):
+                message += "；代码块必须完整保留，不能截断"
+            raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message=message)
         return PreparedMaterials(messages, sources, size, output_tokens, budget.measurement)
 
     async def _read_document(self, doc_id: int):
@@ -379,6 +383,20 @@ class _Excerpt:
     start: int
     end: int
     score: float
+    focus_start: int
+    focus_end: int
+
+
+def _excerpt_focus(content: str, start: int, end: int, codes: list[tuple[int, int]], terms: set[str]) -> tuple[int, int]:
+    for left, right in codes:
+        if start < right and left < end:
+            return left, right  # 匹配或邻接的代码单元只能整体选择。
+    match = min((match for term in terms for match in re.finditer(re.escape(term), content[start:end], re.I)),
+                key=lambda match: (match.start(), -match.end()), default=None)
+    if match is not None:
+        return start + match.start(), start + match.end()
+    first = start + len(content[start:end]) - len(content[start:end].lstrip())
+    return first, first + 1
 
 
 def _excerpt_source(source: AnswerSource | WebSource, excerpts: list[_Excerpt]) -> AnswerSource | WebSource:
@@ -412,6 +430,7 @@ def pack_sources(
     """按问题相关原文单元分配完整请求空间；先覆盖不同文档，再添加相关上下文。"""
     terms = question_terms(query)
     excerpts = []
+    contexts = {}
     named = set()
     for index, source in enumerate(candidates):
         local_terms = terms
@@ -431,6 +450,7 @@ def pack_sources(
             else:
                 part = source.segments[segment]
                 code_ranges = [(left - part.start, right - part.start) for left, right in part.code_ranges]
+            contexts[index, segment] = content, code_ranges
             ranges = _text_ranges(content, code_ranges)
             scores = [sum(1 for term in local_terms if term in content[left:right].casefold())
                       for left, right in ranges]
@@ -445,10 +465,11 @@ def pack_sources(
                 if direct and re.search(r"\d\s*(?:[KMGT]?B|[kmgt]b?|cores?|核|秒|分钟|小时|%)\b", content[left:right], re.I):
                     score += 4
                 if not terms or score > 0:
+                    focus_start, focus_end = _excerpt_focus(content, left, right, code_ranges, local_terms)
                     if direct:
                         left = ranges[max(0, position - 1)][0]
                         right = ranges[min(len(ranges) - 1, position + 1)][1]
-                    excerpts.append(_Excerpt(index, segment, left, right, score))
+                    excerpts.append(_Excerpt(index, segment, left, right, score, focus_start, focus_end))
     excerpts.sort(key=lambda item: (item.source not in named, -item.score, item.source, item.segment, item.start))
     chosen: list[_Excerpt] = []
 
@@ -458,19 +479,60 @@ def pack_sources(
             grouped.setdefault(item.source, []).append(item)
         return [_excerpt_source(candidates[index], group) for index, group in sorted(grouped.items())]
 
+    def contained(item: _Excerpt) -> bool:
+        return any(old.source == item.source and old.segment == item.segment
+                   and old.start <= item.start and item.end <= old.end for old in chosen)
+
+    def budgeted_window(item: _Excerpt) -> _Excerpt | None:
+        content, codes = contexts[item.source, item.segment]
+        minimum = item.focus_end - item.focus_start
+        low, high, best = minimum, item.end - item.start, None
+        while low <= high:
+            length = (low + high) // 2
+            start = max(item.start, min(item.focus_start - (length - minimum) // 2, item.end - length))
+            end = start + length
+            for left, right in codes:
+                if left < start < right:
+                    start = right
+                if left < end < right:
+                    end = left
+            # 保留原 CRLF 对；窗口可以省略整对换行，不能只留下其中一个字符。
+            if content[start - 1:start + 1] == "\r\n":
+                start += 1
+            if content[end - 1:end + 1] == "\r\n":
+                end -= 1
+            window = replace(item, start=start, end=end)
+            if start <= item.focus_start < item.focus_end <= end and fits(project([*chosen, window])):
+                best = window
+                low = length + 1
+            else:
+                high = length - 1
+        return best
+
     # 每份文档最相关的完整单元先争取空间；之后按相关度补齐，绝不等长截取每份开头。
     first, rest, seen = [], [], set()
     for item in excerpts:
         key = source_identity(candidates[item.source])
         (rest if key in seen or (named and item.source not in named) else first).append(item)
         seen.add(key)
+    pending = []
     for item in [*first, *rest]:
-        if any(old.source == item.source and old.segment == item.segment
-               and old.start <= item.start and item.end <= old.end for old in chosen):
+        if contained(item):
             continue
         trial = [*chosen, item]
         if fits(project(trial)):
             chosen = trial
+        else:
+            _, codes = contexts[item.source, item.segment]
+            if (item.focus_start, item.focus_end) in codes:
+                code = replace(item, start=item.focus_start, end=item.focus_end)
+                if not contained(code) and fits(project([*chosen, code])):
+                    chosen.append(code)
+            pending.append(item)
+    # 完整句/行优先。长正文以查询命中为中心，在同一完整请求预算内确定连续窗口；代码保持原子性。
+    for item in pending:
+        if not contained(item) and (window := budgeted_window(item)) is not None:
+            chosen.append(window)
     return project(chosen)
 
 

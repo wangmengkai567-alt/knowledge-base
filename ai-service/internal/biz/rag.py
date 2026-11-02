@@ -371,8 +371,9 @@ class RAGBiz:
             start = len(messages)
             for call in result.tool_calls:
                 messages.append(self._denied(call, "RUN_STOPPED").to_message())
-            reason = self._budget_plan(messages, session, run, output_tokens).stop_reason(final=True)
-            if reason:
+            # 新动作及其占位结果也占空间；执行前用同一装载器重新分配历史原文，保留收尾预算。
+            prepared_history, reason = self._fit_results([], run, messages, start, session, output_tokens)
+            if prepared_history is None:
                 # 尚未执行任何动作，无需把无法容纳的请求加入后续原生协议。
                 # 保留上一份完整上下文和预留额度，用最后一轮回答明确结束。
                 del messages[before_action:]
