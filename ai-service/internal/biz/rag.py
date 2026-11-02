@@ -272,9 +272,12 @@ class RAGBiz:
             if no_progress >= 2:
                 run.stop_exploration("no_new_evidence")
             final = bool(run.exploration_stop_reason)
-            if final and not usage.tool_calls:
-                run.finish("budget_exhausted", run.exploration_stop_reason)
-                return
+            if final:
+                # 无论由 finish_research 还是程序限制结束取证，最终生成前都关闭工具会话。
+                session.finished = True
+                if not usage.tool_calls:
+                    run.finish("budget_exhausted", run.exploration_stop_reason)
+                    return
             run.emit("budget_planned", settled_tokens=usage.settled_tokens,
                      remaining_tokens=remaining, final_reservation=reserve,
                      available_for_exploration=remaining - usage.reserved_tokens - reserve,

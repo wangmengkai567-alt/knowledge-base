@@ -6,19 +6,22 @@ import json
 import sys
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from internal.biz.answer_run import RunLimits
-from internal.biz.entity import ChatResult
+from internal.biz.entity import ChatResult, Chunk, RetrievalResult
 from internal.biz.materials import AnswerSource, InputBudget, MaterialSegment, WebSource
 from internal.biz.rag import RAGBiz
 from internal.biz.tool_model import ToolModel
 from internal.biz.tool_types import ToolCall, ToolFailure, ToolResult
 from internal.biz.tools import ReadOnlyToolExecutor, ToolScope, ToolSession
 from internal.data.answer_runs import LocalAnswerRunStore
+from internal.data.chunker.recursive import RecursiveCharacterChunker
 from internal.prompt.base import PromptTemplate
 from internal.service.rag import RAGService
 from pkg.errors.base import LLMError
@@ -95,6 +98,67 @@ def source():
                      "组件先加载配置，再连接存储。", "web_page")
 
 
+def finish_action(outcome, citation_ids, call_id="done"):
+    return ChatResult(
+        "", "qwen3.8-flash", prompt_tokens=20, completion_tokens=10, total_tokens=30,
+        tool_calls=[ToolCall(call_id, "finish_research", json.dumps(
+            {"outcome": outcome, "citation_ids": citation_ids},
+        ))], finish_reason="tool_calls",
+    )
+
+
+def grounded_answer(status, claims=(), missing=()):
+    return ChatResult(
+        json.dumps({"status": status, "claims": list(claims), "missing": list(missing)}, ensure_ascii=False),
+        "qwen3.8-flash", prompt_tokens=20, completion_tokens=10, total_tokens=30, finish_reason="stop",
+    )
+
+
+def research_setup(actions, answer, *, contents=("启动顺序：先加载配置，再连接存储。",), limits=None):
+    budget = InputBudget("qwen3.8-flash")
+    chunker = RecursiveCharacterChunker(256, 32)
+    documents, chunks_by_document, hits = {}, {}, []
+    for number, content in enumerate(contents, 1):
+        version = datetime(2026, 11, 2, tzinfo=UTC) + timedelta(hours=number)
+        documents[number] = SimpleNamespace(
+            id=number, knowledge_base_id=1, parsed_content=content, updated_at=version, created_at=version,
+            stages={name: {"status": "completed"} for name in ("parse", "chunk", "vector", "keyword")},
+        )
+        chunks = [Chunk(number * 100 + pos, number, pos, text)
+                  for pos, text in enumerate(chunker.chunk(content))]
+        chunks_by_document[number] = chunks
+        hits.extend(RetrievalResult(
+            chunk.id, 0.9, chunk.content, chunk.position, number, f"startup-v{number}.md", 1, version,
+            score_type="rerank", score_method="fixed",
+        ) for chunk in chunks)
+    retrieval = SimpleNamespace(retrieve_many=AsyncMock(return_value=hits))
+    executor = ReadOnlyToolExecutor(
+        retrieval, SimpleNamespace(get_by_id=AsyncMock(return_value=SimpleNamespace(owner_id=1))),
+        SimpleNamespace(list_by_document=AsyncMock(side_effect=chunks_by_document.__getitem__)),
+        SimpleNamespace(), budget,
+        document_repo=SimpleNamespace(get_by_id=AsyncMock(side_effect=documents.get)), chunker=chunker,
+    )
+    sessions = []
+    create_session = executor.create_session
+
+    async def record_session(*args, **kwargs):
+        session = await create_session(*args, **kwargs)
+        sessions.append(session)
+        return session
+
+    executor.create_session = AsyncMock(side_effect=record_session)
+    executor.execute = AsyncMock(wraps=executor.execute)
+    llm = LLM(actions)
+
+    def generate_answer(messages, **kwargs):
+        assert sessions[0].finished, "最终生成开始前必须关闭取证工具会话"
+        return answer
+
+    llm.generate_answer = AsyncMock(side_effect=generate_answer)
+    biz = RAGBiz(ToolModel(executor, llm, budget), Prompts(), budget, limits=limits)
+    return biz, llm, executor, retrieval, sessions
+
+
 class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
     async def query(self, biz, **kwargs):
         return await biz.query(query="启动顺序？", knowledge_base_ids=[1], user_id=1, **kwargs)
@@ -119,26 +183,60 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("本次禁止联网", llm.calls[0][0][0]["content"])
 
     async def test_nonempty_material_can_still_be_insufficient_without_forced_retry(self):
-        biz, llm, _ = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "success", [source()])])
+        biz, llm, executor, retrieval, _ = research_setup(
+            [action(query="启动顺序"), finish_action("insufficient", [1])],
+            grounded_answer("insufficient", claims=[{
+                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            }], missing=["加载配置后的启动步骤"]), contents=("启动顺序：先加载配置。",),
+        )
         run = await self.query(biz)
         self.assertEqual(run.status, "insufficient")
-        self.assertEqual(len(llm.calls), 2)
-        self.assertEqual(run.sources[0].citation_id, 1)
+        self.assertEqual(run.exploration_stop_reason, "evidence_insufficient")
+        self.assertEqual(run.evidence_selection, {"outcome": "insufficient", "citation_ids": [1]})
+        self.assertIn("先加载配置", run.answer)
+        self.assertIn("加载配置后的启动步骤", run.answer)
+        self.assertEqual([call.args[0].name for call in executor.execute.await_args_list],
+                         ["knowledge_base_search", "finish_research"])
+        retrieval.retrieve_many.assert_awaited_once()
+        llm.generate_answer.assert_awaited_once()
+        self.assertEqual(run.usage.model_calls, 3)
 
     async def test_empty_result_is_insufficient_not_tool_failure(self):
-        biz, _, _ = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "empty")])
+        biz, llm, executor, retrieval, _ = research_setup(
+            [action(query="启动顺序"), finish_action("insufficient", [])],
+            grounded_answer("insufficient", missing=["启动顺序的原文依据"]), contents=(),
+        )
         run = await self.query(biz)
         self.assertEqual(run.status, "insufficient")
+        self.assertEqual(run.exploration_stop_reason, "evidence_insufficient")
+        self.assertEqual(run.evidence_selection, {"outcome": "insufficient", "citation_ids": []})
         self.assertEqual(run.sources, [])
+        self.assertIn("启动顺序的原文依据", run.answer)
+        self.assertTrue(all(not result.errors for result in run.tool_results))
+        self.assertEqual(executor.execute.await_count, 2)
+        retrieval.retrieve_many.assert_awaited_once()
+        llm.generate_answer.assert_awaited_once()
 
     async def test_valid_citation_matches_actual_sent_material(self):
-        biz, llm, _ = setup([action(), final("先加载配置。[来源 1]", "answered")],
-                            [ToolResult("c1", "knowledge_base_search", "success", [source()])])
+        content = "启动顺序：先加载配置，再连接存储。"
+        biz, llm, _, _, _ = research_setup(
+            [action(query="启动顺序"), finish_action("answered", [1])],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": content, "evidence_ids": ["E1"], "code_evidence_id": None,
+            }]), contents=(content,),
+        )
         run = await self.query(biz)
         self.assertEqual(run.status, "completed")
-        sent = json.loads(next(m for m in llm.calls[1][0] if m["role"] == "tool")["content"])
-        self.assertEqual(sent["sources"][0]["content"], run.sources[0].content)
-        self.assertEqual(sent["sources"][0]["citation_id"], run.sources[0].citation_id)
+        self.assertEqual(run.exploration_stop_reason, "evidence_complete")
+        self.assertEqual(run.evidence_selection, {"outcome": "answered", "citation_ids": [1]})
+        self.assertEqual(llm.generate_answer.await_args.args[0], run.final_request)
+        sent = json.loads(run.final_request[-1]["content"])
+        self.assertEqual(sent["sources"][0]["evidence"][0]["content"], content)
+        self.assertEqual(run.answer_claims[0]["evidence"][0]["quote"], content)
+        self.assertEqual(run.answer_claims[0]["evidence"][0]["citation_id"], 1)
+        self.assertEqual(run.evidence_catalog[0].origin["chunk_id"], 100)
+        self.assertEqual(run.usage.actual_total_tokens, 90)
+        self.assertEqual(run.usage.unreported_model_calls, 0)
 
     async def test_materials_leave_room_for_followup_tool_history(self):
         large = source()
@@ -152,24 +250,42 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertLessEqual(measured, budget.input_limit - budget.output_limit)
 
     async def test_conflicting_versions_keep_separate_sources(self):
-        old = source()
-        current = WebSource(0, old.url, old.title, "2026-10-29T01:00:00Z", "组件先连接存储，再加载配置。", "web_page")
-        biz, _, _ = setup([action(), action("c2", "different evidence"),
-                           final("两个时间的资料顺序不同。[来源 1][来源 2]", "answered")],
-                          [ToolResult("c1", "knowledge_base_search", "success", [old]),
-                           ToolResult("c2", "knowledge_base_search", "success", [current])])
+        # 两份分别存储的版本文档；同一文档的过期切片不能冒充当前版本。
+        old = "启动顺序：先加载配置，再连接存储。"
+        current = "启动顺序：先连接存储，再加载配置。"
+        biz, llm, _, _, _ = research_setup(
+            [action(query="启动顺序"), finish_action("answered", [1, 2])],
+            grounded_answer("answered", claims=[
+                {"scope": "source", "text": old, "evidence_ids": ["E1"], "code_evidence_id": None},
+                {"scope": "source", "text": current, "evidence_ids": ["E2"], "code_evidence_id": None},
+                {"scope": "shared", "text": "两份版本资料描述的启动顺序不同。",
+                 "evidence_ids": ["E1", "E2"], "code_evidence_id": None},
+            ]), contents=(old, current),
+        )
         run = await self.query(biz)
         self.assertEqual(run.status, "completed")
-        self.assertEqual([s.citation_id for s in run.sources], [1, 2])
-        self.assertNotEqual(run.sources[0].content, run.sources[1].content)
-        self.assertNotEqual(run.sources[0].fetched_at, run.sources[1].fetched_at)
+        self.assertEqual(run.evidence_selection["citation_ids"], [1, 2])
+        self.assertEqual([source.citation_id for source in run.sources], [1, 2])
+        self.assertEqual([source.content for source in run.sources], [old, current])
+        self.assertNotEqual(run.sources[0].document_id, run.sources[1].document_id)
+        self.assertNotEqual(run.sources[0].document_updated_at, run.sources[1].document_updated_at)
+        self.assertEqual([run.answer_claims[i]["evidence"][0]["quote"] for i in range(2)], [old, current])
+        llm.generate_answer.assert_awaited_once()
 
     async def test_invalid_citation_never_published(self):
-        biz, _, _ = setup([final("编造结论。[来源 99]", "answered")])
+        biz, llm, _, _, _ = research_setup(
+            [action(query="启动顺序"), finish_action("answered", [1])],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": "编造结论。", "evidence_ids": ["E9999"], "code_evidence_id": None,
+            }]),
+        )
         run = await self.query(biz)
         self.assertEqual(run.status, "invalid_answer")
+        self.assertEqual(run.error_code, "INVALID_EVIDENCE_ID")
         self.assertEqual(run.answer, "")
         self.assertNotIn("answer_validated", [event.kind for event in run.events])
+        llm.generate_answer.assert_awaited_once()
+        self.assertEqual(run.usage.model_calls, 3)
 
     async def test_tool_failure_stops_without_another_model_or_tool(self):
         result = ToolResult("c1", "knowledge_base_search", "error", errors=[ToolFailure("TOOL_DEPENDENCY_FAILED", "offline")])
@@ -179,11 +295,124 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((len(llm.calls), len(executor.calls)), (1, 1))
 
     async def test_repeat_query_with_different_call_id_is_not_executed_again(self):
-        biz, _, executor = setup([action(), action("c2", " TOPIC "), final()],
-                                  [ToolResult("c1", "knowledge_base_search", "empty")])
+        biz, llm, executor, retrieval, sessions = research_setup(
+            [action(query="启动顺序"), action("c2", " 启动顺序 ")],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            }]),
+        )
         run = await self.query(biz)
-        self.assertEqual(run.status, "repeated_call")
-        self.assertEqual(len(executor.calls), 1)
+        self.assertEqual(run.status, "completed")
+        self.assertEqual(run.exploration_stop_reason, "repeated_call")
+        self.assertIsNone(run.evidence_selection)
+        self.assertEqual(executor.execute.await_count, 1)
+        retrieval.retrieve_many.assert_awaited_once()
+        llm.generate_answer.assert_awaited_once()
+        self.assertTrue(sessions[0].finished)
+
+    async def test_program_limits_close_research_before_final_answer(self):
+        for limits, reason in ((RunLimits(model_calls=2), "model_call_limit"),
+                               (RunLimits(tool_calls=1), "tool_call_limit")):
+            with self.subTest(reason=reason):
+                biz, llm, executor, retrieval, sessions = research_setup(
+                    [action(query="启动顺序")], grounded_answer("answered", claims=[{
+                        "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"],
+                        "code_evidence_id": None,
+                    }]), limits=limits,
+                )
+                run = await self.query(biz)
+                self.assertEqual(run.status, "completed")
+                self.assertEqual(run.exploration_stop_reason, reason)
+                self.assertIsNone(run.evidence_selection)
+                self.assertTrue(sessions[0].finished)
+                self.assertEqual(executor.execute.await_count, 1)
+                llm.generate_answer.assert_awaited_once()
+                blocked = await executor.execute(ToolCall("late", "knowledge_base_search", '{"query":"late"}'), sessions[0])
+                self.assertEqual(blocked.errors[0].code, "RUN_STOPPED")
+                retrieval.retrieve_many.assert_awaited_once()
+                self.assertEqual(run.usage.model_calls, 2)
+
+    async def test_no_new_evidence_closes_research_without_finish_tool(self):
+        biz, llm, executor, retrieval, sessions = research_setup(
+            [action(query="启动顺序"), action("c2", "后续启动步骤")],
+            grounded_answer("insufficient", missing=["启动顺序的原文依据"]), contents=(),
+        )
+        run = await self.query(biz)
+        self.assertEqual(run.status, "insufficient")
+        self.assertEqual(run.exploration_stop_reason, "no_new_evidence")
+        self.assertIsNone(run.evidence_selection)
+        self.assertTrue(sessions[0].finished)
+        self.assertEqual([call.args[0].name for call in executor.execute.await_args_list],
+                         ["knowledge_base_search", "knowledge_base_search"])
+        self.assertEqual(retrieval.retrieve_many.await_count, 2)
+        self.assertEqual(run.usage.model_calls, 3)
+        llm.generate_answer.assert_awaited_once()
+
+    async def test_finish_research_requires_prior_evidence_action(self):
+        biz, llm, _, retrieval, sessions = research_setup(
+            [finish_action("insufficient", [])], grounded_answer("insufficient", missing=["启动依据"]),
+        )
+        run = await self.query(biz)
+        self.assertEqual(run.status, "tool_failed")
+        self.assertEqual(run.error_code, "EVIDENCE_SELECTION_INVALID")
+        self.assertFalse(sessions[0].finished)
+        retrieval.retrieve_many.assert_not_awaited()
+        llm.generate_answer.assert_not_awaited()
+
+    async def test_finish_research_rejects_unsent_citations(self):
+        biz, llm, _, _, _ = research_setup(
+            [action(query="启动顺序"), finish_action("answered", [99])], grounded_answer("answered"),
+        )
+        run = await self.query(biz)
+        self.assertEqual(run.status, "tool_failed")
+        self.assertEqual(run.error_code, "EVIDENCE_SELECTION_INVALID")
+        self.assertIsNone(run.evidence_selection)
+        llm.generate_answer.assert_not_awaited()
+
+    async def test_final_answer_must_match_finish_research_outcome(self):
+        biz, llm, _, _, _ = research_setup(
+            [action(query="启动顺序"), finish_action("insufficient", [1])],
+            grounded_answer("answered", claims=[{
+                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            }]),
+        )
+        run = await self.query(biz)
+        self.assertEqual(run.status, "invalid_answer")
+        self.assertEqual(run.error_code, "EVIDENCE_SELECTION_MISMATCH")
+        self.assertEqual(run.answer, "")
+        llm.generate_answer.assert_awaited_once()
+
+    async def test_exploration_answer_cannot_skip_finish_research(self):
+        answer = grounded_answer("answered", claims=[{
+            "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+        }])
+        biz, llm, _, _, _ = research_setup([action(query="启动顺序"), answer], answer)
+        run = await self.query(biz)
+        self.assertEqual(run.status, "model_failed")
+        self.assertEqual(run.error_code, "REQUIRED_TOOL_CALL_MISSING")
+        self.assertEqual(run.answer, "")
+        llm.generate_answer.assert_not_awaited()
+
+    async def test_finish_research_selection_limits_final_catalog(self):
+        for evidence_id, status in (("E1", "completed"), ("E2", "invalid_answer")):
+            with self.subTest(evidence_id=evidence_id):
+                biz, llm, _, _, _ = research_setup(
+                    [action(query="启动顺序"), finish_action("answered", [2])],
+                    grounded_answer("answered", claims=[{
+                        "scope": "source", "text": "启动时先连接存储。", "evidence_ids": [evidence_id],
+                        "code_evidence_id": None,
+                    }]), contents=("启动顺序：先加载配置。", "启动顺序：先连接存储。"),
+                )
+                run = await self.query(biz)
+                self.assertEqual(run.status, status)
+                self.assertEqual([(item.evidence_id, item.citation_id) for item in run.evidence_catalog], [("E1", 2)])
+                self.assertEqual(run.evidence_catalog[0].origin["document_id"], 2)
+                sent = json.loads(run.final_request[-1]["content"])
+                self.assertEqual([source["citation_id"] for source in sent["sources"]], [2])
+                llm.generate_answer.assert_awaited_once()
+                if status == "invalid_answer":
+                    self.assertEqual(run.error_code, "INVALID_EVIDENCE_ID")
+                    self.assertEqual(run.answer, "")
 
     def test_model_call_budget_requires_research_and_final_generation(self):
         for count in (0, 1, 7, 2.5, True):

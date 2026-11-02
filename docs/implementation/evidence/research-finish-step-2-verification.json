@@ -1,0 +1,171 @@
+{
+  "scope": "统一取证结束流程（顺序 2）",
+  "network_requests": 0,
+  "real_model_requests": 0,
+  "red_before_fix": {
+    "session_finished_was_false_for": [
+      "model_call_limit",
+      "tool_call_limit",
+      "repeated_call"
+    ]
+  },
+  "backend_suite": {
+    "tests": 57,
+    "passed": 54,
+    "passed_tests": [
+      "test_clip_preserves_all_original_ranges (test_context_block.ContextMaterialTest.test_clip_preserves_all_original_ranges)",
+      "test_clipped_away_chunks_never_appear_in_citation (test_context_block.ContextMaterialTest.test_clipped_away_chunks_never_appear_in_citation)",
+      "test_authorization_failure_is_safe_and_machine_readable (test_model_protocol.ModelProtocolTest.test_authorization_failure_is_safe_and_machine_readable)",
+      "test_missing_usage_or_mismatched_native_history_is_rejected (test_model_protocol.ModelProtocolTest.test_missing_usage_or_mismatched_native_history_is_rejected)",
+      "test_compatible_mode_base_maps_to_native_rerank_path (test_qwen_reranker.QwenEndpointTests.test_compatible_mode_base_maps_to_native_rerank_path)",
+      "test_factory_builds_qwen (test_qwen_reranker.QwenEndpointTests.test_factory_builds_qwen)",
+      "test_full_rerank_url_is_kept (test_qwen_reranker.QwenEndpointTests.test_full_rerank_url_is_kept)",
+      "test_empty_results_raise (test_qwen_reranker.QwenRerankTests.test_empty_results_raise)",
+      "test_http_error_is_explicit (test_qwen_reranker.QwenRerankTests.test_http_error_is_explicit)",
+      "test_sends_native_body_and_reorders_by_score (test_qwen_reranker.QwenRerankTests.test_sends_native_body_and_reorders_by_score)",
+      "test_cancel_signal_closes_model_and_records_terminal (test_rag_grounded_answer.BoundedRunTest.test_cancel_signal_closes_model_and_records_terminal)",
+      "test_conflicting_versions_keep_separate_sources (test_rag_grounded_answer.BoundedRunTest.test_conflicting_versions_keep_separate_sources)",
+      "test_empty_result_is_insufficient_not_tool_failure (test_rag_grounded_answer.BoundedRunTest.test_empty_result_is_insufficient_not_tool_failure)",
+      "test_exploration_answer_cannot_skip_finish_research (test_rag_grounded_answer.BoundedRunTest.test_exploration_answer_cannot_skip_finish_research)",
+      "test_final_answer_must_match_finish_research_outcome (test_rag_grounded_answer.BoundedRunTest.test_final_answer_must_match_finish_research_outcome)",
+      "test_final_model_tool_call_is_rejected_without_execution (test_rag_grounded_answer.BoundedRunTest.test_final_model_tool_call_is_rejected_without_execution)",
+      "test_finish_research_rejects_unsent_citations (test_rag_grounded_answer.BoundedRunTest.test_finish_research_rejects_unsent_citations)",
+      "test_finish_research_requires_prior_evidence_action (test_rag_grounded_answer.BoundedRunTest.test_finish_research_requires_prior_evidence_action)",
+      "test_finish_research_selection_limits_final_catalog (test_rag_grounded_answer.BoundedRunTest.test_finish_research_selection_limits_final_catalog)",
+      "test_input_over_budget_does_not_start_model (test_rag_grounded_answer.BoundedRunTest.test_input_over_budget_does_not_start_model)",
+      "test_invalid_citation_never_published (test_rag_grounded_answer.BoundedRunTest.test_invalid_citation_never_published)",
+      "test_kb_tool_context_omits_internal_index_metadata (test_rag_grounded_answer.BoundedRunTest.test_kb_tool_context_omits_internal_index_metadata)",
+      "test_last_model_call_cannot_start_new_tools (test_rag_grounded_answer.BoundedRunTest.test_last_model_call_cannot_start_new_tools)",
+      "test_last_model_call_explains_missing_evidence (test_rag_grounded_answer.BoundedRunTest.test_last_model_call_explains_missing_evidence)",
+      "test_materials_leave_room_for_followup_tool_history (test_rag_grounded_answer.BoundedRunTest.test_materials_leave_room_for_followup_tool_history)",
+      "test_model_call_budget_requires_research_and_final_generation (test_rag_grounded_answer.BoundedRunTest.test_model_call_budget_requires_research_and_final_generation)",
+      "test_model_failure_is_explicit (test_rag_grounded_answer.BoundedRunTest.test_model_failure_is_explicit)",
+      "test_model_receives_explicit_current_web_permission (test_rag_grounded_answer.BoundedRunTest.test_model_receives_explicit_current_web_permission)",
+      "test_no_new_evidence_closes_research_without_finish_tool (test_rag_grounded_answer.BoundedRunTest.test_no_new_evidence_closes_research_without_finish_tool)",
+      "test_nonempty_material_can_still_be_insufficient_without_forced_retry (test_rag_grounded_answer.BoundedRunTest.test_nonempty_material_can_still_be_insufficient_without_forced_retry)",
+      "test_program_limits_close_research_before_final_answer (test_rag_grounded_answer.BoundedRunTest.test_program_limits_close_research_before_final_answer)",
+      "test_repeat_query_with_different_call_id_is_not_executed_again (test_rag_grounded_answer.BoundedRunTest.test_repeat_query_with_different_call_id_is_not_executed_again)",
+      "test_sse_and_saved_result_are_the_same_run (test_rag_grounded_answer.BoundedRunTest.test_sse_and_saved_result_are_the_same_run)",
+      "test_timeout_closes_waiting_model_and_stops (test_rag_grounded_answer.BoundedRunTest.test_timeout_closes_waiting_model_and_stops)",
+      "test_tool_failure_stops_without_another_model_or_tool (test_rag_grounded_answer.BoundedRunTest.test_tool_failure_stops_without_another_model_or_tool)",
+      "test_tool_limit_reserves_final_answer_and_stops_tools (test_rag_grounded_answer.BoundedRunTest.test_tool_limit_reserves_final_answer_and_stops_tools)",
+      "test_valid_citation_matches_actual_sent_material (test_rag_grounded_answer.BoundedRunTest.test_valid_citation_matches_actual_sent_material)",
+      "test_cancellation_closes_active_tool (test_read_only_tools.ReadOnlyToolsTest.test_cancellation_closes_active_tool)",
+      "test_cancelled_session_starts_no_operation (test_read_only_tools.ReadOnlyToolsTest.test_cancelled_session_starts_no_operation)",
+      "test_dependency_failure_never_switches_to_web (test_read_only_tools.ReadOnlyToolsTest.test_dependency_failure_never_switches_to_web)",
+      "test_disabled_web_never_reaches_provider (test_read_only_tools.ReadOnlyToolsTest.test_disabled_web_never_reaches_provider)",
+      "test_empty_knowledge_result_is_not_dependency_error (test_read_only_tools.ReadOnlyToolsTest.test_empty_knowledge_result_is_not_dependency_error)",
+      "test_scope_cannot_access_another_owner (test_read_only_tools.ReadOnlyToolsTest.test_scope_cannot_access_another_owner)",
+      "test_stringified_array_is_rejected_without_coercion (test_read_only_tools.ReadOnlyToolsTest.test_stringified_array_is_rejected_without_coercion)",
+      "test_chinese_only_query_does_not_rescue_below_threshold (test_relevance_gate.RelevanceGateTests.test_chinese_only_query_does_not_rescue_below_threshold)",
+      "test_drops_above_threshold_neighbor_that_has_none_of_the_query_terms (test_relevance_gate.RelevanceGateTests.test_drops_above_threshold_neighbor_that_has_none_of_the_query_terms)",
+      "test_drops_below_threshold_when_a_query_term_is_missing (test_relevance_gate.RelevanceGateTests.test_drops_below_threshold_when_a_query_term_is_missing)",
+      "test_keeps_above_threshold_when_query_has_no_english_terms (test_relevance_gate.RelevanceGateTests.test_keeps_above_threshold_when_query_has_no_english_terms)",
+      "test_keeps_below_threshold_when_all_query_terms_are_in_the_note (test_relevance_gate.RelevanceGateTests.test_keeps_below_threshold_when_all_query_terms_are_in_the_note)",
+      "test_keeps_term_hit_and_drops_high_score_neighbor (test_relevance_gate.RelevanceGateTests.test_keeps_term_hit_and_drops_high_score_neighbor)",
+      "test_unrelated_notes_score_below_generation_threshold (test_rerank_relevance.MemoryRerankRelevanceTests.test_unrelated_notes_score_below_generation_threshold)",
+      "test_raw_logit_scores_drop_unrelated_below_threshold (test_rerank_relevance.ZhipuRerankCollapseTests.test_raw_logit_scores_drop_unrelated_below_threshold)",
+      "test_raw_logit_scores_keep_on_topic_above_threshold (test_rerank_relevance.ZhipuRerankCollapseTests.test_raw_logit_scores_keep_on_topic_above_threshold)",
+      "test_small_raw_logits_are_calibrated_below_threshold (test_rerank_relevance.ZhipuRerankCollapseTests.test_small_raw_logits_are_calibrated_below_threshold)"
+    ],
+    "failures": [
+      {
+        "test": "test_tool_selection_uses_supported_auto_mode (test_rag_grounded_answer.BoundedRunTest.test_tool_selection_uses_supported_auto_mode)",
+        "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Dell\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\asyncio\\runners.py\", line 118, in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Dell\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\asyncio\\base_events.py\", line 686, in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n  File \"D:\\go_project\\AI Knowledge Base\\ai-service\\tests\\test_rag_grounded_answer.py\", line 169, in test_tool_selection_uses_supported_auto_mode\n    self.assertEqual(llm.calls[0][1][\"tool_choice\"], \"auto\")\nAssertionError: 'required' != 'auto'\n- required\n+ auto\n\n"
+      },
+      {
+        "test": "test_read_requires_previously_approved_url (test_read_only_tools.ReadOnlyToolsTest.test_read_requires_previously_approved_url)",
+        "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Dell\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\asyncio\\runners.py\", line 118, in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Dell\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\asyncio\\base_events.py\", line 686, in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n  File \"D:\\go_project\\AI Knowledge Base\\ai-service\\tests\\test_read_only_tools.py\", line 50, in test_read_requires_previously_approved_url\n    self.assertEqual(result.errors[0].code, \"URL_NOT_APPROVED\")\nAssertionError: 'INVALID_TOOL_ARGUMENTS' != 'URL_NOT_APPROVED'\n- INVALID_TOOL_ARGUMENTS\n+ URL_NOT_APPROVED\n\n"
+      }
+    ],
+    "errors": [
+      {
+        "test": "test_budget_counts_complete_messages (test_context_block.ContextMaterialTest.test_budget_counts_complete_messages)",
+        "traceback": "Traceback (most recent call last):\n  File \"D:\\go_project\\AI Knowledge Base\\ai-service\\tests\\test_context_block.py\", line 41, in test_budget_counts_complete_messages\n    prepared = processor.prepare_sources([source], messages, 200)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\go_project\\AI Knowledge Base\\ai-service\\internal\\biz\\materials.py\", line 163, in prepare_sources\n    raise RAGError(reason=\"MATERIAL_BUDGET_EXCEEDED\", message=\"输入预算不足以容纳资料\")\npkg.errors.base.RAGError: code=500005 reason=MATERIAL_BUDGET_EXCEEDED: 输入预算不足以容纳资料\n"
+      }
+    ],
+    "resolved_failures": [
+      "test_conflicting_versions_keep_separate_sources (test_rag_grounded_answer.BoundedRunTest.test_conflicting_versions_keep_separate_sources)",
+      "test_empty_result_is_insufficient_not_tool_failure (test_rag_grounded_answer.BoundedRunTest.test_empty_result_is_insufficient_not_tool_failure)",
+      "test_invalid_citation_never_published (test_rag_grounded_answer.BoundedRunTest.test_invalid_citation_never_published)",
+      "test_nonempty_material_can_still_be_insufficient_without_forced_retry (test_rag_grounded_answer.BoundedRunTest.test_nonempty_material_can_still_be_insufficient_without_forced_retry)",
+      "test_repeat_query_with_different_call_id_is_not_executed_again (test_rag_grounded_answer.BoundedRunTest.test_repeat_query_with_different_call_id_is_not_executed_again)",
+      "test_valid_citation_matches_actual_sent_material (test_rag_grounded_answer.BoundedRunTest.test_valid_citation_matches_actual_sent_material)"
+    ],
+    "new_failure_names": []
+  },
+  "eval_suite": {
+    "tests": 24,
+    "failures": 0,
+    "errors": 0
+  },
+  "ruff_exit_code": 0,
+  "runtime_sources_match_workspace": true,
+  "source_sha256": {
+    "internal/biz/rag.py": "c67ae3e0a1a6ea51f9de9cbb1312dae8d1d5b4e0510f0529f88ac9191b77fcb8",
+    "tests/test_rag_grounded_answer.py": "7851870d37adbe7634bdc279e611c6595d1c555360f275d0265473149944c65c"
+  },
+  "line_endings_preserved": "CRLF",
+  "encoding": "UTF-8 without BOM",
+  "focused_tests_passed": [
+    "test_conflicting_versions_keep_separate_sources (test_rag_grounded_answer.BoundedRunTest.test_conflicting_versions_keep_separate_sources)",
+    "test_empty_result_is_insufficient_not_tool_failure (test_rag_grounded_answer.BoundedRunTest.test_empty_result_is_insufficient_not_tool_failure)",
+    "test_exploration_answer_cannot_skip_finish_research (test_rag_grounded_answer.BoundedRunTest.test_exploration_answer_cannot_skip_finish_research)",
+    "test_final_answer_must_match_finish_research_outcome (test_rag_grounded_answer.BoundedRunTest.test_final_answer_must_match_finish_research_outcome)",
+    "test_finish_research_rejects_unsent_citations (test_rag_grounded_answer.BoundedRunTest.test_finish_research_rejects_unsent_citations)",
+    "test_finish_research_requires_prior_evidence_action (test_rag_grounded_answer.BoundedRunTest.test_finish_research_requires_prior_evidence_action)",
+    "test_finish_research_selection_limits_final_catalog (test_rag_grounded_answer.BoundedRunTest.test_finish_research_selection_limits_final_catalog)",
+    "test_invalid_citation_never_published (test_rag_grounded_answer.BoundedRunTest.test_invalid_citation_never_published)",
+    "test_no_new_evidence_closes_research_without_finish_tool (test_rag_grounded_answer.BoundedRunTest.test_no_new_evidence_closes_research_without_finish_tool)",
+    "test_nonempty_material_can_still_be_insufficient_without_forced_retry (test_rag_grounded_answer.BoundedRunTest.test_nonempty_material_can_still_be_insufficient_without_forced_retry)",
+    "test_program_limits_close_research_before_final_answer (test_rag_grounded_answer.BoundedRunTest.test_program_limits_close_research_before_final_answer)",
+    "test_repeat_query_with_different_call_id_is_not_executed_again (test_rag_grounded_answer.BoundedRunTest.test_repeat_query_with_different_call_id_is_not_executed_again)",
+    "test_valid_citation_matches_actual_sent_material (test_rag_grounded_answer.BoundedRunTest.test_valid_citation_matches_actual_sent_material)"
+  ],
+  "live_review": {
+    "question": "F01",
+    "run_id": "948f0ab6-3e58-44a0-9ee6-ca7738d5813e",
+    "request": {
+      "query": "sandbox、agent_security、agent-harness 三处举例的 CPU 和内存限制是同一套数字吗？",
+      "top_k": 10,
+      "knowledge_base_ids": [
+        2
+      ],
+      "allow_web": false,
+      "user_urls": []
+    },
+    "status": "completed",
+    "exploration_stop_reason": "evidence_complete",
+    "selection": {
+      "outcome": "answered",
+      "citation_ids": [
+        1,
+        2,
+        3
+      ]
+    },
+    "model_calls": 3,
+    "tool_calls": 2,
+    "actual_chat_tokens": 9314,
+    "elapsed_seconds": 8.375,
+    "final_generation_count": 1,
+    "final_tool_definition_count": 0,
+    "source_audit_records": 4,
+    "source_audit_passed": true,
+    "original_scores_changed": false,
+    "automatic_gates_passed": false,
+    "heuristic_flagged_sentences": [
+      "多来源对照：三处资料中举例的 CPU 和内存限制数字并不相同：sandbox 示例为 2 cores/2 GB，agent-harness 示例为 2 cores/4GB，agent_security 示例为 1 core/512 MB"
+    ],
+    "bounded_semantic_review": "实施代理逐项核对：sandbox 示例 <=2 cores/<=2 GB；harness 示例 2 cores/4GB；security 示例 1 core/512 MB；分别引用且明确数字不同。该核对不是独立人工评级或完整质量验收。",
+    "reviewer": "implementation_agent",
+    "independent_human_review": false
+  },
+  "ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "diff_check_exit_code": 0,
+  "report_links_valid": true,
+  "no_staged_changes": true
+}
