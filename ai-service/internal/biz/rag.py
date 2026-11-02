@@ -4,17 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import json
-import re
 from dataclasses import asdict, dataclass, replace
 from time import monotonic
 from typing import TYPE_CHECKING
 
 import structlog
 
+from internal.biz.answer_rendering import AnswerEvidenceError, render_answer
 from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
 from internal.biz.entity import ChatResult
 from internal.biz.materials import AnswerSource, InputBudget, WebSource, pack_sources
-from internal.biz.tool_types import AnswerPayload, ToolError, ToolFailure, ToolResult
+from internal.biz.tool_types import (
+    ANSWER_CONTRACT_VERSION,
+    AnswerPayload,
+    ToolError,
+    ToolFailure,
+    ToolResult,
+)
 from internal.biz.tools import ToolScope
 from internal.biz.web_sources import unseen_web_ranges
 from pkg.errors.base import APIError
@@ -589,42 +595,28 @@ class RAGBiz:
         run.emit("answer_check_started")
         try:
             value = AnswerPayload.model_validate_json(result.content)
-            answer = value.answer.strip()
-            if not answer:
-                raise ValueError("empty final answer")
-            raw = re.findall(r"\[来源([^\]]*)\]", answer)
-            if any(not re.fullmatch(r"\s*[1-9]\d*\s*", item) for item in raw):
-                raise ValueError("invalid citation syntax")
-            citations = [int(item.strip()) for item in raw]
             allowed = {source.citation_id for source in run.sources}
             if run.evidence_selection is not None:
                 if value.status != run.evidence_selection["outcome"]:
                     run.finish("invalid_answer", "evidence_selection_mismatch", "EVIDENCE_SELECTION_MISMATCH")
                     return
                 allowed &= set(run.evidence_selection["citation_ids"])
-            cited_sources = [source for source in run.sources if source.citation_id in citations]
-            if value.status == "answered" and any(source.source_type == "web_search_summary" for source in cited_sources) and not any(source.source_type == "web_page" for source in cited_sources):
-                run.finish("invalid_answer", "web_body_required", "WEB_BODY_REQUIRED")
-                return
-            for block in re.finditer(r"^[ \t]*(`{3,})[^\n]*\n(.*?)^[ \t]*\1[ \t]*$", answer, re.MULTILINE | re.DOTALL):
-                code = block.group(2).strip()
-                if code and not any(code in source.content for source in cited_sources if source.source_type != "web_search_summary"):
-                    run.finish("invalid_answer", "unsupported_code", "UNSUPPORTED_CODE")
-                    return
-            if (
-                any(number not in allowed for number in citations)
-                or (value.status == "answered" and not citations)
-                or answer.count("[来源") != len(raw)
-            ):
-                raise ValueError("invalid citations")
+            rendered = render_answer(value, {source.citation_id: source for source in run.sources if source.citation_id in allowed})
+        except AnswerEvidenceError as exc:
+            run.finish("invalid_answer", exc.reason, exc.reason.upper())
+            return
         except (ValueError, TypeError, KeyError):
             run.finish("invalid_answer", "invalid_citation_or_format", "INVALID_ANSWER")
             return
-        run.answer = answer
+        run.answer = rendered.answer
+        run.answer_claims = rendered.claims
         run.emit(
             "answer_validated",
-            citation_ids=sorted(set(citations)),
+            citation_ids=rendered.citation_ids,
             outcome=value.status,
+            answer_contract_version=ANSWER_CONTRACT_VERSION,
+            claim_count=len(rendered.claims),
+            quote_binding="verified_exact_sent_content",
             semantic_support="not_evaluated",
         )
         if value.status == "insufficient" and run.exploration_stop_reason in _BUDGET_STOPS:

@@ -159,4 +159,8 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 取证通过 `finish_research` 选择实际已送模引用后进入独立最终生成；仍遵守原有模型、工具、用量和时间上限。目录不可引用，围栏代码必须有引用正文支撑。新契约评测核对目录身份、完整快照、原文范围及代码块边界，并直接读取规范调用键。旧历史结果按原契约只读解析，不补造新字段或改写历史答案。
 
+最终模型协议为 `answer_contract_version=2`：输出 `status/claims/missing`，不再接受自由 `answer` 字段。每条事实包含 `scope/text/evidence/code`，每份依据包含已选 `citation_id` 与实际送模内容中的连续原样 `quote`；程序校验后统一生成展示答案及引用。`source` 只能归于一个原始来源，`shared` 必须有至少两个独立来源，同一网页多个窗口或同一知识库文档多个块不重复计数。缺失项只作为限定于本次已读资料的问题主题呈现，不能附加自由事实尾段。
+
+代码须在该事实自己的非摘要摘录中原样出现；answered 的每条事实均不能以搜索摘要替代正文。任何条目校验失败都不发布整份答案，不修复格式或自动重答。快照保留原始最终 JSON、规范事实及摘录的送模内容相对范围；`answer_validated` 记录原文绑定通过，但 `semantic_support` 仍为 `not_evaluated`。原样摘录、引用身份和来源数量正确并不证明自然语言结论得到语义蕴含，现有关键词/重合率也不能充当语义门禁。外部 API/SSE 继续返回程序渲染的 Markdown `answer`，工具契约仍为 2；历史结果保持原样。
+
 本次只做必要诊断、确定性集成及公开端点探针；未执行四题完整问答。模拟流程通过，真实 Tavily 搜索与 Docker 页面读取在 TLS 阶段失败，原结果保留。现有只读工具有一项旧 `urls` 参数断言失败，未修改测试。结果和边界见[顺序 2 实施记录](../docs/implementation/web-reader-step-2-report.md)。

@@ -34,7 +34,7 @@ const generatedLabel = computed(() => props.generatedAt ? formatDate(props.gener
 const labels: Record<RunStatus, string> = {
   running: '正在处理', completed: '回答完成', insufficient: '资料不足',
   budget_exhausted: '已达到执行上限', usage_unknown: '实际用量未知，已停止',
-  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式、引用或依据检查',
+  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式、引用或原文摘录检查',
   timeout: '执行超时', cancelled: '已取消',
 }
 const reasons: Record<string, string> = {
@@ -46,10 +46,13 @@ const reasons: Record<string, string> = {
   actual_usage_exceeded: '服务报告的实际用量超出执行上限',
   output_limit: '回答超出输出长度上限', repeated_call: '重复查询未取得新资料',
   insufficient_material: '现有资料不足以完整回答', user_cancelled: '已停止本次提问',
-  unsupported_code: '命令或代码无法在所引正文中定位，未发布答案',
+  unsupported_code: '命令或代码无法在该条目的正文摘录中定位，未发布答案',
   web_body_required: '需要网页正文支持，搜索摘要不能替代正文',
   evidence_selection_mismatch: '最终回答与已选证据状态不一致，未发布答案',
   invalid_citation_or_format: '回答的引用或格式不符合要求，未发布答案',
+  invalid_claim_citation: '事实条目的引用不属于本次已选资料，未发布答案',
+  unsupported_quote: '引用摘录无法在本次已读资料中定位，未发布答案',
+  invalid_source_scope: '事实归属与独立来源要求不符，未发布答案',
 }
 const statusLabel = computed(() => props.status ? labels[props.status] : '')
 const noticeType = computed(() => props.status === 'cancelled' ? 'info' :

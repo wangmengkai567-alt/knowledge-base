@@ -19,6 +19,7 @@ from api.openapi.schemas.rag import (
 )
 from internal.biz.materials import WebSource
 from internal.biz.rag import retrieval_results
+from internal.biz.tool_types import ANSWER_CONTRACT_VERSION
 from internal.service.retrieval import retrieval_dto
 
 if TYPE_CHECKING:
@@ -118,6 +119,8 @@ class RAGService:
                         "web_pages": {source_id: asdict(page) for source_id, page in observed.web_pages.items()},
                         "evidence_selection": observed.evidence_selection,
                         "final_response": observed.final_response,
+                        "answer_contract_version": ANSWER_CONTRACT_VERSION,
+                        "answer_claims": observed.answer_claims,
                         "started_at": observed.started_at,
                         "scope": asdict(observed.scope), "limits": asdict(observed.limits),
                         "result": response_dto(observed).model_dump(),

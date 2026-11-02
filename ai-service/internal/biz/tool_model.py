@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import ValidationError
 
-from internal.biz.tool_types import ANSWER_RESPONSE_FORMAT
+from internal.biz.tool_types import ANSWER_RESPONSE_FORMAT, FINAL_ANSWER_INSTRUCTIONS
 from internal.biz.tools import ReadOnlyToolExecutor, ToolSession, WebReadArguments, run_scoped
 from pkg.errors.base import LLMError
 
@@ -65,7 +65,7 @@ class ToolModel:
     ) -> ChatResult:
         """两阶段各执行一次请求；收尾不发送工具定义，不发布探索阶段的正文。"""
         self.validate_request(messages, session, max_tokens, final=final)
-        request = self.request_messages(messages, session)
+        request = self.request_messages(messages, session, final=final)
         if final:
             operation = partial(
                 self._llm.generate_answer, request, max_tokens=max_tokens, temperature=temperature,
@@ -148,7 +148,7 @@ class ToolModel:
         return list(reversed(projected))
 
     @staticmethod
-    def request_messages(messages: list[dict], session: ToolSession) -> list[dict]:
+    def request_messages(messages: list[dict], session: ToolSession, *, final: bool = False) -> list[dict]:
         permission = (
             "本次允许联网，可用 web_search、web_read 和 web_find。"
             if session.scope.allow_web
@@ -156,6 +156,8 @@ class ToolModel:
         )
         scope = f"允许检索的知识库编号：{list(session.scope.knowledge_base_ids)}。{permission}"
         instructions = [TOOL_SYSTEM_PROMPT, scope]
+        if final:
+            instructions.append(FINAL_ANSWER_INSTRUCTIONS)
         user_directory = [{"source_id": entry.source_id, "url": entry.url} for entry in session.web.entries if entry.origin == "user"]
         if user_directory:
             instructions.append("用户指定网页目录，仅供选择、不可作为证据：" + json.dumps(user_directory, ensure_ascii=False))
@@ -170,7 +172,7 @@ class ToolModel:
 
     def estimate(self, messages: list[dict], session: ToolSession, *, final: bool = False) -> int:
         definitions = [] if final else self.executor.definitions(session.scope)
-        estimate = self._budget.estimate(self.request_messages(messages, session), definitions, [])
+        estimate = self._budget.estimate(self.request_messages(messages, session, final=final), definitions, [])
         if final:
             estimate += len(json.dumps(ANSWER_RESPONSE_FORMAT, ensure_ascii=False).encode("utf-8"))
         return estimate
