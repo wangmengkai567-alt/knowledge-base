@@ -118,9 +118,20 @@ class RunEventDTO(BaseModel):
     data: dict
 
 
+class EvidenceFragmentDTO(BaseModel):
+    evidence_id: str
+    run_id: str
+    citation_id: int
+    kind: Literal["text", "code"]
+    content: str
+    origin: dict
+
+
 class RAGQueryResponse(BaseModel):
     version: Literal[5] = 5
     tool_contract_version: Literal[2] = 2
+    answer_contract_version: Literal[3] = 3
+    evidence_catalog: list[EvidenceFragmentDTO]
     run_id: str
     status: str
     stop_reason: str

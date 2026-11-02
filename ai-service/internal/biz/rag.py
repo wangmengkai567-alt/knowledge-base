@@ -13,6 +13,7 @@ import structlog
 from internal.biz.answer_rendering import AnswerEvidenceError, render_answer
 from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
 from internal.biz.entity import ChatResult
+from internal.biz.evidence import EvidenceBindingError, bind_catalog
 from internal.biz.materials import (
     AnswerSource,
     InputBudget,
@@ -181,6 +182,8 @@ class RAGBiz:
             run.finish("cancelled", "user_cancelled")
             if asyncio.current_task().cancelling():
                 raise
+        except EvidenceBindingError as exc:
+            run.finish("tool_failed", str(exc), "EVIDENCE_BINDING_INVALID")
         except ToolError as exc:
             run.finish(
                 "timeout" if exc.code == "TOOL_TIMEOUT" else "tool_failed",
@@ -188,7 +191,9 @@ class RAGBiz:
                 exc.code,
             )
         except APIError as exc:
-            if exc.reason == "LLM_USAGE_UNKNOWN":
+            if exc.reason.startswith("SOURCE_"):
+                run.finish("tool_failed", exc.reason.lower(), exc.reason)
+            elif exc.reason == "LLM_USAGE_UNKNOWN":
                 run.finish("usage_unknown", "usage_unknown", exc.reason)
             elif exc.reason in ("INPUT_BUDGET_EXCEEDED", "MATERIAL_BUDGET_EXCEEDED", "OUTPUT_BUDGET_EXCEEDED"):
                 reason = "output_limit" if exc.reason == "OUTPUT_BUDGET_EXCEEDED" else "input_budget"
@@ -286,6 +291,10 @@ class RAGBiz:
                 run.finish("budget_exhausted", reason)
                 return
             self._model.validate_request(request, session, output_tokens, final=final)
+            catalog = []
+            if final:
+                await self._model.executor.validate_sources(session, session.active_sources)
+                catalog = bind_catalog(request, session.active_sources, run.scope, run.run_id)
             self._check_active(run, session)
             call_number = run.reserve_model(estimate, output_tokens, final)
             if pending_sources:
@@ -294,6 +303,11 @@ class RAGBiz:
                 run.emit("evidence_coverage_updated", **evidence_coverage(session.question, run.sources))
             pending_sources = []
             session.delivered_citations = {source.citation_id: source for source in run.sources}
+            if final:
+                run.evidence_catalog = catalog
+                run.final_request = self._model.request_messages(request, session, final=True)
+                run.emit("evidence_catalog_prepared", evidence_ids=[item.evidence_id for item in catalog],
+                         answer_contract_version=ANSWER_CONTRACT_VERSION)
             run.emit(
                 "model_started",
                 call=usage.model_calls,
@@ -329,6 +343,10 @@ class RAGBiz:
                 if result.tool_calls:
                     run.finish("model_failed", "unexpected_tool_call", "INVALID_TOOL_RESPONSE")
                 else:
+                    run.final_response = result.content
+                    await self._model.executor.validate_sources(session, session.active_sources)
+                    self._check_active(run, session)
+                    run.emit("evidence_sources_verified", phase="before_publish", evidence_count=len(run.evidence_catalog))
                     self._publish(run, result)
                 return
             if not result.tool_calls:
@@ -588,6 +606,7 @@ class RAGBiz:
             return None, reason
         # 只更新上下文投影，不改写历史 tool_results 或已送模原文登记。
         messages[:start] = trial[:start]
+        session.active_sources = packed
         run.usage.final_reserved_tokens = plan.final_reservation
         run.emit("materials_budgeted", strategy="question_relevant_verbatim",
                  candidate_chars=sum(len(source.content) for source in candidates),
@@ -663,7 +682,8 @@ class RAGBiz:
                     run.finish("invalid_answer", "evidence_selection_mismatch", "EVIDENCE_SELECTION_MISMATCH")
                     return
                 allowed &= set(run.evidence_selection["citation_ids"])
-            rendered = render_answer(value, {source.citation_id: source for source in run.sources if source.citation_id in allowed})
+            rendered = render_answer(value, {item.evidence_id: item for item in run.evidence_catalog
+                                             if item.citation_id in allowed and item.run_id == run.run_id})
         except AnswerEvidenceError as exc:
             run.finish("invalid_answer", exc.reason, exc.reason.upper())
             return
@@ -678,7 +698,7 @@ class RAGBiz:
             outcome=value.status,
             answer_contract_version=ANSWER_CONTRACT_VERSION,
             claim_count=len(rendered.claims),
-            quote_binding="verified_exact_sent_content",
+            quote_binding="program_owned_final_evidence_slices",
             semantic_support="not_evaluated",
         )
         if value.status == "insufficient" and run.exploration_stop_reason in _BUDGET_STOPS:

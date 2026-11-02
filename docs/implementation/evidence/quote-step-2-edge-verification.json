@@ -1,0 +1,53 @@
+{
+  "web_code_preserved": true,
+  "web_disabled_rejected": true,
+  "empty_catalog_insufficient": true,
+  "non_evidence_identifiers_rejected": true,
+  "web_origins": [
+    {
+      "evidence_id": "E1",
+      "run_id": "web-run",
+      "citation_id": 4,
+      "kind": "text",
+      "content": "官方定义。\n",
+      "origin": {
+        "source_type": "web_page",
+        "url": "https://example.com/page",
+        "source_id": "web_1",
+        "fetched_at": "2026-11-02T00:00:00Z",
+        "start": 100,
+        "end": 106
+      }
+    },
+    {
+      "evidence_id": "E2",
+      "run_id": "web-run",
+      "citation_id": 4,
+      "kind": "code",
+      "content": "```sh\nCOPY --from=image /uv /bin/\n```",
+      "origin": {
+        "source_type": "web_page",
+        "url": "https://example.com/page",
+        "source_id": "web_1",
+        "fetched_at": "2026-11-02T00:00:00Z",
+        "start": 106,
+        "end": 143
+      }
+    },
+    {
+      "evidence_id": "E3",
+      "run_id": "web-run",
+      "citation_id": 4,
+      "kind": "text",
+      "content": "\n尾部。",
+      "origin": {
+        "source_type": "web_page",
+        "url": "https://example.com/page",
+        "source_id": "web_1",
+        "fetched_at": "2026-11-02T00:00:00Z",
+        "start": 143,
+        "end": 147
+      }
+    }
+  ]
+}

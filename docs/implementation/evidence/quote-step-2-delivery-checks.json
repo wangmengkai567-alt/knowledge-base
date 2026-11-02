@@ -1,0 +1,222 @@
+{
+  "ruff": {
+    "exit_code": 0,
+    "output_tail": "All checks passed!\n"
+  },
+  "eval_existing": {
+    "exit_code": 0,
+    "output_tail": "ce\": true,\n    \"within_budget\": true,\n    \"valid_citations\": true,\n    \"ordered_events\": true,\n    \"no_repeat_execution\": true,\n    \"expected_tools\": true,\n    \"scenario_outcomes\": true,\n    \"scenario_keywords\": true\n  },\n  \"automated_gates_passed\": true,\n  \"semantic_acceptance\": \"requires_manual_review\",\n  \"rescore\": true\n}\n........................\n----------------------------------------------------------------------\nRan 24 tests in 0.743s\n\nOK\n"
+  },
+  "frontend_typecheck": {
+    "exit_code": 0,
+    "command": "npm run typecheck --prefix web",
+    "basis": "earlier check in this turn; frontend unchanged since that check"
+  },
+  "no_formal_test_edits": true,
+  "backend_existing": {
+    "tests": 47,
+    "failures": 10,
+    "errors": 1,
+    "same_failed_test_names_as_step_1": true,
+    "evidence": "quote-step-2-existing-checks.json"
+  },
+  "runtime_source_hashes": {
+    "api/openapi/schemas/rag.py": "abb9a846f043f3617514ea5aa08b9241da308bc94827f796020ac855de1fb9a3",
+    "internal/biz/answer_rendering.py": "b98fefc51eb01e11a90d15acbbb25e95edd40d6b216a88498f3cfc4c18943eca",
+    "internal/biz/answer_run.py": "9065e5124c23ef2ac802c2e3aef3bedfed2f0853181cfe25603cb7062f169a57",
+    "internal/biz/materials.py": "be74035fc86719224eb59b980a7ade20cc0e6f771059937a8a82663d1c2b5cdf",
+    "internal/biz/rag.py": "a353b62935f512902d4b10af1e10c25d4dac9d836d6a6414c6f1a239db91d1c4",
+    "internal/biz/tool_model.py": "2ccecd97f4a26ad262633d86a622d0aa97b89f402cc1decbad056e4b9cde3d44",
+    "internal/biz/tool_types.py": "b93479644d6bad645e3f752254e9cc0303c6be8aad90f90d83ab5fbaae69ead1",
+    "internal/biz/tools.py": "5bac0efa8b5c37f19c1d853686ff6ef578aeb7fd836af5cc4af8cfa22c55f807",
+    "internal/prompt/templates/rag.yaml": "9be21cf7a9121bcf1dc2cb252b33054507729fe9d5f4bfb22e8155c21394c19d",
+    "internal/service/rag.py": "71d9e1ba0c17b4a4b0fcf2438f26bfbdddaec530541644ce0dc5b8ec568040e8",
+    "internal/biz/evidence.py": "a8c62c58468fd2019652822ebb7789caf4948642d85108c60f98b62b2d26ef3a"
+  },
+  "runtime_sources_match_workspace": true,
+  "ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "diff_check_exit_code": 0,
+  "encoding": "UTF-8 without BOM",
+  "no_mixed_line_endings": true,
+  "line_endings": [
+    {
+      "file": "GLOSSARY.md",
+      "line_endings": "LF",
+      "bytes": 2459
+    },
+    {
+      "file": "ai-service/api/openapi/schemas/rag.py",
+      "line_endings": "CRLF",
+      "bytes": 4496
+    },
+    {
+      "file": "ai-service/internal/biz/answer_rendering.py",
+      "line_endings": "LF",
+      "bytes": 4563
+    },
+    {
+      "file": "ai-service/internal/biz/answer_run.py",
+      "line_endings": "LF",
+      "bytes": 7191
+    },
+    {
+      "file": "ai-service/internal/biz/materials.py",
+      "line_endings": "LF",
+      "bytes": 22892
+    },
+    {
+      "file": "ai-service/internal/biz/rag.py",
+      "line_endings": "CRLF",
+      "bytes": 36232
+    },
+    {
+      "file": "ai-service/internal/biz/tool_model.py",
+      "line_endings": "LF",
+      "bytes": 11387
+    },
+    {
+      "file": "ai-service/internal/biz/tool_types.py",
+      "line_endings": "LF",
+      "bytes": 7562
+    },
+    {
+      "file": "ai-service/internal/biz/tools.py",
+      "line_endings": "LF",
+      "bytes": 21398
+    },
+    {
+      "file": "ai-service/internal/prompt/templates/rag.yaml",
+      "line_endings": "CRLF",
+      "bytes": 2991
+    },
+    {
+      "file": "ai-service/internal/service/rag.py",
+      "line_endings": "CRLF",
+      "bytes": 8111
+    },
+    {
+      "file": "docs/research/rag-quality-phase-4-quote-codex-analysis.md",
+      "line_endings": "LF",
+      "bytes": 13024
+    },
+    {
+      "file": "eval/run_metrics.py",
+      "line_endings": "LF",
+      "bytes": 15367
+    },
+    {
+      "file": "web/src/api/search.ts",
+      "line_endings": "CRLF",
+      "bytes": 6672
+    },
+    {
+      "file": "web/src/types/search.ts",
+      "line_endings": "CRLF",
+      "bytes": 3962
+    },
+    {
+      "file": "ai-service/internal/biz/evidence.py",
+      "line_endings": "LF",
+      "bytes": 6978
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-after-runtime.json",
+      "line_endings": "LF",
+      "bytes": 630
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-before-runtime.json",
+      "line_endings": "LF",
+      "bytes": 630
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-code-final-source-audit.json",
+      "line_endings": "LF",
+      "bytes": 70235
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-code-source-audit.json",
+      "line_endings": "LF",
+      "bytes": 70026
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-cross-source-source-audit.json",
+      "line_endings": "LF",
+      "bytes": 85821
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-delivery-checks.json",
+      "line_endings": "LF",
+      "bytes": 2296
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-edge-verification.json",
+      "line_endings": "LF",
+      "bytes": 1304
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-existing-checks.json",
+      "line_endings": "LF",
+      "bytes": 10129
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-local-source-audit.json",
+      "line_endings": "LF",
+      "bytes": 128676
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-offline-verification.json",
+      "line_endings": "LF",
+      "bytes": 4004
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-question-review.json",
+      "line_endings": "LF",
+      "bytes": 6898
+    },
+    {
+      "file": "docs/implementation/evidence/quote-step-2-web-source-audit.json",
+      "line_endings": "LF",
+      "bytes": 86
+    },
+    {
+      "file": "docs/implementation/quote-step-2-report.md",
+      "line_endings": "LF",
+      "bytes": 6291
+    },
+    {
+      "file": "eval/evidence_metrics.py",
+      "line_endings": "LF",
+      "bytes": 7426
+    },
+    {
+      "file": "eval/quote-step-2-code-final-results.json",
+      "line_endings": "LF",
+      "bytes": 1027814
+    },
+    {
+      "file": "eval/quote-step-2-code-results.json",
+      "line_endings": "LF",
+      "bytes": 989580
+    },
+    {
+      "file": "eval/quote-step-2-cross-source-results.json",
+      "line_endings": "LF",
+      "bytes": 1114145
+    },
+    {
+      "file": "eval/quote-step-2-local-results.json",
+      "line_endings": "LF",
+      "bytes": 1474119
+    },
+    {
+      "file": "eval/quote-step-2-web-results.json",
+      "line_endings": "LF",
+      "bytes": 817544
+    }
+  ],
+  "no_staged_edits": true
+}

@@ -1,0 +1,206 @@
+{
+  "reviewer": "implementation_agent",
+  "independent_human_review": false,
+  "statistical_quality_acceptance": false,
+  "original_scores_changed": false,
+  "distinct_questions": 6,
+  "actual_question_runs": 7,
+  "one_targeted_retest_after_prompt_change": true,
+  "automatic_answer_repair_or_retry": false,
+  "model_calls": 22,
+  "tool_calls": 17,
+  "actual_chat_tokens": 72309,
+  "full_quality_acceptance": "not_passed",
+  "rows": [
+    {
+      "id": "F01",
+      "artifact": "eval/quote-step-2-local-results.json",
+      "run_id": "b8c8c6a1-9862-4ca2-aa10-57162de56a33",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2
+        ],
+        "allow_web": false
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "actual_total_tokens": 9557,
+      "elapsed_seconds": 8.594,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": true,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 56
+      },
+      "semantic_result": "pass",
+      "review": "三份资料分别为 2 cores/2 GB、2 cores/4GB、1 core/512 MB；回答明确数字不同，未合并成统一标准。"
+    },
+    {
+      "id": "F03",
+      "artifact": "eval/quote-step-2-local-results.json",
+      "run_id": "ef7b48e5-2374-448f-b1ab-f2ab308a690a",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "budget_exhausted",
+      "stop_reason": "model_call_limit",
+      "model_calls": 6,
+      "tool_calls": 5,
+      "actual_total_tokens": 22551,
+      "elapsed_seconds": 12.828,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": true,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 33
+      },
+      "semantic_result": "not_passed",
+      "review": "固定范围 [3]，未读取知识库 2；最终为 insufficient 内容并以 model_call_limit 终止为 budget_exhausted。Docker 原文完整、单个反斜杠未改写，不能据此判完整回答通过。"
+    },
+    {
+      "id": "CROSS01",
+      "artifact": "eval/quote-step-2-cross-source-results.json",
+      "run_id": "d49c6862-4f3e-42b9-9291-5cfecd500e09",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2,
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "model_calls": 5,
+      "tool_calls": 4,
+      "actual_total_tokens": 17389,
+      "elapsed_seconds": 16.375,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": true,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 28
+      },
+      "semantic_result": "pass",
+      "review": "实际范围 [2,3]；256m 和 512 MB 分别有据，并明确并非同一套数字。文件名 04 引发历史数字启发式告警，核对不构成配置数值错误；原自动评分保留。"
+    },
+    {
+      "id": "W01",
+      "artifact": "eval/quote-step-2-web-results.json",
+      "run_id": "98cd11d1-6c95-4140-95cb-d467ebf7a205",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": true
+      },
+      "status": "tool_failed",
+      "stop_reason": "tool_error",
+      "model_calls": 1,
+      "tool_calls": 1,
+      "actual_total_tokens": 2256,
+      "elapsed_seconds": 6.625,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": null,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 0
+      },
+      "semantic_result": "blocked",
+      "review": "网页 TLS 握手失败，未进入最终生成；无网页证据目录，不能称联网引用通过。"
+    },
+    {
+      "id": "W02",
+      "artifact": "eval/quote-step-2-web-results.json",
+      "run_id": "1057bda8-ee77-424f-84b8-2064dfc13e39",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": true
+      },
+      "status": "tool_failed",
+      "stop_reason": "tool_error",
+      "model_calls": 1,
+      "tool_calls": 1,
+      "actual_total_tokens": 2207,
+      "elapsed_seconds": 4.938,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": null,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 0
+      },
+      "semantic_result": "blocked",
+      "review": "Tavily TLS 握手失败，未进入最终生成；未取得官方正文，不能称联网引用通过。"
+    },
+    {
+      "id": "S2CODE",
+      "artifact": "eval/quote-step-2-code-results.json",
+      "run_id": "40f606d6-b959-4e03-92da-7d3188ac8735",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "actual_total_tokens": 9440,
+      "elapsed_seconds": 6.016,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": true,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 30
+      },
+      "semantic_result": "needs_correction",
+      "review": "程序代码原文完全一致，但模型在 claim.text 又拼接了一行丢失引号的命令。收紧生成规则后只复测本题；此记录保留，不覆盖成通过。"
+    },
+    {
+      "id": "S2CODE",
+      "artifact": "eval/quote-step-2-code-final-results.json",
+      "run_id": "9de842f7-2774-433d-a59a-d94bb108d515",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "actual_total_tokens": 8909,
+      "elapsed_seconds": 6.547,
+      "current_binding_audit": {
+        "evidence_binding_valid": true,
+        "evidence_binding_errors": [],
+        "program_claim_binding_valid": true,
+        "program_claim_binding_errors": [],
+        "evidence_catalog_count": 26
+      },
+      "semantic_result": "pass",
+      "review": "完整 Docker 代码正文由 code_evidence_id 指向原文，原有换行、引号与 11 处行末单个反斜杠均保留。最终复测未在 claim.text 重复拼接完整命令。"
+    }
+  ]
+}

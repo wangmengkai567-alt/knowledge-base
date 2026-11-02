@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
+from internal.biz.ingestion_state import ingestion_status
 from internal.biz.query_plan import plan_query
 from internal.biz.relevance import apply_relevance_gate
 from internal.biz.text_structure import fenced_code_ranges
@@ -162,6 +163,37 @@ class MaterialProcessor:
             raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message="输入预算不足以容纳资料")
         return PreparedMaterials(messages, sources, size, output_tokens, budget.measurement)
 
+    async def _read_document(self, doc_id: int):
+        if self._documents is None or self._chunker is None:
+            raise RAGError(reason="SOURCE_CONFIGURATION_INVALID", message="知识库资料处理缺少规范正文与分块策略")
+        document = await self._documents.get_by_id(doc_id)
+        if document is None or document.parsed_content is None or ingestion_status(document.stages) != "ready":
+            raise RAGError(reason="SOURCE_CHANGED", message="检索文档的规范正文不存在或不再就绪")
+        chunks = await self._chunk_repo.list_by_document(doc_id)
+        spans = self._chunker.chunk_spans(document.parsed_content)
+        if len(chunks) != len(spans) or any(
+            chunk.position != index or chunk.content != document.parsed_content[start:end]
+            for index, (chunk, (start, end)) in enumerate(zip(chunks, spans, strict=True))
+        ):
+            raise RAGError(reason="SOURCE_RECHUNK_REQUIRED", message="现有分块不对应当前原文切片策略，请重新分块并建立索引")
+        return document, chunks, spans, fenced_code_ranges(document.parsed_content)
+
+    async def validate_sources(self, sources: list[AnswerSource]) -> None:
+        """生成前与发布前均核对当前版本和原分块切片，不补原文、不接受新位置。"""
+        for doc_id in dict.fromkeys(source.document_id for source in sources):
+            document, chunks, _, _ = await self._read_document(doc_id)
+            version = (document.updated_at or document.created_at).isoformat()
+            by_id = {chunk.id: chunk for chunk in chunks}
+            for source in (value for value in sources if value.document_id == doc_id):
+                if source.knowledge_base_id != document.knowledge_base_id or source.document_updated_at != version:
+                    raise RAGError(reason="SOURCE_CHANGED", message="证据的文档归属或版本已变化")
+                for segment in source.segments:
+                    chunk = by_id.get(segment.chunk_id)
+                    if (chunk is None or chunk.position != segment.position
+                            or not 0 <= segment.start < segment.end <= len(chunk.content)
+                            or chunk.content[segment.start:segment.end] != segment.content):
+                        raise RAGError(reason="SOURCE_CHANGED", message="证据原分块或字符范围已变化")
+
     async def _merge(self, hits: list[RetrievalResult]) -> list[AnswerSource]:
         by_doc: dict[int, list[RetrievalResult]] = {}
         for hit in hits:
@@ -169,19 +201,7 @@ class MaterialProcessor:
         ranked: list[tuple[int, AnswerSource]] = []
         order = {hit.chunk_id: index for index, hit in enumerate(hits)}
         for doc_id, doc_hits in by_doc.items():
-            if self._documents is None or self._chunker is None:
-                raise RAGError(reason="SOURCE_CONFIGURATION_INVALID", message="知识库资料处理缺少规范正文与分块策略")
-            document = await self._documents.get_by_id(doc_id)
-            if document is None or document.parsed_content is None:
-                raise RAGError(reason="SOURCE_CHANGED", message="检索文档的规范正文已不存在")
-            chunks = await self._chunk_repo.list_by_document(doc_id)
-            spans = self._chunker.chunk_spans(document.parsed_content)
-            if len(chunks) != len(spans) or any(
-                chunk.position != index or chunk.content != document.parsed_content[start:end]
-                for index, (chunk, (start, end)) in enumerate(zip(chunks, spans, strict=True))
-            ):
-                raise RAGError(reason="SOURCE_RECHUNK_REQUIRED", message="现有分块不对应当前原文切片策略，请重新分块并建立索引")
-            codes = fenced_code_ranges(document.parsed_content)
+            document, chunks, spans, codes = await self._read_document(doc_id)
             by_position = {chunk.position: chunk for chunk in chunks if chunk.id is not None}
             for hit in doc_hits:
                 if (document.knowledge_base_id != hit.knowledge_base_id

@@ -11,6 +11,7 @@ import anyio
 import structlog
 
 from api.openapi.schemas.rag import (
+    EvidenceFragmentDTO,
     HitScoreDTO,
     MaterialSegmentDTO,
     RAGQueryResponse,
@@ -66,6 +67,7 @@ def response_dto(run: AnswerRun) -> RAGQueryResponse:
         error_code=run.error_code, usage=asdict(run.usage),
         events=[asdict(event) for event in run.events], answer=run.answer, model=run.model,
         sources=sources, source_count=len(sources),
+        evidence_catalog=[EvidenceFragmentDTO(**asdict(item)) for item in run.evidence_catalog],
         web_directory=[asdict(entry) for entry in run.web_directory],
         retrieval_results=[retrieval_dto(hit) for hit in retrieval_results(run)],
         input_measurement=run.input_measurement,
@@ -119,6 +121,7 @@ class RAGService:
                         "web_pages": {source_id: asdict(page) for source_id, page in observed.web_pages.items()},
                         "evidence_selection": observed.evidence_selection,
                         "final_response": observed.final_response,
+                        "final_request": observed.final_request,
                         "answer_contract_version": ANSWER_CONTRACT_VERSION,
                         "answer_claims": observed.answer_claims,
                         "started_at": observed.started_at,
@@ -148,7 +151,7 @@ class RAGService:
         queue: asyncio.Queue[dict | None] = asyncio.Queue()
 
         def emit(run: AnswerRun, event: RunEvent) -> None:
-            payload = {"type": "event", "version": 5, "tool_contract_version": 2, "run_id": run.run_id, **asdict(event)}
+            payload = {"type": "event", "version": 5, "tool_contract_version": 2, "answer_contract_version": ANSWER_CONTRACT_VERSION, "run_id": run.run_id, **asdict(event)}
             if event.kind == "sources_updated":
                 payload["data"] = {
                     **event.data,

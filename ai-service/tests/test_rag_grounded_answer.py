@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -184,21 +185,87 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.status, "repeated_call")
         self.assertEqual(len(executor.calls), 1)
 
+    def test_model_call_budget_requires_research_and_final_generation(self):
+        for count in (0, 1, 7, 2.5, True):
+            with (
+                self.subTest(model_calls=count),
+                self.assertRaisesRegex(ValueError, "模型调用总次数必须为 2 到 6 次"),
+            ):
+                RunLimits(model_calls=count)
+        for count in range(2, 7):
+            with self.subTest(model_calls=count):
+                self.assertEqual(RunLimits(model_calls=count).model_calls, count)
+        self.assertEqual(RunLimits().model_calls, 6)
+
+    def budget_run(self, limits, *, has_evidence=True, unexpected_tool=False):
+        content = "启动顺序：先加载配置，再连接存储。"
+        material = AnswerSource(
+            0, 1, "startup.md", 1, [MaterialSegment(11, 0, 0, len(content), content)], [],
+            document_updated_at="2026-11-02T00:00:00+00:00",
+        )
+        sources = [material] if has_evidence else []
+        result = ToolResult("c1", "knowledge_base_search", "success" if sources else "empty", sources)
+        biz, llm, executor = setup([action(query="启动顺序")], [result], limits=limits)
+        payload = {"status": "answered" if sources else "insufficient",
+                   "claims": [{"scope": "source", "text": content, "evidence_ids": ["E1"],
+                               "code_evidence_id": None}] if sources else [],
+                   "missing": [] if sources else ["启动顺序的原文依据"]}
+        response = ChatResult(json.dumps(payload, ensure_ascii=False), "qwen3.8-flash",
+                              prompt_tokens=20, completion_tokens=10, total_tokens=30,
+                              finish_reason="stop")
+        llm.generate_answer = AsyncMock(return_value=action("c2", "new query") if unexpected_tool else response)
+        executor.validate_sources = AsyncMock()
+        return biz, llm, executor
+
     async def test_last_model_call_cannot_start_new_tools(self):
-        biz, llm, executor = setup([final()], limits=RunLimits(model_calls=1))
+        biz, llm, executor = self.budget_run(RunLimits(model_calls=2))
         run = await self.query(biz)
-        self.assertEqual(run.usage.model_calls, 1)
-        self.assertEqual(llm.calls[0][1]["tool_choice"], "none")
-        self.assertEqual(executor.calls, [])
+        self.assertEqual(run.status, "completed")
+        self.assertEqual(run.exploration_stop_reason, "model_call_limit")
+        self.assertEqual(run.usage.model_calls, 2)
+        self.assertEqual(len(llm.calls), 1)
+        self.assertEqual(len(executor.calls), 1)
+        llm.generate_answer.assert_awaited_once()
+        self.assertEqual(set(llm.generate_answer.await_args.kwargs), {"max_tokens", "temperature"})
+        self.assertIn("先加载配置", run.answer)
+        self.assertEqual(run.answer_claims[0]["evidence_ids"], ["E1"])
+        self.assertEqual(run.usage.actual_total_tokens, 60)
+        self.assertEqual(run.usage.unreported_model_calls, 0)
+        self.assertEqual([call.phase for call in run.usage.calls], ["exploration", "final"])
+        self.assertEqual(executor.validate_sources.await_count, 2)
+
+    async def test_last_model_call_explains_missing_evidence(self):
+        biz, llm, executor = self.budget_run(RunLimits(model_calls=2), has_evidence=False)
+        run = await self.query(biz)
         self.assertEqual(run.status, "budget_exhausted")
+        self.assertEqual(run.stop_reason, "model_call_limit")
+        self.assertEqual(run.usage.model_calls, 2)
+        self.assertEqual(len(executor.calls), 1)
+        llm.generate_answer.assert_awaited_once()
+        self.assertIn("启动顺序的原文依据", run.answer)
+        self.assertEqual(json.loads(run.final_response)["status"], "insufficient")
+        self.assertEqual(run.sources, [])
+
+    async def test_final_model_tool_call_is_rejected_without_execution(self):
+        biz, llm, executor = self.budget_run(RunLimits(model_calls=2), unexpected_tool=True)
+        run = await self.query(biz)
+        self.assertEqual(run.status, "model_failed")
+        self.assertEqual(run.error_code, "INVALID_TOOL_RESPONSE")
+        self.assertEqual(run.stop_reason, "unexpected_tool_call")
+        self.assertEqual(run.usage.model_calls, 2)
+        self.assertEqual(len(executor.calls), 1)
+        llm.generate_answer.assert_awaited_once()
+        self.assertEqual(run.answer, "")
 
     async def test_tool_limit_reserves_final_answer_and_stops_tools(self):
-        biz, _, executor = setup([action(), final()], [ToolResult("c1", "knowledge_base_search", "empty")],
-                                  limits=RunLimits(tool_calls=1))
+        biz, llm, executor = self.budget_run(RunLimits(tool_calls=1))
         run = await self.query(biz)
-        self.assertEqual(run.status, "budget_exhausted")
-        self.assertEqual(run.stop_reason, "tool_call_limit")
+        self.assertEqual(run.status, "completed")
+        self.assertEqual(run.exploration_stop_reason, "tool_call_limit")
+        self.assertEqual(run.usage.model_calls, 2)
         self.assertEqual(len(executor.calls), 1)
+        llm.generate_answer.assert_awaited_once()
+        self.assertIn("先加载配置", run.answer)
 
     async def test_input_over_budget_does_not_start_model(self):
         biz, llm, executor = setup([])

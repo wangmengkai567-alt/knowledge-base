@@ -100,8 +100,19 @@ export interface RunEvent {
   data: Record<string, unknown>
 }
 
+export interface EvidenceFragment {
+  evidence_id: string
+  run_id: string
+  citation_id: number
+  kind: 'text' | 'code'
+  content: string
+  origin: Record<string, string | number>
+}
+
 export interface RunResult {
   runId: string
+  answerContractVersion: 3
+  evidenceCatalog: EvidenceFragment[]
   status: RunStatus
   stopReason: string
   explorationStopReason: string

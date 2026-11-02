@@ -11,6 +11,7 @@ from uuid import uuid4
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from internal.biz.evidence import EvidenceFragment
     from internal.biz.materials import AnswerSource, WebSource
     from internal.biz.tool_types import ToolResult
     from internal.biz.tools import ToolScope
@@ -38,9 +39,11 @@ class RunLimits:
     timeout: float = 120
 
     def __post_init__(self) -> None:
+        # 总次数包含取证决策和最终回答；预留回答后至少还能发起一次取证。
+        if type(self.model_calls) is not int or not 2 <= self.model_calls <= 6:
+            raise ValueError("模型调用总次数必须为 2 到 6 次，至少包含一次取证决策和一次最终回答")
         if not (
-            1 <= self.model_calls <= 6
-            and 1 <= self.tool_calls <= 10
+            1 <= self.tool_calls <= 10
             and 1 <= self.total_tokens <= 64000
             and 0 < self.timeout <= 120
         ):
@@ -100,6 +103,8 @@ class AnswerRun:
     answer: str = ""
     final_response: str = ""  # 仅最终响应，用于本机验收；不发布未通过检查的答案。
     answer_claims: list[dict] = field(default_factory=list)
+    evidence_catalog: list[EvidenceFragment] = field(default_factory=list)
+    final_request: list[dict] = field(default_factory=list)
     model: str = ""
     usage: RunUsage = field(default_factory=RunUsage)
     # 仅登记真正进入模型请求的内容；获取但未送模的结果另保存在 tool_results。

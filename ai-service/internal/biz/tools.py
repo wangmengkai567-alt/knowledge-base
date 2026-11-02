@@ -17,7 +17,7 @@ from pydantic import (
     model_validator,
 )
 
-from internal.biz.materials import InputBudget, MaterialProcessor, pack_sources
+from internal.biz.materials import AnswerSource, InputBudget, MaterialProcessor, pack_sources
 from internal.biz.tool_types import ToolCall, ToolError, ToolFailure, ToolResult, WebDiagnostic
 from internal.biz.web_access import normalize_public_url, validate_public_url
 from internal.biz.web_sources import WebRegistry
@@ -26,6 +26,7 @@ from pkg.errors.base import APIError
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+    from internal.biz.materials import WebSource
     from internal.biz.repo import (
         ChunkRepo,
         DocumentRepo,
@@ -134,6 +135,7 @@ class ToolSession:
     finished: bool = False
     search_top_k: int = 10
     question: str = ""
+    active_sources: list[AnswerSource | WebSource] = field(default_factory=list)
 
 
 async def run_scoped(
@@ -229,6 +231,25 @@ class ReadOnlyToolExecutor:
             kb = await self._kb_repo.get_by_id(kid)
             if kb is None or kb.owner_id != scope.user_id:
                 raise ToolError("KNOWLEDGE_BASE_FORBIDDEN", "所选知识库不存在或无访问权限")
+
+    async def validate_sources(self, session: ToolSession, sources: list[AnswerSource | WebSource]) -> None:
+        async def validate() -> None:
+            await self._authorize(session.scope)
+            knowledge = [source for source in sources if isinstance(source, AnswerSource)]
+            if any(source.knowledge_base_id not in session.scope.knowledge_base_ids for source in knowledge):
+                raise ToolError("EVIDENCE_SCOPE_INVALID", "证据不属于本次授权知识库")
+            await self._materials.validate_sources(knowledge)
+            for source in sources:
+                if isinstance(source, AnswerSource):
+                    continue
+                if not session.scope.allow_web or session.web.get(source.source_id).url != source.url:
+                    raise ToolError("EVIDENCE_SCOPE_INVALID", "网页证据不属于本次授权目录")
+                if source.source_type == "web_page":
+                    page = session.web.page(source.source_id)
+                    if (page.fetched_at != source.fetched_at or not 0 <= source.start < source.end <= len(page.content)
+                            or page.content[source.start:source.end] != source.content):
+                        raise ToolError("SOURCE_CHANGED", "网页证据与本次快照不一致")
+        await run_scoped(validate, session, self._timeout)
 
     @staticmethod
     def call_key(call: ToolCall) -> str:

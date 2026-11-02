@@ -7,6 +7,7 @@ import re
 from collections import Counter
 from math import ceil
 
+from evidence_metrics import audit_evidence
 from faithfulness import unsupported_sentences
 
 CITATION = re.compile(r"\[来源\s*([1-9]\d*)\s*\]")
@@ -100,6 +101,9 @@ def score_run(snapshot: dict, item: dict) -> dict:
             sent.update(event["data"]["citation_ids"])
     if set(ids) != sent or not sent.issubset(prepared):
         evidence_errors.append("source registration differs from sent materials")
+    binding = audit_evidence(snapshot) if snapshot.get("answer_contract_version") == 3 else {}
+    evidence_errors.extend(binding.get("evidence_binding_errors", []))
+    evidence_errors.extend(binding.get("program_claim_binding_errors", []))
     valid = valid and not evidence_errors
     citations_valid = (
         all(i in ids for i in cited)
@@ -196,6 +200,7 @@ def score_run(snapshot: dict, item: dict) -> dict:
     final_calls = ([event["data"] for event in model_starts if event["data"]["final"]]
                    if compression_events else [])
     return {
+        **binding,
         **({"evidence_coverage": coverage_events[-1] if coverage_events else None, "material_compression": compression_events,
             "final_estimated_input_tokens": final_calls[-1]["estimated_input_tokens"] if final_calls else None}
            if compression_events else {}),
