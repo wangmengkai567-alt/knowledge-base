@@ -14,6 +14,23 @@ if TYPE_CHECKING:
     from internal.biz.tool_types import AnswerPayload
 
 
+# 只比对数值和单位的原写法；不推断单位含义、不换算，大小写也不合并。
+_QUANTITY_RE = re.compile(
+    r"(?<![A-Za-z0-9_.])([+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+))\s*"
+    r"((?:(?:[kmgtpe]i?)?b(?:/s)?|"
+    r"(?:kilo|mega|giga|tera|peta|exa|kibi|mebi|gibi|tebi|pebi|exbi)?(?:bytes?|bits?)|"
+    r"[kmgtpe]|"
+    r"[numkMGT]?s|secs?|seconds?|mins?|minutes?|hrs?|hours?|cores?|vCPUs?|"
+    r"[kMGT]?Hz|[%％])(?![A-Za-z0-9_])|"
+    r"千字节|兆字节|吉字节|字节|比特|毫秒|微秒|纳秒|秒|分钟|小时|天|核)",
+    re.IGNORECASE,
+)
+
+
+def _quantities(text: str) -> set[tuple[str, str]]:
+    return {(match[1], match[2]) for match in _QUANTITY_RE.finditer(text)}
+
+
 class AnswerEvidenceError(ValueError):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
@@ -56,6 +73,13 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
         identities = {_source_identity(fragment.origin) for fragment in fragments}
         if (claim.scope == "source" and len(identities) != 1) or (claim.scope == "shared" and len(identities) < 2):
             raise AnswerEvidenceError("invalid_source_scope")
+        supported_quantities = {
+            quantity for fragment in fragments
+            if fragment.origin["source_type"] != "web_search_summary"
+            for quantity in _quantities(fragment.content)
+        }
+        if not _quantities(text) <= supported_quantities:
+            raise AnswerEvidenceError("unsupported_quantity")
         ids = sorted({fragment.citation_id for fragment in fragments})
         refs = "".join(f"[来源 {number}]" for number in ids)
         label = "多来源对照" if claim.scope == "shared" else labels[fragments[0].origin["source_type"]]

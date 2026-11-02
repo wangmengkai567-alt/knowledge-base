@@ -1,0 +1,58 @@
+{
+  "original_run_id": "4a1879fc-2b44-43ae-9eba-2794c8b9be1c",
+  "verification": "offline_original_CODE01_publish_replay_and_literal_quantity_checks",
+  "provider_requests": 0,
+  "baseline": "original_CODE01_unsupported_256MB_explanation_was_accepted",
+  "checks": {
+    "original_unsupported_conversion": "unsupported_quantity",
+    "original_unit_explanation": "accepted",
+    "code_unchanged": true,
+    "single_backslash_lines": 11,
+    "reject_256MB": "unsupported_quantity",
+    "reject_256MiB": "unsupported_quantity",
+    "reject_256mb": "unsupported_quantity",
+    "reject_256 megabytes": "unsupported_quantity",
+    "reject_0.25 GB": "unsupported_quantity",
+    "quantity_spacing_difference": "accepted",
+    "unselected_fragment_cannot_support_claim": "unsupported_quantity",
+    "selected_explicit_target_literal": "accepted_synthetic_fragment",
+    "bad_publish": {
+      "status": "invalid_answer",
+      "reason": "unsupported_quantity",
+      "answer_present": false
+    },
+    "fixed_publish": {
+      "status": "completed",
+      "reason": "answer_completed",
+      "answer_present": true
+    },
+    "other_historical_answers": [
+      {
+        "id": "F01",
+        "rendering": "accepted"
+      },
+      {
+        "id": "F03",
+        "rendering": "accepted"
+      },
+      {
+        "id": "CROSS01",
+        "rendering": "accepted"
+      }
+    ]
+  },
+  "positive_answer": "manually supplied diagnostic payload preserving 256m; not a new model response",
+  "quantity_check_scope": "recognized storage, time, CPU and other listed unit literals within each claim selected non-summary fragments; not semantic entailment or unit conversion",
+  "live_answer_acceptance": false,
+  "existing_backend_tests": {
+    "passed": 77,
+    "total": 77
+  },
+  "existing_eval_tests": {
+    "passed": 26,
+    "total": 26
+  },
+  "ruff": "passed",
+  "diff_check": "passed",
+  "tests_added_or_modified": false
+}

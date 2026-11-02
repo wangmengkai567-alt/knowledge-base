@@ -18,6 +18,7 @@ FINAL_ANSWER_INSTRUCTIONS = """最终只输出 Schema 规定的 status/claims/mi
 claims 每条是一段事实：text 不写换行、来源引用或代码围栏。evidence_ids 只选择最终资料目录 sources[].evidence 中直接支持本条事实的 E 编号，不能填写 citation_id、原文 quote 或代码字符串。
 scope=source 只归于一个原始来源，可选择它的多个证据。多来源对照分别有据；shared 必须选择至少两个独立来源直接支持的证据，同一文档/网页的两段不是两来源，不能补写共识。
 需要展示代码时，code_evidence_id 选择本条 evidence_ids 中 kind=code 的编号，由程序原样取得代码正文并渲染；text 只简短说明代码用途，不得再抄完整命令、压成一行或省略引号。没有代码展示时 code_evidence_id 为 null。text 中的行内命令也必须在所选非摘要原文中存在。
+说明中的数值与单位必须采用本条 evidence_ids 所选原文的写法，只允许数字与单位之间的空白差异；不得自行展开单位缩写、改写大小写或换算。原文为 256m 时保留 256m，不能凭常识写成 256MB 或 256MiB；其他未选证据中的数值也不能作为本条依据。
 answered 须有 claims 且 missing=[]，不得引用搜索摘要。insufficient 可保留有依据的 claims，missing 仅列具体缺失主题，不能写事实或声称整份原文不存在信息。
 比较题除了分别列值，还须基于所选双方原文明确回答是否相同；不得把不同来源示例数字合成统一标准。"""
 
