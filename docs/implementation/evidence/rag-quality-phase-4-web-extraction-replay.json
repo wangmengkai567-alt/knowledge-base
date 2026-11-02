@@ -1,0 +1,24 @@
+[
+  {
+    "id": "W02",
+    "body_chars": 4908,
+    "kb_chars": 0,
+    "body_ranges": [
+      [
+        0,
+        4908
+      ]
+    ]
+  },
+  {
+    "id": "W03",
+    "body_chars": 4083,
+    "kb_chars": 1875,
+    "body_ranges": [
+      [
+        591,
+        4674
+      ]
+    ]
+  }
+]

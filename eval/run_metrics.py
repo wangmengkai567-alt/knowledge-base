@@ -187,7 +187,15 @@ def score_run(snapshot: dict, item: dict) -> dict:
         and all(any(s.get("document_filename") == filename for s in sources)
                 for filename in item.get("required_source_files", []))
     )
+    coverage_events = [event["data"] for event in events if event["kind"] == "evidence_coverage_updated"]
+    compression_events = [event["data"] for event in events
+                          if event["kind"] == "materials_budgeted" and "strategy" in event["data"]]
+    final_calls = ([event["data"] for event in model_starts if event["data"]["final"]]
+                   if compression_events else [])
     return {
+        **({"evidence_coverage": coverage_events[-1] if coverage_events else None, "material_compression": compression_events,
+            "final_estimated_input_tokens": final_calls[-1]["estimated_input_tokens"] if final_calls else None}
+           if compression_events else {}),
         "status": run["status"], "stop_reason": run["stop_reason"],
         **({"generation_protocol_valid": generation_protocol_valid}
            if generation_protocol_valid is not None else {}),

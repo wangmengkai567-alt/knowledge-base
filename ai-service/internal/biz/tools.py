@@ -127,6 +127,7 @@ class ToolSession:
     evidence_actions: int = 0
     finished: bool = False
     search_top_k: int = 10
+    question: str = ""
 
 
 async def run_scoped(
@@ -328,6 +329,7 @@ class ReadOnlyToolExecutor:
                 hits,
                 lambda context: [{"role": "tool", "tool_call_id": call.id, "content": context}],
                 self._budget.output_limit,
+                query=f"{session.question}\n{arguments.query}",
             )
             result = ToolResult(
                 call.id,
@@ -389,7 +391,7 @@ class ReadOnlyToolExecutor:
                 call.id, call.name, "success",
                 selection={"outcome": arguments.outcome, "citation_ids": sorted(ids)},
             )
-        self._bound_result(result)
+        self._bound_result(result, query=session.question)
         if result.selection is not None:
             session.finished = True
         if call.name != "finish_research" and not result.errors:
@@ -401,13 +403,13 @@ class ReadOnlyToolExecutor:
         )
         return result
 
-    def _bound_result(self, result: ToolResult) -> None:
+    def _bound_result(self, result: ToolResult, *, query: str) -> None:
         """工具输出上限；完整模型消息及所有历史的预算在 request_action 中再核算。"""
         had_sources = bool(result.sources)
         def fits(sources):
             bounded = replace(result, sources=sources)
             return (sum(len(source.content) for source in sources) <= self._max_content_chars
                     and len(json.dumps(bounded.to_message(), ensure_ascii=False).encode()) <= 12000)
-        result.sources = [replace(source, citation_id=0) for source in pack_sources(result.sources, fits) if source.content.strip()]
+        result.sources = [replace(source, citation_id=0) for source in pack_sources(result.sources, fits, query=query) if source.content.strip()]
         if not fits(result.sources) or (had_sources and not result.sources and not result.directory):
             raise ToolError("TOOL_RESULT_TOO_LARGE", "资料无法在工具结果预算内保留")

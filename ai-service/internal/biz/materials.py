@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
+from internal.biz.query_plan import plan_query
 from internal.biz.relevance import apply_relevance_gate
 from pkg.errors.base import RAGError
 
@@ -111,9 +113,11 @@ class MaterialProcessor:
         *,
         tools: list[dict] | None = None,
         history: list[dict] | None = None,
+        query: str = "",
     ) -> PreparedMaterials:
         return self.prepare_sources(
-            await self._merge(hits), build_messages, output_tokens, tools=tools, history=history
+            await self._merge(hits), build_messages, output_tokens, tools=tools, history=history,
+            query=query,
         )
 
     def prepare_sources(
@@ -124,6 +128,7 @@ class MaterialProcessor:
         *,
         tools: list[dict] | None = None,
         history: list[dict] | None = None,
+        query: str = "",
     ) -> PreparedMaterials:
         """知识库和网页资料共用预算、实际文字裁剪与引用编号。"""
         budget = self._budget
@@ -143,6 +148,7 @@ class MaterialProcessor:
         sources = pack_sources(
             [replace(source, citation_id=index) for index, source in enumerate(candidates, 1)],
             lambda values: measure(values)[1] <= limit,
+            query=query,
         )
         messages, size = measure(sources)
         if candidates and not sources:
@@ -212,9 +218,6 @@ class MaterialProcessor:
 def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
     if isinstance(source, WebSource):
         relative_end = min(length, len(source.content))
-        if relative_end < len(source.content):
-            # 装包缩短网页正文时只保留完整段落，不把几个字符当成可用证据。
-            relative_end = max(0, source.content.rfind("\n\n", 0, relative_end + 2))
         end = source.start + relative_end
         for left, right in source.code_ranges:
             if left < end < right:
@@ -239,56 +242,186 @@ def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource |
     )
 
 
-def focus_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
-    """预算不足时优先保留真实检索命中块，再保留相邻背景，映射仍指向原文。"""
-    if length >= len(source.content):
-        return source
-    if isinstance(source, WebSource) or not source.retrieval_hits:
-        return clip_source(source, length)
-    priorities = {hit.chunk_id: index for index, hit in enumerate(source.retrieval_hits)}
-    selected = []
-    remaining = length
-    for segment in sorted(source.segments, key=lambda part: priorities.get(part.chunk_id, len(priorities))):
-        if remaining <= 0:
-            break
-        content = segment.content[:remaining]
-        if content:
-            selected.append(replace(segment, content=content, end=segment.start + len(content)))
-        remaining -= len(content) + 1
-    selected.sort(key=lambda part: (part.position, part.start))
-    ids = {part.chunk_id for part in selected}
-    return replace(source, segments=selected, truncated=True,
+def question_parts(query: str) -> list[str]:
+    """只按显式分句列出待核查主题；词面匹配不宣称语义覆盖。"""
+    return list(dict.fromkeys(
+        part.strip() for part in re.split(r"[；;？?。\n]+|以及|(?<=\s)和(?=\s)", query) if part.strip()
+    ))
+
+
+def question_terms(query: str) -> set[str]:
+    lexical = plan_query(query).lexical
+    terms = set(re.findall(r"[a-z0-9_]+(?:[-.][a-z0-9_]+)*", lexical.casefold()))
+    for run in re.findall(r"[\u4e00-\u9fff]+", lexical):
+        terms.update(run[i:i + 2] for i in range(len(run) - 1))
+    return terms - {"md", "txt", "请比", "比较", "分别", "引用", "数字", "同一", "一套", "标准"}
+
+
+def evidence_coverage(query: str, sources: list[AnswerSource | WebSource]) -> dict:
+    """按问题分句和真实来源登记候选；缺失仅指本次送模片段未命中。"""
+    topics = []
+    for part in question_parts(query):
+        terms = question_terms(part)
+        citations = [source.citation_id for source in sources
+                     if any(term in source.content.casefold() for term in terms)]
+        topics.append({"question": part, "candidate_citation_ids": citations,
+                       "state": "candidate_found" if citations else "not_found_in_sent_excerpts"})
+    documents = []
+    seen = set()
+    for source in sources:
+        key = source_identity(source)
+        if key in seen:
+            continue
+        seen.add(key)
+        group = [item for item in sources if source_identity(item) == key]
+        documents.append({
+            "knowledge_base_id": source.knowledge_base_id if isinstance(source, AnswerSource) else None,
+            "document": source.document_filename if isinstance(source, AnswerSource) else source.url,
+            "version": source.document_updated_at if isinstance(source, AnswerSource) else source.fetched_at,
+            "citation_ids": [item.citation_id for item in group],
+        })
+    return {"method": "lexical_candidates_not_semantic_verification", "topics": topics,
+            "documents": documents}
+
+
+def source_identity(source: AnswerSource | WebSource) -> tuple:
+    if isinstance(source, AnswerSource):
+        return (source.knowledge_base_id, source.document_id, source.document_updated_at)
+    return (source.url, source.fetched_at, source.source_type)
+
+
+def _text_ranges(content: str) -> list[tuple[int, int]]:
+    """完整行/句子为最小单元，围栏代码始终作为整体保留。"""
+    ranges = []
+    start, block_start = 0, 0
+    fence = ""
+    for line in content.splitlines(keepends=True):
+        end = start + len(line)
+        marker = re.match(r"\s*(`{3,}|~{3,})", line)
+        if marker and not fence:
+            fence, block_start = marker[1], start
+        elif marker and fence and marker[1][0] == fence[0] and len(marker[1]) >= len(fence):
+            fence = ""
+            ranges.append((block_start, end))
+        elif not fence:
+            if line.strip():
+                for match in re.finditer(r".+?(?:[。！？]|$)", line):
+                    if match[0].strip():
+                        ranges.append((start + match.start(), start + match.end()))
+                if ranges:
+                    ranges[-1] = (ranges[-1][0], end)
+            elif ranges:
+                left, _ = ranges[-1]
+                ranges[-1] = (left, end)
+        start = end
+    if fence:
+        ranges.append((block_start, len(content)))
+    return ranges
+
+
+@dataclass(frozen=True)
+class _Excerpt:
+    source: int
+    segment: int
+    start: int
+    end: int
+    score: float
+
+
+def _excerpt_source(source: AnswerSource | WebSource, excerpts: list[_Excerpt]) -> AnswerSource | WebSource:
+    if isinstance(source, WebSource):
+        left, right = min(item.start for item in excerpts), max(item.end for item in excerpts)
+        window = clip_source(replace(source, content=source.content[left:], start=source.start + left), right - left)
+        return replace(window, truncated=source.truncated or left > 0 or right < len(source.content),
+                       code_ranges=[(a, b) for a, b in window.code_ranges if a >= window.start])
+    segments = []
+    for item in sorted(excerpts, key=lambda item: (item.segment, item.start)):
+        original = source.segments[item.segment]
+        left, right = original.start + item.start, original.start + item.end
+        if segments and segments[-1].chunk_id == original.chunk_id and left <= segments[-1].end:
+            previous = segments.pop()
+            left = previous.start
+            right = max(right, previous.end)
+        segments.append(replace(original, start=left, end=right,
+                                content=original.content[left-original.start:right-original.start]))
+    ids = {segment.chunk_id for segment in segments}
+    return replace(source, segments=segments, truncated=source.truncated or segments != source.segments,
                    retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids])
 
 
 def pack_sources(
     candidates: list[AnswerSource | WebSource],
     fits: Callable[[list[AnswerSource | WebSource]], bool],
+    *,
+    query: str = "",
 ) -> list[AnswerSource | WebSource]:
-    """在完整请求预算内公平分配正文空间，先覆盖不同资料，避免首份资料挤掉其余来源。"""
-    if fits(candidates):
-        return candidates
+    """按问题相关原文单元分配完整请求空间；先覆盖不同文档，再添加相关上下文。"""
+    terms = question_terms(query)
+    excerpts = []
+    named = set()
+    for index, source in enumerate(candidates):
+        local_terms = terms
+        if isinstance(source, WebSource) and source.source_type == "web_page":
+            # 模型已选择读取的正文比搜索摘要优先；标题提供跨语言主题词，仍只抽取原文。
+            named.add(index)
+            local_terms = terms | question_terms(source.title)
+        if isinstance(source, AnswerSource):
+            stem = re.sub(r"^\d+[._-]", "", source.document_filename.rsplit(".", 1)[0]).casefold()
+            if len(stem) >= 2 and stem in query.casefold():
+                named.add(index)
+        texts = [segment.content for segment in source.segments] if isinstance(source, AnswerSource) else [source.content]
+        hit_ids = {hit.chunk_id for hit in source.retrieval_hits} if isinstance(source, AnswerSource) else set()
+        for segment, content in enumerate(texts):
+            ranges = _text_ranges(content)
+            if isinstance(source, WebSource):
+                # 任何正文代码范围（包括起点就在围栏内的窗口）不可切开。
+                for a, b in source.code_ranges:
+                    left, right = a - source.start, b - source.start
+                    overlaps = [(x, y) for x, y in ranges if x < right and left < y]
+                    if overlaps:
+                        ranges = [(x, y) for x, y in ranges if not (x < right and left < y)]
+                        ranges.append((min(left, min(x for x, _ in overlaps)), max(right, max(y for _, y in overlaps))))
+                ranges.sort()
+            scores = [sum(1 for term in local_terms if term in content[left:right].casefold())
+                      for left, right in ranges]
+            hit = ((isinstance(source, AnswerSource) and source.segments[segment].chunk_id in hit_ids)
+                   or (isinstance(source, WebSource) and source.source_type == "web_page"))
+            for position, (left, right) in enumerate(ranges):
+                direct = scores[position]
+                neighbor = max(scores[max(0, position - 1):position + 2], default=0)
+                # 邻句保留单位、前置条件和否定；不把文档名匹配冒充正文依据。
+                score = direct * 4 + neighbor + (0.25 if hit else 0)
+                # 比较题中的真实数值/单位比泛泛的限制介绍更有信息量；仍须词面相关。
+                if direct and re.search(r"\d\s*(?:[KMGT]?B|[kmgt]b?|cores?|核|秒|分钟|小时|%)\b", content[left:right], re.I):
+                    score += 4
+                if not terms or score > 0:
+                    if direct:
+                        left = ranges[max(0, position - 1)][0]
+                        right = ranges[min(len(ranges) - 1, position + 1)][1]
+                    excerpts.append(_Excerpt(index, segment, left, right, score))
+    excerpts.sort(key=lambda item: (item.source not in named, -item.score, item.source, item.segment, item.start))
+    chosen: list[_Excerpt] = []
+
+    def project(items: list[_Excerpt]) -> list[AnswerSource | WebSource]:
+        grouped: dict[int, list[_Excerpt]] = {}
+        for item in items:
+            grouped.setdefault(item.source, []).append(item)
+        return [_excerpt_source(candidates[index], group) for index, group in sorted(grouped.items())]
+
+    # 每份文档最相关的完整单元先争取空间；之后按相关度补齐，绝不等长截取每份开头。
     first, rest, seen = [], [], set()
-    for source in candidates:
-        key = ((source.document_id, source.document_updated_at) if isinstance(source, AnswerSource)
-               else (source.url, source.fetched_at))
-        (rest if key in seen else first).append(source)
+    for item in excerpts:
+        key = source_identity(candidates[item.source])
+        (rest if key in seen or (named and item.source not in named) else first).append(item)
         seen.add(key)
-    sources = first + rest
-    while sources:
-        if not fits([focus_source(source, 1) for source in sources]):
-            sources.pop()
+    for item in [*first, *rest]:
+        if any(old.source == item.source and old.segment == item.segment
+               and old.start <= item.start and item.end <= old.end for old in chosen):
             continue
-        low, high, best = 1, max(len(source.content) for source in sources), []
-        while low <= high:
-            middle = (low + high) // 2
-            trial = [focus_source(source, middle) for source in sources]
-            if fits(trial):
-                best, low = trial, middle + 1
-            else:
-                high = middle - 1
-        return best
-    return []
+        trial = [*chosen, item]
+        if fits(project(trial)):
+            chosen = trial
+    return project(chosen)
 
 
 def render_materials(sources: list[AnswerSource | WebSource]) -> str:

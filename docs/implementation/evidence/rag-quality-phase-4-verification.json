@@ -1,0 +1,241 @@
+{
+  "files": [
+    {
+      "path": "ai-service/internal/biz/materials.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/biz/rag.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "CRLF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/biz/retrieval.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "CRLF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/biz/tool_model.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/biz/tool_types.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/biz/tools.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "ai-service/internal/prompt/templates/rag.yaml",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "CRLF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/plans/rag-quality-remediation-plan.md",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/run_metrics.py",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-acceptance-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-acceptance-cross-source-audit.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-acceptance-local-audit.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-acceptance-runtime.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-baseline-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-current-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-delivery-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-delivery-runtime.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-diagnostics.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-eval-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-extraction-replay.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-final-checks.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-final-cross-source-audit.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-final-runtime.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-review.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-runtime.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-web-extraction-replay.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/evidence/rag-quality-phase-4-web-regression-audit.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "docs/implementation/rag-quality-phase-4-report.md",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-acceptance-cross-source-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-acceptance-local-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-acceptance-web-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-cross-source-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-final-cross-source-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-final-local-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-final-web-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-local-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-web-regression-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    },
+    {
+      "path": "eval/rag-quality-phase-4-web-results.json",
+      "encoding": "utf-8-no-bom",
+      "line_endings": "LF",
+      "syntax_or_json_valid": true
+    }
+  ],
+  "diff_check_exit_code": 0,
+  "diff_check_stderr": "warning: in the working copy of 'ai-service/internal/biz/materials.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'ai-service/internal/biz/tool_model.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'ai-service/internal/biz/tool_types.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'ai-service/internal/biz/tools.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/plans/rag-quality-remediation-plan.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'eval/run_metrics.py', LF will be replaced by CRLF the next time Git touches it\n",
+  "staged_changes": false,
+  "test_files_modified_or_created": false,
+  "same_ten_preexisting_failing_tests": true,
+  "additional_test_error": "test_budget_counts_complete_messages: whole evidence unit cannot fit 700-byte request",
+  "new_files_lf_utf8_no_bom": true,
+  "delivery_runtime_source_hashes_match": true,
+  "python_ast_valid": true
+}

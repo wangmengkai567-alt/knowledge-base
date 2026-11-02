@@ -1,0 +1,42 @@
+{
+  "model": "qwen3.8-flash",
+  "service_host": "maas.qianwenaiapi.com",
+  "embedding": "qwen3.7-text-embedding-flash",
+  "reranker": "qwen3.7-text-rerank",
+  "limits": {
+    "model_calls": 6,
+    "tool_calls": 10,
+    "total_tokens": 64000,
+    "timeout": 120
+  },
+  "source_sha256": {
+    "internal/biz/materials.py": "cbad18a4acfa31f4b4e019e603fabd9bbf7ac93950a8dba07410e9546b964412",
+    "internal/biz/rag.py": "b97de9af72618afea37834fb3ae999732671a386df99edbe890018dea2c1e86e",
+    "internal/biz/retrieval.py": "ea18bf99df3ecdaaae3e994a946623aae8d32ce24617c577a06287b3021d5c53",
+    "internal/biz/tool_model.py": "11cf637cf9343d1ba1b3f1663cb6005bda2050b7287049731945c35c488ddefa",
+    "internal/biz/tool_types.py": "79ebbb8dd162b3fbecfd8a1ea11c2b3ee0517bd6448e3eb3a7b72a3bc430d2ff",
+    "internal/biz/tools.py": "b16fa366b64944c4d4b0a47b24efe69fada57ce6675b672bf11fb409b9474bae",
+    "internal/prompt/templates/rag.yaml": "bcd4be8940885908263043c39f44bef4e3f9dc777c163c89b3516ac7f4b7694a"
+  },
+  "source_matches_container": true,
+  "base_commit": "e56a9d477941ebe11eceaa9ff352aad7252533b5",
+  "initial_worktree": "clean",
+  "input_measurement": "utf8_bytes_estimate",
+  "input_limit": 16000,
+  "output_limit": 2048,
+  "strategy": "question_relevant_verbatim",
+  "summary_model_calls": 0,
+  "selected_ids": [
+    "CROSS01",
+    "F01",
+    "F03",
+    "G01",
+    "W02",
+    "W03"
+  ],
+  "dataset_sha256": {
+    "eval/cross_source_scenarios.json": "dfb96809906e705fd8014f497ddfafb6d170570860b83eee6759b718d3ef7fe1",
+    "eval/golden_set.json": "5cfedd76f29dd32336e6bf44b73211a877a7ee9f6bcebada71a0108f3670caf8",
+    "eval/web_scenarios.json": "2d697c38163bf6aa523b7e9a742506fe9162d52f8ccd9adc5c2de10cc4559631"
+  }
+}

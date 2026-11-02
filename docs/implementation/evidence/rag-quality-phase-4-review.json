@@ -1,0 +1,208 @@
+{
+  "reviewer": "implementation agent; bounded primary-evidence review, not independent human grading",
+  "question_count": 6,
+  "semantic_pass": 4,
+  "rows": [
+    {
+      "id": "CROSS01",
+      "results": "eval/rag-quality-phase-4-acceptance-cross-source-results.json",
+      "run_id": "0f4d3239-a226-48c1-94cb-14d919d60846",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2,
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "no_new_evidence",
+      "semantic_pass": true,
+      "review": "两个授权库的原文均送模；分别为 Docker --memory 256m 与安全示例 512 MB，共同对照由双方直接支持。文件名数字造成自动疑点，原评分保留。",
+      "keyword_pass": true,
+      "elapsed_seconds": 14.187,
+      "model_calls": 5,
+      "tool_calls": 4,
+      "actual_total_tokens": 16909,
+      "final_input_bytes_estimate": 10893,
+      "final_actual_prompt_tokens": 2347,
+      "final_actual_completion_tokens": 541,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    },
+    {
+      "id": "F01",
+      "results": "eval/rag-quality-phase-4-acceptance-local-results.json",
+      "run_id": "f1436a98-138c-4bed-8d40-1dc8c5e2ba8a",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2
+        ],
+        "allow_web": false
+      },
+      "status": "invalid_answer",
+      "stop_reason": "unsupported_quote",
+      "exploration_stop_reason": "no_new_evidence",
+      "semantic_pass": false,
+      "review": "三份文档的 CPU/内存示例均已送模。模型在 harness 引文 Memory：4GB 后补写原文没有紧接出现的闭围栏，逐字校验拒绝。未发布坏答案。",
+      "keyword_pass": false,
+      "elapsed_seconds": 11.437,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 12532,
+      "final_input_bytes_estimate": 11677,
+      "final_actual_prompt_tokens": 2402,
+      "final_actual_completion_tokens": 442,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    },
+    {
+      "id": "F03",
+      "results": "eval/rag-quality-phase-4-acceptance-local-results.json",
+      "run_id": "6bbb41c3-844e-46e4-9da9-76807b34d79c",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": false
+      },
+      "status": "invalid_answer",
+      "stop_reason": "unsupported_quote",
+      "exploration_stop_reason": "no_new_evidence",
+      "semantic_pass": false,
+      "review": "历史请求仍只含知识库 3；没有扩成 [2,3]。模型同时改变了 Docker 引文中的反斜杠数量，逐字校验拒绝。不能用此题判断双库授权能力。",
+      "keyword_pass": false,
+      "elapsed_seconds": 9.859,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 12843,
+      "final_input_bytes_estimate": 11979,
+      "final_actual_prompt_tokens": 2664,
+      "final_actual_completion_tokens": 292,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    },
+    {
+      "id": "G01",
+      "results": "eval/rag-quality-phase-4-acceptance-local-results.json",
+      "run_id": "a5a69afa-0d8b-47c7-b693-ee861b636a20",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          8
+        ],
+        "allow_web": false
+      },
+      "status": "insufficient",
+      "stop_reason": "insufficient_material",
+      "exploration_stop_reason": "no_new_evidence",
+      "semantic_pass": true,
+      "review": "实际检索后说明缺少 overlay2 原理资料，没有用常识补答；只覆盖一题拒答，不证明稳定性。",
+      "keyword_pass": false,
+      "elapsed_seconds": 5.297,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "actual_total_tokens": 3519,
+      "final_input_bytes_estimate": 3680,
+      "final_actual_prompt_tokens": 419,
+      "final_actual_completion_tokens": 45,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    },
+    {
+      "id": "W02",
+      "results": "eval/rag-quality-phase-4-web-regression-results.json",
+      "run_id": "cd140aee-8a7e-49aa-a867-c34d69b8acae",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": true
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "model_call_limit",
+      "semantic_pass": true,
+      "review": "同次官方正文快照中已读取并引用 search_depth 与 include_answer 的定义、默认值；译述疑点经原文对照有依据，自动评分不修改。",
+      "keyword_pass": true,
+      "elapsed_seconds": 17.171,
+      "model_calls": 6,
+      "tool_calls": 5,
+      "actual_total_tokens": 23373,
+      "final_input_bytes_estimate": 15967,
+      "final_actual_prompt_tokens": 3565,
+      "final_actual_completion_tokens": 717,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    },
+    {
+      "id": "W03",
+      "results": "eval/rag-quality-phase-4-web-regression-results.json",
+      "run_id": "c421dd62-44a4-4699-8e02-1c6692513533",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": true
+      },
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "exploration_stop_reason": "repeated_call",
+      "semantic_pass": true,
+      "review": "知识库分别支持镜像模板、容器实例及构建/运行关系；官方正文支持 docker run、隔离与端口访问。没有补写双方共有的镜像定义。",
+      "keyword_pass": true,
+      "elapsed_seconds": 10.594,
+      "model_calls": 4,
+      "tool_calls": 2,
+      "actual_total_tokens": 13834,
+      "final_input_bytes_estimate": 12930,
+      "final_actual_prompt_tokens": 2812,
+      "final_actual_completion_tokens": 467,
+      "ledger_valid": true,
+      "evidence_valid": true,
+      "citations_valid": true,
+      "budget_valid": true
+    }
+  ],
+  "all_real_run_usage": {
+    "runs": 20,
+    "model_calls": 82,
+    "tool_calls": 58,
+    "prompt_tokens": 250620,
+    "completion_tokens": 10803,
+    "actual_total_tokens": 261423,
+    "unknown_calls": 0
+  },
+  "final_sample_usage": {
+    "model_calls": 26,
+    "tool_calls": 19,
+    "actual_total_tokens": 83010,
+    "latency_p50_seconds": 11.0155,
+    "latency_p95_seconds": 17.171,
+    "latency_max_seconds": 17.171
+  },
+  "overall_quality_acceptance": false,
+  "summary_experiment": "not performed; raw evidence required by the successfully answered questions fits, no additional model call introduced",
+  "limitations": [
+    "No full 100-question run or W01/W04 rerun.",
+    "Final knowledge-base sample reuses the acceptance run; the delivery change affects only WebSource selection.",
+    "F01/F03 exact quote failures remain unresolved; no repairs, coercion or second final-answer requests.",
+    "20 actual runs across implementation revisions, six distinct questions; failed and intermediate records retained.",
+    "Initial local G01 scoring IndexError retained in original results; raw snapshot shows a real insufficient run."
+  ]
+}

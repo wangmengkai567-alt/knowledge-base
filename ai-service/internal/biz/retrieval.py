@@ -88,7 +88,21 @@ class RetrievalBiz:
         if len({(hit.score_type, hit.score_method) for hit in hits}) > 1:
             raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
         hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
-        return hits[:top_k]
+        # 跨库比较先为每个有相关命中的授权库、再为不同文档保留候选；
+        # 不能让同库/同文档的相邻块占满全局 top_k。仍只返回过闸门的真实命中。
+        by_kb, by_doc, rest = [], [], []
+        seen_kbs, seen_docs = set(), set()
+        for hit in hits:
+            key = (hit.knowledge_base_id, hit.document_id)
+            if hit.knowledge_base_id not in seen_kbs:
+                by_kb.append(hit)
+            elif key not in seen_docs:
+                by_doc.append(hit)
+            else:
+                rest.append(hit)
+            seen_kbs.add(hit.knowledge_base_id)
+            seen_docs.add(key)
+        return [*by_kb, *by_doc, *rest][:top_k]
 
     async def retrieve(
         self,

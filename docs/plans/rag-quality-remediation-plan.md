@@ -2,7 +2,7 @@
 
 日期：2026-10-29（中国标准时间）。
 
-状态：第 0、1 阶段已执行，见[第 1 阶段实施记录](../implementation/rag-quality-phase-1-report.md)。第 2 阶段代码改造与小样本验证已执行，见[第 2 阶段实施记录](../implementation/rag-quality-phase-2-report.md)。后续按用户确认将单项关键词上限放宽至 64 字符，W02 成功搜索和读取网页，但后续生成 71 字符短语仍被拒绝，工具参数契约验收未通过，见[长度调整记录](../implementation/rag-quality-phase-2-keyword-limit-report.md)。第 3 阶段诊断改造与四道联网题验证已执行，正文代码缺失、网址选择与超长参数问题使阶段验收仍未通过，见[第 3 阶段实施记录](../implementation/rag-quality-phase-3-report.md)；第 4、5 阶段未执行。本文承接 [上一轮优化报告](../implementation/rag-quality-optimization-report.md)，不替代原重构计划或历史评测记录。
+状态：第 0、1 阶段已执行，见[第 1 阶段实施记录](../implementation/rag-quality-phase-1-report.md)。第 2 阶段代码改造与小样本验证已执行，见[第 2 阶段实施记录](../implementation/rag-quality-phase-2-report.md)。后续按用户确认将单项关键词上限放宽至 64 字符，W02 成功搜索和读取网页，但后续生成 71 字符短语仍被拒绝，工具参数契约验收未通过，见[长度调整记录](../implementation/rag-quality-phase-2-keyword-limit-report.md)。第 3 阶段诊断改造与四道联网题验证已执行，正文代码缺失、网址选择与超长参数问题使阶段验收仍未通过，见[第 3 阶段实施记录](../implementation/rag-quality-phase-3-report.md)；第 4 阶段原文抽取、跨库分配与六题小样本验证已执行，CROSS01、W02、W03、G01 的有范围内容核对通过，F01/F03 引文失败，质量验收未通过，见[第 4 阶段实施记录](../implementation/rag-quality-phase-4-report.md)；第 5 阶段未执行。本文承接 [上一轮优化报告](../implementation/rag-quality-optimization-report.md)，不替代原重构计划或历史评测记录。
 
 ## 一、要解决的问题
 
@@ -228,6 +228,8 @@ W04 已实际搜索成功。W01、W03 的正文读取出现 HTTP 连接或传输
 - F03 继续保留历史单库范围，不能为了达标把它改成双库题。历史题范围限制和 CROSS01 的执行能力单独报告。
 - 不凭更少字符认定改进，必须同时核对证据完整性、真实用量及最终回答。
 - 正式压缩策略确定后执行完整 100 题、4 道联网题及跨库场景，确认局部压缩没有损害其他问题。若之后又改变正式策略，需重新验证其直接影响范围。
+
+本次执行范围调整（2026-11-02）：用户明确要求只进行必要的少量问题测试，因此选用 CROSS01、F01、F03、G01、W02、W03 六道不同问题；实现修正期间共 20 次真实问答，初轮、中间轮和交付结果全部另存。交付策略采用问题相关原文抽取及统一历史压缩，没有新增摘要模型调用；没有运行完整 100 题或补跑 W01/W04。CROSS01、两道联网复测及拒答题通过内容核对，F01/F03 被逐字引文校验拒绝。代码改造与受限验证已执行，不宣布完整质量验收通过，详见[第 4 阶段实施记录](../implementation/rag-quality-phase-4-report.md)。
 
 ## 九、阶段 5：统一验收和结果留档
 

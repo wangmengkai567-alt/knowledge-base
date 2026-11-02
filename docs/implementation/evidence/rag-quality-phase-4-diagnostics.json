@@ -1,0 +1,98 @@
+{
+  "synthetic": true,
+  "no_network_or_real_model": true,
+  "tail_evidence": {
+    "old_kept_numbers": false,
+    "new_kept_numbers": true,
+    "budget_bytes": 700,
+    "candidate_chars": 1070,
+    "retained_chars": 122,
+    "ranges": [
+      [
+        {
+          "chunk_id": 10,
+          "position": 0,
+          "start": 474,
+          "end": 538,
+          "content": "背景介绍。\n仅用于基础沙箱示例，不是统一标准。\n内存限制 --memory 256m，CPU 为 1 核。\n禁止用于生产环境。\n"
+        }
+      ],
+      [
+        {
+          "chunk_id": 11,
+          "position": 0,
+          "start": 474,
+          "end": 532,
+          "content": "其他背景。\n仅用于安全隔离示例，不是统一标准。\n内存限制 512MB，CPU 为 1 核。\n禁止合并为同一套配置。\n"
+        }
+      ]
+    ]
+  },
+  "web_code_atomic": true,
+  "same_batch_deduplication": true,
+  "final_projection_selection": true,
+  "cross_library_diversity": true,
+  "coverage": {
+    "method": "lexical_candidates_not_semantic_verification",
+    "topics": [
+      {
+        "question": "比较 Docker",
+        "candidate_citation_ids": [],
+        "state": "not_found_in_sent_excerpts"
+      },
+      {
+        "question": "security 示例的内存限制和适用条件",
+        "candidate_citation_ids": [
+          1,
+          2
+        ],
+        "state": "candidate_found"
+      }
+    ],
+    "documents": [
+      {
+        "knowledge_base_id": 2,
+        "document": "Docker.md",
+        "version": "2026-11-02T00:00:00Z",
+        "citation_ids": [
+          1
+        ]
+      },
+      {
+        "knowledge_base_id": 3,
+        "document": "security.md",
+        "version": "2026-11-02T00:00:00Z",
+        "citation_ids": [
+          2
+        ]
+      }
+    ]
+  },
+  "integration": {
+    "status": "completed",
+    "model_calls": 3,
+    "tool_calls": 3,
+    "actual_total_tokens": 360,
+    "answer": "知识库：Docker 示例使用 256m 内存。[来源 1]\n\n知识库：安全示例使用 512MB 内存，不能合并为同一套配置。[来源 2]",
+    "source_ranges": [
+      [
+        {
+          "chunk_id": 10,
+          "position": 0,
+          "start": 0,
+          "end": 538,
+          "content": "背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n背景介绍。\n仅用于基础沙箱示例，不是统一标准。\n内存限制 --memory 256m，CPU 为 1 核。\n禁止用于生产环境。\n"
+        }
+      ],
+      [
+        {
+          "chunk_id": 11,
+          "position": 0,
+          "start": 0,
+          "end": 532,
+          "content": "其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n其他背景。\n仅用于安全隔离示例，不是统一标准。\n内存限制 512MB，CPU 为 1 核。\n禁止合并为同一套配置。\n"
+        }
+      ]
+    ]
+  }
+}

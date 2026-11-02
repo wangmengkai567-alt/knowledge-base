@@ -126,19 +126,24 @@ class ToolResult:
     matches: list[WebMatch] = field(default_factory=list)
     selection: dict | None = None
 
-    def to_message(self) -> dict:
+    def source_values(self) -> list[dict]:
         sources = []
         for source in self.sources:
             value = {"citation_id": source.citation_id, "source_type": source.source_type,
                      "content": source.content, "truncated": source.truncated}
             if source.source_type == "knowledge_base":
                 value.update(document_filename=source.document_filename,
+                             document_id=source.document_id,
+                             knowledge_base_id=source.knowledge_base_id,
                              document_updated_at=source.document_updated_at)
             else:
                 value.update(url=source.url, title=source.title, fetched_at=source.fetched_at,
                              source_id=source.source_id, start=source.start, end=source.end,
                              total_chars=source.total_chars)
             sources.append(value)
+        return sources
+
+    def to_message(self) -> dict:
         return {
             "role": "tool",
             "tool_call_id": self.call_id,
@@ -147,7 +152,7 @@ class ToolResult:
                     "tool": self.name,
                     "status": self.status,
                     "trust": "untrusted_material",
-                    "sources": sources,
+                    "sources": self.source_values(),
                     "directory": [asdict(entry) for entry in self.directory],
                     "matches": self.matches,
                     "selection": self.selection,

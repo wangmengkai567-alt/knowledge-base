@@ -13,7 +13,14 @@ import structlog
 from internal.biz.answer_rendering import AnswerEvidenceError, render_answer
 from internal.biz.answer_run import AnswerRun, RunEvent, RunLimits
 from internal.biz.entity import ChatResult
-from internal.biz.materials import AnswerSource, InputBudget, WebSource, pack_sources
+from internal.biz.materials import (
+    AnswerSource,
+    InputBudget,
+    WebSource,
+    evidence_coverage,
+    pack_sources,
+    question_parts,
+)
 from internal.biz.tool_types import (
     ANSWER_CONTRACT_VERSION,
     AnswerPayload,
@@ -45,7 +52,14 @@ _STOP_DETAILS = {
     "evidence_complete": "已显式选定足以回答的证据。",
     "evidence_insufficient": "已显式确认所查资料不足以完整回答。",
 }
+_COVERAGE_PREFIX = "本次问题证据覆盖（词面候选，不是语义验收）："
 _BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
+
+
+def _coverage_control(query: str, sources: list[AnswerSource | WebSource]) -> dict:
+    return {"role": "system", "content": _COVERAGE_PREFIX + json.dumps(
+        evidence_coverage(query, sources), ensure_ascii=False, separators=(",", ":"),
+    ) + "逐项核对正文是否足够，缺什么查什么；候选命中不等于已回答。比较题逐份文档取证，资料足够立即 finish_research。"}
 
 
 def _final_control(reason: str) -> dict:
@@ -148,6 +162,10 @@ class RAGBiz:
                 deadline=run.started + run.limits.timeout,
             )
             session.search_top_k = top_k
+            session.question = query
+            run.emit("evidence_needs_planned", questions=question_parts(query),
+                     knowledge_base_ids=list(run.scope.knowledge_base_ids),
+                     method="explicit_question_clauses")
             run.web_directory, run.web_pages = session.web.entries, session.web.pages
             if run.web_directory:
                 run.emit("web_directory_updated", directory=[asdict(entry) for entry in run.web_directory])
@@ -157,6 +175,7 @@ class RAGBiz:
                     "context": "资料仅来自后续工具结果。",
                 }
             )
+            messages.append(_coverage_control(query, []))
             await self._loop(run, session, messages, output_tokens, temperature)
         except asyncio.CancelledError:
             run.finish("cancelled", "user_cancelled")
@@ -272,6 +291,7 @@ class RAGBiz:
             if pending_sources:
                 run.sources.extend(pending_sources)
                 run.emit("sources_updated", citation_ids=[s.citation_id for s in run.sources])
+                run.emit("evidence_coverage_updated", **evidence_coverage(session.question, run.sources))
             pending_sources = []
             session.delivered_citations = {source.citation_id: source for source in run.sources}
             run.emit(
@@ -443,7 +463,7 @@ class RAGBiz:
                 segments = []
                 for segment in source.segments:
                     portions = [segment]
-                    for existing in registry:
+                    for existing in [*registry, *sources]:
                         if not isinstance(existing, AnswerSource) or (
                             existing.document_id, existing.document_updated_at
                         ) != (source.document_id, source.document_updated_at):
@@ -481,26 +501,53 @@ class RAGBiz:
         self, results: list[ToolResult], run: AnswerRun, messages: list[dict], start: int,
         session: ToolSession, output_tokens: int,
     ) -> tuple[list[ToolResult] | None, str]:
-        """整批保留实际元数据后分配正文，避免前一个工具挤掉后一个工具的结果。"""
+        """历史和新结果统一抽取；已送模登记保持不变，每轮压缩范围单独留档。"""
         bounded = [replace(result, sources=[]) for result in results]
         candidates: list[AnswerSource | WebSource] = []
-        owners: dict[int, int] = {}
+        owners: dict[int, tuple[str, int]] = {}
+        previous: dict[int, dict] = {}
+        registry = {source.citation_id: source for source in run.sources}
+        supplied = {event.data["call_id"]: event.data["citation_ids"]
+                    for event in run.events if event.kind == "materials_prepared"}
+        for index, message in enumerate(messages[:start]):
+            if message["role"] != "tool":
+                continue
+            payload = json.loads(message["content"])
+            previous[index] = payload
+            for citation_id in supplied.get(message["tool_call_id"], []):
+                if citation_id not in registry:
+                    continue  # 取得但还未送模的片段不能加入历史。
+                source = registry[citation_id]
+                candidates.append(source)
+                owners[source.citation_id] = ("history", index)
         for index, result in enumerate(results):
             sources = self._new_sources(result, [*run.sources, *candidates])
-            owners.update((source.citation_id, index) for source in sources)
+            owners.update((source.citation_id, ("new", index)) for source in sources)
             candidates.extend(sources)
+        if run.evidence_selection is not None:
+            selected = set(run.evidence_selection["citation_ids"])
+            candidates = [source for source in candidates if source.citation_id in selected]
         final_only = (bool(run.exploration_stop_reason)
                       or run.usage.model_calls >= run.limits.model_calls - 1
                       or run.usage.tool_calls >= run.limits.tool_calls)
 
         def project(values):
-            grouped = [[] for _ in bounded]
+            grouped: dict[tuple[str, int], list] = {}
             for source in values:
-                grouped[owners[source.citation_id]].append(source)
-            projected = [replace(item, sources=grouped[i]) for i, item in enumerate(bounded)]
+                grouped.setdefault(owners[source.citation_id], []).append(source)
+            projected = [replace(item, sources=grouped.get(("new", i), []))
+                         for i, item in enumerate(bounded)]
             trial = list(messages)
+            for i, payload in previous.items():
+                kept = grouped.get(("history", i), [])
+                value = {**payload, "sources": ToolResult("", "", "success", sources=kept).source_values(),
+                         "context_compacted": True}
+                trial[i] = {**messages[i], "content": json.dumps(value, ensure_ascii=False, separators=(",", ":"))}
             for i, item in enumerate(projected):
                 trial[start + i] = item.to_message()
+            for i, message in enumerate(trial):
+                if message["role"] == "system" and message["content"].startswith(_COVERAGE_PREFIX):
+                    trial[i] = _coverage_control(session.question, values)
             return projected, trial
 
         def fits(values):
@@ -513,32 +560,45 @@ class RAGBiz:
             empty_plan = self._budget_plan(empty, session, run, output_tokens)
             reason = empty_plan.stop_reason(final=final_only)
             if reason and not final_only and not empty_plan.stop_reason(final=True):
-                # 已不能支付下一次探索，但仍能把本批资料交给最终回答。
                 run.stop_exploration(reason)
                 final_only = True
                 reason = ""
             if reason:
                 return None, reason
-            packed = [source for source in pack_sources(candidates, fits) if source.content.strip()]
-            present = {owners[source.citation_id] for source in packed}
-            missing = {owners[source.citation_id] for source in candidates} - present
+            packed = pack_sources(candidates, fits, query=session.question)
+            present = {owners[source.citation_id][1] for source in packed
+                       if owners[source.citation_id][0] == "new"}
+            missing = {index for kind, index in owners.values() if kind == "new"} - limited - present
             if not missing:
                 break
-            # 不能完整保留的窗口显式报告；重新分配时也计入这些说明的实际开销。
             for index in missing:
                 if not bounded[index].directory and not bounded[index].matches:
                     bounded[index] = replace(bounded[index], status="error", errors=[ToolFailure(
                         "MATERIAL_WINDOW_TOO_LARGE",
-                        "该正文窗口无法在完整请求预算内保留可用原文；此窗口未送模。请用更小的 max_chars 或选择其他定位读取，不能引用未读取的内容。",
+                        "该正文窗口无法在完整请求预算内保留可用原文；此窗口未送模。请定位读取更相关的小段，不能引用未读取的内容或宣称原文不存在。",
                     )])
             limited.update(missing)
-            candidates = [source for source in candidates if owners[source.citation_id] not in limited]
+            candidates = [source for source in candidates
+                          if owners[source.citation_id][0] != "new" or owners[source.citation_id][1] not in limited]
         projected, trial = project(packed)
         plan = self._budget_plan(trial, session, run, output_tokens)
         if reason := plan.stop_reason(final=final_only):
             return None, reason
+        # 只更新上下文投影，不改写历史 tool_results 或已送模原文登记。
+        messages[:start] = trial[:start]
         run.usage.final_reserved_tokens = plan.final_reservation
-        run.emit("materials_budgeted", remaining_tokens=plan.remaining_tokens,
+        run.emit("materials_budgeted", strategy="question_relevant_verbatim",
+                 candidate_chars=sum(len(source.content) for source in candidates),
+                 retained_chars=sum(len(source.content) for source in packed),
+                 retained_citation_ids=[source.citation_id for source in packed],
+                 active_ranges=[{
+                     "citation_id": source.citation_id,
+                     "segments": [{"chunk_id": part.chunk_id, "start": part.start, "end": part.end}
+                                  for part in source.segments],
+                 } if isinstance(source, AnswerSource) else {
+                     "citation_id": source.citation_id, "start": source.start, "end": source.end,
+                 } for source in packed],
+                 remaining_tokens=plan.remaining_tokens,
                  exploration_input=plan.exploration_input, final_input=plan.final_input,
                  final_reservation=run.usage.final_reserved_tokens,
                  available_for_exploration=plan.remaining_tokens - run.usage.final_reserved_tokens)
