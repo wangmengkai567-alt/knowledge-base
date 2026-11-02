@@ -182,6 +182,11 @@ class TextChunker(ABC):
         """将文本切分为多个块，返回块内容列表。"""
         ...
 
+    @abstractmethod
+    def chunk_spans(self, text: str) -> list[tuple[int, int]]:
+        """返回同一分块策略的原文字符范围，含原样 overlap。"""
+        ...
+
 
 class ChunkRepo(ABC):
     """分块仓储接口 — biz 层定义，data 层实现。"""

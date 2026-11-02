@@ -482,7 +482,9 @@ class RAGBiz:
                                 if end < part.end:
                                     remaining.append(replace(part, start=end, content=part.content[end-part.start:]))
                             portions = remaining
-                    segments.extend(portions)
+                    segments.extend(replace(part, code_ranges=[(a, b) for a, b in part.code_ranges
+                                                               if part.start <= a < b <= part.end])
+                                    for part in portions)
                 if not segments:
                     continue
                 ids = {part.chunk_id for part in segments}

@@ -5,7 +5,8 @@ from __future__ import annotations
 import structlog
 
 from internal.biz.repo import TextChunker
-from internal.biz.tokenizer import count_tokens, tokenize
+from internal.biz.text_structure import fenced_code_ranges
+from internal.biz.tokenizer import count_tokens, token_spans
 
 logger = structlog.get_logger()
 
@@ -15,9 +16,9 @@ _SEPARATORS: tuple[str, ...] = ("\n\n", "\n", "。", "！", "？", ". ", "? ", "
 class RecursiveCharacterChunker(TextChunker):
     """递归分块：chunk_size/overlap 表示 token 预算，而非字符数。
 
-    先按段落、换行、句子和空格递归拆分，再合并到 token 预算；
-    无法找到边界时按 token 窗口硬切。这样既保护语义边界，也能控制
-    送入 Embedding/LLM 的真实输入规模。tokenizer 为无外部依赖的估算器。
+    正文和 overlap 均按原字符范围切片。完整文档上的围栏代码不可拆开；
+    chunk_size 是普通正文目标，单个超长代码块独立保留，不截断或改写。
+    tokenizer 为无外部依赖的估算器，不冒充供应商精确计量。
     """
 
     def __init__(self, chunk_size: int = 500, chunk_overlap: int = 50) -> None:
@@ -29,11 +30,37 @@ class RecursiveCharacterChunker(TextChunker):
         self._chunk_overlap = chunk_overlap
 
     def chunk(self, text: str) -> list[str]:
+        return [text[start:end] for start, end in self.chunk_spans(text)]
+
+    def chunk_spans(self, text: str) -> list[tuple[int, int]]:
         if not text or not text.strip():
             return []
-        pieces = self._split(text.strip(), list(_SEPARATORS))
+        codes = fenced_code_ranges(text)
+        pieces = []
+        cursor = 0
+        for start, end in codes:
+            pieces.extend(self._split(text[cursor:start], list(_SEPARATORS)))
+            pieces.append(text[start:end])
+            cursor = end
+        pieces.extend(self._split(text[cursor:], list(_SEPARATORS)))
         merged = self._merge(pieces)
-        return self._with_overlap(merged)
+        ranges = []
+        cursor = 0
+        for index, part in enumerate(merged):
+            start, end = cursor, cursor + len(part)
+            if index and self._chunk_overlap:
+                previous_start = cursor - len(merged[index - 1])
+                tokens = token_spans(merged[index - 1])
+                if tokens:
+                    start = previous_start + tokens[max(0, len(tokens) - self._chunk_overlap)][0]
+                # overlap 也不能从代码块内部开始，否则下一块缺少开围栏。
+                for left, right in codes:
+                    if left < start < right:
+                        start = left
+                        break
+            ranges.append((start, end))
+            cursor = end
+        return ranges
 
     def _split(self, text: str, separators: list[str]) -> list[str]:
         if count_tokens(text) <= self._chunk_size:
@@ -55,11 +82,9 @@ class RecursiveCharacterChunker(TextChunker):
         return atoms
 
     def _hard_split(self, text: str) -> list[str]:
-        tokens = tokenize(text)
-        out: list[str] = []
-        for start in range(0, len(tokens), self._chunk_size):
-            out.append("".join(tokens[start : start + self._chunk_size]).strip())
-        return [item for item in out if item]
+        spans = token_spans(text)
+        boundaries = [0, *(spans[i][0] for i in range(self._chunk_size, len(spans), self._chunk_size)), len(text)]
+        return [text[start:end] for start, end in zip(boundaries, boundaries[1:], strict=False) if start < end]
 
     def _merge(self, pieces: list[str]) -> list[str]:
         chunks: list[str] = []
@@ -76,14 +101,4 @@ class RecursiveCharacterChunker(TextChunker):
                 buf = piece
         if buf:
             chunks.append(buf)
-        return [c.strip() for c in chunks if c.strip()]
-
-    def _with_overlap(self, chunks: list[str]) -> list[str]:
-        if self._chunk_overlap <= 0 or len(chunks) <= 1:
-            return chunks
-        out = [chunks[0]]
-        for chunk in chunks[1:]:
-            tail = "".join(tokenize(out[-1])[-self._chunk_overlap :])
-            out.append((tail + chunk).strip() if tail else chunk)
-        return out
-
+        return chunks

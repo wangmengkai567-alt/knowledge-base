@@ -32,6 +32,7 @@ class MaterialSegmentDTO(BaseModel):
     start: int = Field(description="原分块内字符起点（含）")
     end: int = Field(description="原分块内字符终点（不含）")
     content: str = Field(description="该范围实际送模的原文")
+    code_ranges: list[tuple[int, int]] = Field(default_factory=list, description="规范正文映射到原分块的完整代码范围")
 
 
 class HitScoreDTO(BaseModel):

@@ -45,7 +45,7 @@ interface SourceBase {
 export interface KnowledgeSource extends SourceBase {
   sourceType: 'knowledge_base'
   chunkIds: number[]
-  segments: { chunk_id: number; position: number; start: number; end: number; content: string }[]
+  segments: { chunk_id: number; position: number; start: number; end: number; content: string; code_ranges: [number, number][] }[]
   documentId: number
   documentFilename: string
   documentUpdatedAt: string | null

@@ -1,0 +1,80 @@
+{
+  "reviewer": "implementation agent; bounded review, not independent human grading",
+  "distinct_questions": 3,
+  "live_question_runs": 3,
+  "all_literals_and_sources_valid": true,
+  "canonical_code_range_checks": 54,
+  "rows": [
+    {
+      "id": "F01",
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2
+        ],
+        "allow_web": false
+      },
+      "run_id": "d17e44dd-8b9d-4c65-9e1a-fc5cf9642d23",
+      "model_calls": 4,
+      "tool_calls": 3,
+      "actual_total_tokens": 13476,
+      "elapsed_seconds": 10.906,
+      "quote_and_citation_checks_passed": true,
+      "source_audit_valid": true,
+      "harness_code_block_complete": true,
+      "original_keyword_gate": false,
+      "review": "Three CPU/memory configurations are correct and exact-quote validation passed. Answer omits an explicit not-the-same-numbers conclusion; automatic keyword gate remains false."
+    },
+    {
+      "id": "F03",
+      "status": "insufficient",
+      "stop_reason": "insufficient_material",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          3
+        ],
+        "allow_web": false
+      },
+      "run_id": "26ece8d6-dd7b-4b0c-a9a2-82ae9e790da2",
+      "model_calls": 5,
+      "tool_calls": 4,
+      "actual_total_tokens": 17363,
+      "elapsed_seconds": 13.562,
+      "quote_and_citation_checks_passed": true,
+      "source_audit_valid": true,
+      "harness_code_block_complete": null,
+      "original_keyword_gate": true,
+      "review": "Exact-quote validation passed; insufficient under unchanged single-library [3] scope. Historic answerable question not counted as fully answered."
+    },
+    {
+      "id": "CROSS01",
+      "status": "completed",
+      "stop_reason": "answer_completed",
+      "scope": {
+        "user_id": 9,
+        "knowledge_base_ids": [
+          2,
+          3
+        ],
+        "allow_web": false
+      },
+      "run_id": "a1aa3d42-2382-447c-b0a6-5b8e4ca34999",
+      "model_calls": 5,
+      "tool_calls": 4,
+      "actual_total_tokens": 17137,
+      "elapsed_seconds": 18.281,
+      "quote_and_citation_checks_passed": true,
+      "source_audit_valid": true,
+      "harness_code_block_complete": null,
+      "original_keyword_gate": true,
+      "review": "Both authorized sources and 256m/512 MB are correct with valid quotes. Answer lists values without an explicit comparison conclusion; no overall quality recovery claim."
+    }
+  ],
+  "total_actual_chat_tokens": 47976,
+  "overall_quality_acceptance": false,
+  "quote_protocol_unchanged": true,
+  "no_failed_answer_retries": true
+}

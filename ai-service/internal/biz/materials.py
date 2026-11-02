@@ -9,13 +9,14 @@ from typing import TYPE_CHECKING, Literal
 
 from internal.biz.query_plan import plan_query
 from internal.biz.relevance import apply_relevance_gate
+from internal.biz.text_structure import fenced_code_ranges
 from pkg.errors.base import RAGError
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from internal.biz.entity import Chunk, RetrievalResult
-    from internal.biz.repo import ChunkRepo
+    from internal.biz.repo import ChunkRepo, DocumentRepo, TextChunker
 
 
 def select_materials(
@@ -34,6 +35,7 @@ class MaterialSegment:
     start: int
     end: int
     content: str
+    code_ranges: list[tuple[int, int]] = field(default_factory=list)
 
 
 @dataclass
@@ -98,12 +100,17 @@ class PreparedMaterials:
 
 
 class MaterialProcessor:
-    def __init__(self, chunk_repo: ChunkRepo, context_window: int, budget: InputBudget) -> None:
+    def __init__(
+        self, chunk_repo: ChunkRepo, context_window: int, budget: InputBudget, *,
+        document_repo: DocumentRepo | None = None, chunker: TextChunker | None = None,
+    ) -> None:
         if budget.model != "qwen3.8-flash":
             raise ValueError("资料预算尚未确认此模型的容量：" + budget.model)
         self._chunk_repo = chunk_repo
         self._window = context_window
         self._budget = budget
+        self._documents = document_repo
+        self._chunker = chunker
 
     async def prepare(
         self,
@@ -162,9 +169,24 @@ class MaterialProcessor:
         ranked: list[tuple[int, AnswerSource]] = []
         order = {hit.chunk_id: index for index, hit in enumerate(hits)}
         for doc_id, doc_hits in by_doc.items():
+            if self._documents is None or self._chunker is None:
+                raise RAGError(reason="SOURCE_CONFIGURATION_INVALID", message="知识库资料处理缺少规范正文与分块策略")
+            document = await self._documents.get_by_id(doc_id)
+            if document is None or document.parsed_content is None:
+                raise RAGError(reason="SOURCE_CHANGED", message="检索文档的规范正文已不存在")
             chunks = await self._chunk_repo.list_by_document(doc_id)
+            spans = self._chunker.chunk_spans(document.parsed_content)
+            if len(chunks) != len(spans) or any(
+                chunk.position != index or chunk.content != document.parsed_content[start:end]
+                for index, (chunk, (start, end)) in enumerate(zip(chunks, spans, strict=True))
+            ):
+                raise RAGError(reason="SOURCE_RECHUNK_REQUIRED", message="现有分块不对应当前原文切片策略，请重新分块并建立索引")
+            codes = fenced_code_ranges(document.parsed_content)
             by_position = {chunk.position: chunk for chunk in chunks if chunk.id is not None}
             for hit in doc_hits:
+                if (document.knowledge_base_id != hit.knowledge_base_id
+                        or (document.updated_at or document.created_at) != hit.document_updated_at):
+                    raise RAGError(reason="SOURCE_CHANGED", message="检索文档的归属或版本已变化")
                 if hit.chunk_position not in by_position:
                     raise RAGError(reason="SOURCE_CHANGED", message="检索资料已变化，请重新提问")
                 chunk = by_position[hit.chunk_position]
@@ -189,7 +211,12 @@ class MaterialProcessor:
                 ids = {chunk.id for chunk in run}
                 included = [hit for hit in doc_hits if hit.chunk_id in ids]
                 segments = [
-                    MaterialSegment(chunk.id, chunk.position, 0, len(chunk.content), chunk.content)
+                    MaterialSegment(
+                        chunk.id, chunk.position, 0, len(chunk.content), chunk.content,
+                        [(left - spans[chunk.position][0], right - spans[chunk.position][0])
+                         for left, right in codes
+                         if spans[chunk.position][0] <= left < right <= spans[chunk.position][1]],
+                    )
                     for chunk in run
                 ]
                 first = doc_hits[0]
@@ -229,9 +256,15 @@ def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource |
     for segment in source.segments:
         if remaining <= 0:
             break
-        content = segment.content[:remaining]
+        end = min(segment.end, segment.start + remaining)
+        for left, right in segment.code_ranges:
+            if left < end < right:
+                end = left
+        content = segment.content[:end - segment.start]
         if content:
-            segments.append(replace(segment, content=content, end=segment.start + len(content)))
+            segments.append(replace(segment, content=content, end=end,
+                                    code_ranges=[(a, b) for a, b in segment.code_ranges
+                                                 if segment.start <= a < b <= end]))
         remaining -= len(content) + 1  # render_materials 的换行分隔
     ids = {segment.chunk_id for segment in segments}
     return replace(
@@ -290,32 +323,32 @@ def source_identity(source: AnswerSource | WebSource) -> tuple:
     return (source.url, source.fetched_at, source.source_type)
 
 
-def _text_ranges(content: str) -> list[tuple[int, int]]:
-    """完整行/句子为最小单元，围栏代码始终作为整体保留。"""
+def _text_ranges(content: str, code_ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """正文按行/句切分，代码仅使用规范正文或网页快照登记的边界。"""
     ranges = []
-    start, block_start = 0, 0
-    fence = ""
-    for line in content.splitlines(keepends=True):
-        end = start + len(line)
-        marker = re.match(r"\s*(`{3,}|~{3,})", line)
-        if marker and not fence:
-            fence, block_start = marker[1], start
-        elif marker and fence and marker[1][0] == fence[0] and len(marker[1]) >= len(fence):
-            fence = ""
-            ranges.append((block_start, end))
-        elif not fence:
+    cursor = 0
+
+    def prose(start: int, end: int) -> None:
+        offset = start
+        for line in content[start:end].splitlines(keepends=True):
+            line_end = offset + len(line)
             if line.strip():
                 for match in re.finditer(r".+?(?:[。！？]|$)", line):
                     if match[0].strip():
-                        ranges.append((start + match.start(), start + match.end()))
+                        ranges.append((offset + match.start(), offset + match.end()))
                 if ranges:
-                    ranges[-1] = (ranges[-1][0], end)
+                    ranges[-1] = (ranges[-1][0], line_end)
             elif ranges:
-                left, _ = ranges[-1]
-                ranges[-1] = (left, end)
-        start = end
-    if fence:
-        ranges.append((block_start, len(content)))
+                ranges[-1] = (ranges[-1][0], line_end)
+            offset = line_end
+
+    for left, right in code_ranges:
+        if not cursor <= left < right <= len(content):
+            raise RAGError(reason="SOURCE_CODE_RANGE_INVALID", message="原文代码边界与当前片段不一致")
+        prose(cursor, left)
+        ranges.append((left, right))
+        cursor = right
+    prose(cursor, len(content))
     return ranges
 
 
@@ -343,7 +376,8 @@ def _excerpt_source(source: AnswerSource | WebSource, excerpts: list[_Excerpt]) 
             left = previous.start
             right = max(right, previous.end)
         segments.append(replace(original, start=left, end=right,
-                                content=original.content[left-original.start:right-original.start]))
+                                content=original.content[left-original.start:right-original.start],
+                                code_ranges=[(a, b) for a, b in original.code_ranges if left <= a < b <= right]))
     ids = {segment.chunk_id for segment in segments}
     return replace(source, segments=segments, truncated=source.truncated or segments != source.segments,
                    retrieval_hits=[hit for hit in source.retrieval_hits if hit.chunk_id in ids])
@@ -372,16 +406,12 @@ def pack_sources(
         texts = [segment.content for segment in source.segments] if isinstance(source, AnswerSource) else [source.content]
         hit_ids = {hit.chunk_id for hit in source.retrieval_hits} if isinstance(source, AnswerSource) else set()
         for segment, content in enumerate(texts):
-            ranges = _text_ranges(content)
             if isinstance(source, WebSource):
-                # 任何正文代码范围（包括起点就在围栏内的窗口）不可切开。
-                for a, b in source.code_ranges:
-                    left, right = a - source.start, b - source.start
-                    overlaps = [(x, y) for x, y in ranges if x < right and left < y]
-                    if overlaps:
-                        ranges = [(x, y) for x, y in ranges if not (x < right and left < y)]
-                        ranges.append((min(left, min(x for x, _ in overlaps)), max(right, max(y for _, y in overlaps))))
-                ranges.sort()
+                code_ranges = [(left - source.start, right - source.start) for left, right in source.code_ranges]
+            else:
+                part = source.segments[segment]
+                code_ranges = [(left - part.start, right - part.start) for left, right in part.code_ranges]
+            ranges = _text_ranges(content, code_ranges)
             scores = [sum(1 for term in local_terms if term in content[left:right].casefold())
                       for left, right in ranges]
             hit = ((isinstance(source, AnswerSource) and source.segments[segment].chunk_id in hit_ids)

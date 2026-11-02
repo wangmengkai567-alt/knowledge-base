@@ -1,0 +1,12 @@
+{
+  "before_original": 32,
+  "intermediate": 25,
+  "after": 20,
+  "observed_constraints": [
+    "32 short strings rejected with maximum 25",
+    "25 short strings accepted",
+    "25 actual document strings rejected with maximum 20"
+  ],
+  "automatic_batch_fallback": false,
+  "other_environment_values_unchanged": true
+}

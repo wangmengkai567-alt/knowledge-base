@@ -295,6 +295,7 @@ def create_app() -> FastAPI:
             ),
         ),
         budget=tool_budget, context_window=settings.rag.context_window,
+        document_repo=document_repo, chunker=text_chunker,
         timeout=settings.tools.timeout,
         web_page_chars=settings.web_reader.page_chars,
     )

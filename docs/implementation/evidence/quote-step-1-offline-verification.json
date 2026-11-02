@@ -1,0 +1,58 @@
+{
+  "actual_model_calls": 0,
+  "database_writes": 0,
+  "cases": [
+    {
+      "plain_target": 3,
+      "lossless_cases": 23
+    },
+    {
+      "plain_target": 5,
+      "lossless_cases": 23
+    },
+    {
+      "plain_target": 16,
+      "lossless_cases": 23
+    },
+    {
+      "plain_target": 64,
+      "lossless_cases": 23
+    },
+    {
+      "plain_target": 256,
+      "lossless_cases": 23
+    }
+  ],
+  "code_blocks_complete": 5,
+  "saved_document_replays": [
+    {
+      "filename": "03.sandbox.md",
+      "old_chunks": 8,
+      "new_chunks": 8,
+      "retained_chars": 1589,
+      "ranges_verified": true
+    },
+    {
+      "filename": "07.agent-harness.md",
+      "old_chunks": 13,
+      "new_chunks": 14,
+      "retained_chars": 2275,
+      "ranges_verified": true
+    },
+    {
+      "filename": "04.agent_security.md",
+      "old_chunks": 7,
+      "new_chunks": 7,
+      "retained_chars": 1498,
+      "ranges_verified": true
+    },
+    {
+      "filename": "04.Docker.md",
+      "old_chunks": 39,
+      "new_chunks": 39,
+      "retained_chars": 2155,
+      "ranges_verified": true
+    }
+  ],
+  "legacy_chunks_rejected": true
+}

@@ -8,14 +8,21 @@ import re
 _TOKEN_PATTERN = re.compile(r"[\u4e00-\u9fff]|[A-Za-z0-9]+|[^\sA-Za-z0-9\u4e00-\u9fff]")
 
 
-def tokenize(text: str) -> list[str]:
-    tokens: list[str] = []
-    for item in _TOKEN_PATTERN.findall(text or ""):
+def token_spans(text: str) -> list[tuple[int, int]]:
+    """估算单元在原字符串中的范围；切片必须保留其间的空白。"""
+    spans: list[tuple[int, int]] = []
+    for match in _TOKEN_PATTERN.finditer(text):
+        item = match[0]
         if item.isascii() and item.isalnum() and len(item) > 4:
-            tokens.extend(item[i : i + 4] for i in range(0, len(item), 4))
+            spans.extend((match.start() + i, min(match.start() + i + 4, match.end()))
+                         for i in range(0, len(item), 4))
         else:
-            tokens.append(item)
-    return tokens
+            spans.append(match.span())
+    return spans
+
+
+def tokenize(text: str) -> list[str]:
+    return [text[start:end] for start, end in token_spans(text or "")]
 
 
 def count_tokens(text: str) -> int:

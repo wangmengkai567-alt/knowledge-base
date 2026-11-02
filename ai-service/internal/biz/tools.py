@@ -26,7 +26,13 @@ from pkg.errors.base import APIError
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from internal.biz.repo import ChunkRepo, KnowledgeBaseRepo, WebProvider
+    from internal.biz.repo import (
+        ChunkRepo,
+        DocumentRepo,
+        KnowledgeBaseRepo,
+        TextChunker,
+        WebProvider,
+    )
     from internal.biz.retrieval import RetrievalBiz
 
 T = TypeVar("T")
@@ -169,10 +175,14 @@ class ReadOnlyToolExecutor:
         timeout: float = 30,
         max_content_chars: int = 8000,
         web_page_chars: int = 5000,
+        document_repo: DocumentRepo | None = None,
+        chunker: TextChunker | None = None,
     ) -> None:
         self._retrieval = retrieval
         self._kb_repo = kb_repo
-        self._materials = MaterialProcessor(chunk_repo, context_window, budget)
+        self._materials = MaterialProcessor(
+            chunk_repo, context_window, budget, document_repo=document_repo, chunker=chunker,
+        )
         self._budget = budget
         self._web = web
         self._timeout = timeout
@@ -275,6 +285,11 @@ class ReadOnlyToolExecutor:
                 diagnostics=[diagnostic] if diagnostic is not None else [],
             )
         except APIError as exc:
+            if exc.reason in {
+                "SOURCE_RECHUNK_REQUIRED", "SOURCE_CHANGED", "SOURCE_CODE_RANGE_INVALID",
+                "SOURCE_CONFIGURATION_INVALID",
+            }:
+                return ToolResult(call.id, call.name, "error", errors=[ToolFailure(exc.reason, exc.message)])
             return ToolResult(
                 call.id,
                 call.name,

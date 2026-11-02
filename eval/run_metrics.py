@@ -68,6 +68,9 @@ def score_run(snapshot: dict, item: dict) -> dict:
                 evidence_errors.append("chunk mapping mismatch")
             if any(s["start"] < 0 or s["end"] - s["start"] != len(s["content"]) for s in segments):
                 evidence_errors.append("invalid segment range")
+            if any(not segment["start"] <= left < right <= segment["end"]
+                   for segment in segments for left, right in segment.get("code_ranges", [])):
+                evidence_errors.append("code boundary outside sent segment")
             if not source["document_updated_at"]:
                 evidence_errors.append("missing document version")
         elif source["source_type"] in ("web_search_summary", "web_page"):

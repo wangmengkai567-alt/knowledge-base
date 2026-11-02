@@ -132,10 +132,17 @@ class ToolResult:
             value = {"citation_id": source.citation_id, "source_type": source.source_type,
                      "content": source.content, "truncated": source.truncated}
             if source.source_type == "knowledge_base":
+                # 位置目录属于程序元数据，不拼入原文；不同条目不表示原文连续。
+                offset, excerpts = 0, []
+                for segment in source.segments:
+                    excerpts.append({"start": offset, "end": offset + len(segment.content)})
+                    offset += len(segment.content) + 1
                 value.update(document_filename=source.document_filename,
                              document_id=source.document_id,
                              knowledge_base_id=source.knowledge_base_id,
-                             document_updated_at=source.document_updated_at)
+                             document_updated_at=source.document_updated_at,
+                             excerpt_ranges=excerpts,
+                             excerpt_note="不同条目之间可能省略原文；逐字摘录不可跨越非连续片段或补写围栏。")
             else:
                 value.update(url=source.url, title=source.title, fetched_at=source.fetched_at,
                              source_id=source.source_id, start=source.start, end=source.end,
