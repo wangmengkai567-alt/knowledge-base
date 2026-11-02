@@ -260,9 +260,6 @@ class RAGBiz:
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
             plan = self._budget_plan(messages, session, run, output_tokens)
-            remaining = plan.remaining_tokens
-            reserve = plan.final_reservation
-            usage.final_reserved_tokens = reserve
             if not run.exploration_stop_reason:
                 if usage.model_calls >= limits.model_calls - 1:
                     run.stop_exploration("model_call_limit")
@@ -279,6 +276,22 @@ class RAGBiz:
                 if not usage.tool_calls:
                     run.finish("budget_exhausted", run.exploration_stop_reason)
                     return
+                # 最终请求不再携带探索工具及其历史，按最终预算重新装载已送模原文。
+                # 本轮待送模的片段也参与装载，但仅在最终请求实际发出时登记。
+                _, reason = self._fit_results(
+                    [], run, messages, len(messages), session, output_tokens,
+                    pending_sources=pending_sources,
+                )
+                if reason:
+                    run.finish("budget_exhausted", reason)
+                    return
+                pending_ids = {source.citation_id for source in pending_sources}
+                pending_sources = [source for source in session.active_sources
+                                   if source.citation_id in pending_ids]
+                plan = self._budget_plan(messages, session, run, output_tokens)
+            remaining = plan.remaining_tokens
+            reserve = plan.final_reservation
+            usage.final_reserved_tokens = reserve
             run.emit("budget_planned", settled_tokens=usage.settled_tokens,
                      remaining_tokens=remaining, final_reservation=reserve,
                      available_for_exploration=remaining - usage.reserved_tokens - reserve,
@@ -523,14 +536,15 @@ class RAGBiz:
 
     def _fit_results(
         self, results: list[ToolResult], run: AnswerRun, messages: list[dict], start: int,
-        session: ToolSession, output_tokens: int,
+        session: ToolSession, output_tokens: int, *,
+        pending_sources: list[AnswerSource | WebSource] | None = None,
     ) -> tuple[list[ToolResult] | None, str]:
         """历史和新结果统一抽取；已送模登记保持不变，每轮压缩范围单独留档。"""
         bounded = [replace(result, sources=[]) for result in results]
         candidates: list[AnswerSource | WebSource] = []
         owners: dict[int, tuple[str, int]] = {}
         previous: dict[int, dict] = {}
-        registry = {source.citation_id: source for source in run.sources}
+        registry = {source.citation_id: source for source in [*run.sources, *(pending_sources or [])]}
         supplied = {event.data["call_id"]: event.data["citation_ids"]
                     for event in run.events if event.kind == "materials_prepared"}
         for index, message in enumerate(messages[:start]):
@@ -540,7 +554,7 @@ class RAGBiz:
             previous[index] = payload
             for citation_id in supplied.get(message["tool_call_id"], []):
                 if citation_id not in registry:
-                    continue  # 取得但还未送模的片段不能加入历史。
+                    continue  # 仅允许已送模或即将随本次最终请求送模的片段。
                 source = registry[citation_id]
                 candidates.append(source)
                 owners[source.citation_id] = ("history", index)

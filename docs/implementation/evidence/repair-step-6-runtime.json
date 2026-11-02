@@ -1,0 +1,41 @@
+{
+  "git_revision": "4fc185d7727bed89885edb759541a666b0fe73c5",
+  "runtime_sources_match_workspace_and_prior_checks": true,
+  "source_sha256": {
+    "internal/biz/answer_run.py": "09376b16a34452c367df831bfab05b3ec2f1b46542455a3735a8668e3b8fd38d",
+    "internal/biz/rag.py": "172b080f352bab1334e6e6670cb890a1e339321af7b1b4ef6d7eefd065c67a02",
+    "internal/biz/tool_model.py": "b2c10617b43260ba7d59e14a833a837509addef70df3ccf79fcc66a1dbdf3cdf",
+    "internal/biz/tools.py": "005b6f57101bc503c80d963b5b9876d76a20bc913ee775c199c856ebc744f8a0",
+    "internal/server/http.py": "a5de408f1e3d920fe212ee9a71dab1df306616d38e360729629f806562b93b76",
+    "internal/service/rag.py": "46488ee3354a1ed67602b99d864460392a128db24c5632bdd88bf420aa16b370",
+    "pkg/errors/diagnostics.py": "18fd376e157c93b13785ddfe8bfc75c1e489a71c3e2545779f3f24acd650f4fc",
+    "internal/biz/materials.py": "50c2b890d573eba2d64a24735458f3ec4c595ea8646efd3ffa01202ab2a2be40"
+  },
+  "storage_and_runtime": {
+    "data": {
+      "documents": {
+        "count": 29,
+        "sha256": "c94fb17abe57ebf478f7ddae61ac3790529ebe6c6625ff7eb9e0b56b0a3263bf"
+      },
+      "chunks": {
+        "count": 1167,
+        "sha256": "4a480201ef8a09033c44592284a654908f262f68c3e728fe516a4be434f0f658"
+      },
+      "vectors": {
+        "count": 1167,
+        "sha256": "cad1c02f5642e98184144e3957624557bb0a6bfb94e922cfa06388b04de072dc"
+      }
+    },
+    "runtime": {
+      "chat_model": "qwen3.8-flash",
+      "embedding_model": "qwen3.7-text-embedding-flash",
+      "reranker": "qwen3.7-text-rerank",
+      "embedding_batch_size": 20,
+      "chunk_size": 256,
+      "chunk_overlap": 32
+    }
+  },
+  "storage_matches_reference": true,
+  "tls_diagnosis": "skipped_by_user",
+  "network_configuration_changed": false
+}
