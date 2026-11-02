@@ -61,7 +61,6 @@ class ToolModel:
         session: ToolSession,
         *,
         final: bool = False,
-        require_tool: bool = False,
         max_tokens: int = 2048,
         temperature: float | None = None,
     ) -> ChatResult:
@@ -75,7 +74,7 @@ class ToolModel:
         else:
             operation = partial(
                 self._llm.generate_with_tools, request, self.executor.definitions(session.scope),
-                tool_choice="required" if require_tool else "auto",
+                tool_choice="required",
                 max_tokens=max_tokens, temperature=temperature,
             )
         result = await run_scoped(

@@ -32,6 +32,7 @@ from internal.biz.tool_types import (
 from internal.biz.tools import ToolScope
 from internal.biz.web_sources import unseen_web_ranges
 from pkg.errors.base import APIError
+from pkg.errors.diagnostics import unexpected_error_details
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -204,9 +205,9 @@ class RAGBiz:
                     "model_timeout" if exc.reason.endswith("TIMEOUT") else "model_error",
                     exc.reason,
                 )
-        except Exception:
-            logger.error("answer_run_unexpected_error", run_id=run.run_id)
-            run.finish("model_failed", "internal_error", "RUN_INTERNAL_ERROR")
+        except Exception as exc:
+            logger.error("answer_run_unexpected_error", run_id=run.run_id, **unexpected_error_details(exc))
+            run.finish("internal_error", "internal_error", "RUN_INTERNAL_ERROR")
         finally:
             logger.info(
                 "answer_run_finished",
@@ -327,7 +328,6 @@ class RAGBiz:
                     request,
                     session,
                     final=final,
-                    require_tool=True,
                     max_tokens=output_tokens,
                     temperature=temperature,
                 )

@@ -14,7 +14,8 @@ from audit_sources import audit
 from run_metrics import score_run
 
 
-def snapshot():
+def legacy_snapshot():
+    """Historical tool contract v1: preserve offline rescoring coverage only."""
     return {
         "limits": {"model_calls": 6, "tool_calls": 10, "total_tokens": 64000, "timeout": 120},
         "result": {
@@ -39,19 +40,46 @@ def snapshot():
     }
 
 
+def current_snapshot():
+    path = Path(__file__).with_name("research-finish-step-2-live-results.json")
+    return json.loads(path.read_text(encoding="utf-8"))["rows"][0]["run_snapshot"]
+
+
 class RunMetricsTest(unittest.TestCase):
+    def test_current_v3_snapshot_passes_actual_evidence_and_ledger_checks(self):
+        value = current_snapshot()
+        self.assertEqual(value["answer_contract_version"], 3)
+        result = score_run(value, {"allow_web": False})
+        for key in ("evidence_valid", "citations_valid", "budget_valid", "sequence_valid",
+                    "evidence_binding_valid", "program_claim_binding_valid", "ledger_valid", "generation_protocol_valid"):
+            self.assertTrue(result[key], key)
+
+    def test_current_v3_rejects_foreign_run_and_unsent_evidence(self):
+        for change in ("foreign_run", "unsent"):
+            with self.subTest(change=change):
+                value = current_snapshot()
+                if change == "foreign_run":
+                    value["result"]["evidence_catalog"][0]["run_id"] = "foreign-run"
+                else:
+                    sent = json.loads(value["final_request"][-1]["content"])
+                    sent["sources"][0]["evidence"].pop(0)
+                    value["final_request"][-1]["content"] = json.dumps(sent)
+                result = score_run(value, {"allow_web": False})
+                self.assertFalse(result["evidence_valid"])
+                self.assertFalse(result["evidence_binding_valid"])
+
     def test_valid_saved_evidence(self):
-        result = score_run(snapshot(), {"allow_web": True})
+        result = score_run(legacy_snapshot(), {"allow_web": True})
         for key in ("evidence_valid", "citations_valid", "budget_valid", "sequence_valid"):
             self.assertTrue(result[key], key)
 
     def test_unused_evidence_is_not_valid(self):
-        value = snapshot()
+        value = legacy_snapshot()
         value["result"]["events"][2]["data"]["citation_ids"] = []
         self.assertFalse(score_run(value, {"allow_web": True})["evidence_valid"])
 
     def test_missing_citation_and_budget_violation(self):
-        value = snapshot()
+        value = legacy_snapshot()
         value["result"]["answer"] = "无依据的答案[来源 2]"
         value["result"]["usage"]["charged_tokens"] = 64001
         result = score_run(value, {"allow_web": True})
@@ -68,7 +96,7 @@ class RunMetricsTest(unittest.TestCase):
             out = Path(folder) / "results.json"
             value = {"version": 6, "dataset": {"items": [{"id": "X", "answerable": True,
                      "allow_web": True, "must_contain": ["容器"]}]}, "baseline_summary": {}, "summary": {},
-                     "rows": [{"id": "X", "run_snapshot": snapshot()}]}
+                     "rows": [{"id": "X", "run_snapshot": legacy_snapshot()}]}
             out.write_text(json.dumps(value), encoding="utf-8")
             acquire = run_eval.acquire_run_lock
             with (

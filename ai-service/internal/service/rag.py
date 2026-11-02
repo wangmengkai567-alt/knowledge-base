@@ -22,6 +22,7 @@ from internal.biz.materials import WebSource
 from internal.biz.rag import retrieval_results
 from internal.biz.tool_types import ANSWER_CONTRACT_VERSION
 from internal.service.retrieval import retrieval_dto
+from pkg.errors.diagnostics import unexpected_error_details
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -97,8 +98,8 @@ class RAGService:
             await asyncio.sleep(3600)
             try:
                 await asyncio.to_thread(self._store.cleanup)
-            except OSError:
-                structlog.get_logger().exception("answer_run_cleanup_failed")
+            except OSError as exc:
+                structlog.get_logger().error("answer_run_cleanup_failed", **unexpected_error_details(exc))
 
     async def _execute(self, *, on_event=None, **kwargs) -> AnswerRun:
         observed: AnswerRun | None = None
@@ -176,5 +177,5 @@ class RAGService:
                     await task
                 except asyncio.CancelledError:
                     pass
-                except Exception:
-                    structlog.get_logger().exception("answer_run_execution_failed")
+                except Exception as exc:
+                    structlog.get_logger().error("answer_run_execution_failed", **unexpected_error_details(exc))

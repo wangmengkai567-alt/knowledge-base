@@ -34,8 +34,8 @@ const generatedLabel = computed(() => props.generatedAt ? formatDate(props.gener
 const labels: Record<RunStatus, string> = {
   running: '正在处理', completed: '回答完成', insufficient: '资料不足',
   budget_exhausted: '已达到执行上限', usage_unknown: '实际用量未知，已停止',
-  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式、引用或原文摘录检查',
-  timeout: '执行超时', cancelled: '已取消',
+  tool_failed: '工具调用失败', model_failed: '模型调用失败', invalid_answer: '回答未通过格式或证据检查',
+  internal_error: '服务内部错误', timeout: '执行超时', cancelled: '已取消',
 }
 const reasons: Record<string, string> = {
   model_call_limit: '已达到模型调用次数上限', tool_call_limit: '已达到工具调用次数上限',
@@ -50,8 +50,13 @@ const reasons: Record<string, string> = {
   web_body_required: '需要网页正文支持，搜索摘要不能替代正文',
   evidence_selection_mismatch: '最终回答与已选证据状态不一致，未发布答案',
   invalid_citation_or_format: '回答的引用或格式不符合要求，未发布答案',
-  invalid_claim_citation: '事实条目的引用不属于本次已选资料，未发布答案',
-  unsupported_quote: '引用摘录无法在本次已读资料中定位，未发布答案',
+  internal_error: '服务内部处理失败，本次提问已停止',
+  invalid_evidence_id: '回答选择了本次证据目录中不存在的编号，未发布答案',
+  duplicate_evidence_id: '回答重复选择同一证据编号，未发布答案',
+  code_evidence_not_selected: '代码未关联到该条回答所选的证据，未发布答案',
+  code_evidence_required: '所选证据不是代码，未发布答案',
+  invalid_code_evidence: '代码证据格式无效，未发布答案',
+  empty_code_evidence: '代码证据没有正文，未发布答案',
   invalid_source_scope: '事实归属与独立来源要求不符，未发布答案',
 }
 const statusLabel = computed(() => props.status ? labels[props.status] : '')

@@ -1,0 +1,17 @@
+{
+  "runtime_sources_match_workspace": true,
+  "source_sha256": {
+    "internal/biz/answer_run.py": "09376b16a34452c367df831bfab05b3ec2f1b46542455a3735a8668e3b8fd38d",
+    "internal/biz/rag.py": "033ac03bbba2c0289194e6b7fbb7dfeb00cfe369da24a87b4e6c951742d5d0af",
+    "internal/biz/tool_model.py": "b2c10617b43260ba7d59e14a833a837509addef70df3ccf79fcc66a1dbdf3cdf",
+    "internal/biz/tools.py": "f0b3501f613a6cb908dc422ea601090a72b856aa73deb7b435bb555e03627240",
+    "internal/server/http.py": "a5de408f1e3d920fe212ee9a71dab1df306616d38e360729629f806562b93b76",
+    "internal/service/rag.py": "46488ee3354a1ed67602b99d864460392a128db24c5632bdd88bf420aa16b370",
+    "pkg/errors/diagnostics.py": "18fd376e157c93b13785ddfe8bfc75c1e489a71c3e2545779f3f24acd650f4fc"
+  },
+  "ready": {
+    "status": "ok",
+    "detail": "db:ok redis:ok"
+  },
+  "frontend_typecheck_exit_code": 0
+}

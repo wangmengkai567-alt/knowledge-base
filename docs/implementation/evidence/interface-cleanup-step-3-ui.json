@@ -1,0 +1,8 @@
+{
+  "real_search_api_source_executed": true,
+  "network_requests": 0,
+  "mocked_fetch_calls": 3,
+  "current_sse_error_message_preserved": true,
+  "internal_error_result_preserved": true,
+  "old_online_protocol_rejected": true
+}

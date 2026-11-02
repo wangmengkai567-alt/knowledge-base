@@ -1,6 +1,7 @@
 """Exercise real tool validation, ownership, empty results and dependency failures."""
 
 import asyncio
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -12,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from internal.biz.materials import InputBudget
 from internal.biz.tool_types import ToolCall, ToolError, WebResult
 from internal.biz.tools import ReadOnlyToolExecutor
+from internal.biz.web_sources import WebPage
 from pkg.errors.base import LLMError
 
 
@@ -33,21 +35,55 @@ class ReadOnlyToolsTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_disabled_web_never_reaches_provider(self):
         session = await self.executor.create_session(1, [1], False)
-        result = await self.executor.execute(ToolCall("c", "web_search", '{"keywords":["Docker"]}'), session)
+        result = await self.executor.execute(ToolCall("c", "web_search", '{"query":"Docker"}'), session)
         self.assertEqual(result.status, "error")
         self.assertEqual(result.errors[0].code, "WEB_DISABLED")
         self.web.search.assert_not_awaited()
 
-    async def test_stringified_array_is_rejected_without_coercion(self):
-        session = await self.executor.create_session(1, [1], True)
-        result = await self.executor.execute(ToolCall("c", "web_search", '{"keywords":"[\\"Docker\\"]"}'), session)
-        self.assertEqual(result.errors[0].code, "INVALID_TOOL_ARGUMENTS")
-        self.web.search.assert_not_awaited()
+    async def test_search_rejects_wrong_types_without_coercion(self):
+        for arguments in ({"query": ["Docker"]}, {"query": "Docker", "max_results": "5"}):
+            with self.subTest(arguments=arguments):
+                session = await self.executor.create_session(1, [1], True)
+                result = await self.executor.execute(ToolCall("c", "web_search", json.dumps(arguments)), session)
+                self.assertEqual(result.errors[0].code, "INVALID_TOOL_ARGUMENTS")
+                self.web.search.assert_not_awaited()
 
-    async def test_read_requires_previously_approved_url(self):
+    async def test_search_uses_current_query_and_result_limit(self):
         session = await self.executor.create_session(1, [1], True)
-        result = await self.executor.execute(ToolCall("c", "web_read", '{"urls":["https://example.com/"]}'), session)
-        self.assertEqual(result.errors[0].code, "URL_NOT_APPROVED")
+        result = await self.executor.execute(ToolCall("c", "web_search", '{"query":"Docker","max_results":3}'), session)
+        self.assertEqual(result.status, "empty")
+        self.assertEqual(result.errors, [])
+        self.web.search.assert_awaited_once_with("Docker", 3)
+
+    async def test_read_requires_registered_source_id(self):
+        session = await self.executor.create_session(1, [1], True)
+        result = await self.executor.execute(ToolCall("c", "web_read", '{"source_id":"web_1"}'), session)
+        self.assertEqual(result.errors[0].code, "SOURCE_NOT_APPROVED")
+        self.web.read.assert_not_awaited()
+
+    async def test_registered_source_is_read_with_current_window_arguments(self):
+        session = await self.executor.create_session(1, [1], True)
+        entry = session.web.register("https://example.com/", "Example", "user")
+        content = "说明：这是实际读取的网页正文。"
+        self.web.read.return_value = WebResult(pages=[WebPage(entry.url, entry.title, "2026-11-02T00:00:00Z", content, [])])
+        result = await self.executor.execute(ToolCall("c", "web_read", json.dumps({
+            "source_id": entry.source_id, "start": 3, "max_chars": 100,
+        })), session)
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.errors, [])
+        self.assertEqual(result.sources[0].content, content[3:])
+        self.assertEqual((result.sources[0].source_id, result.sources[0].start), (entry.source_id, 3))
+        self.web.read.assert_awaited_once_with([entry.url])
+
+    async def test_obsolete_web_arguments_are_rejected(self):
+        # 明确的负例：生产工具不再接受旧字段。
+        for tool, arguments in (("web_search", {"keywords": ["Docker"]}),
+                                ("web_read", {"urls": ["https://example.com/"]})):
+            with self.subTest(tool=tool):
+                session = await self.executor.create_session(1, [1], True)
+                result = await self.executor.execute(ToolCall("c", tool, json.dumps(arguments)), session)
+                self.assertEqual(result.errors[0].code, "INVALID_TOOL_ARGUMENTS")
+        self.web.search.assert_not_awaited()
         self.web.read.assert_not_awaited()
 
     async def test_empty_knowledge_result_is_not_dependency_error(self):

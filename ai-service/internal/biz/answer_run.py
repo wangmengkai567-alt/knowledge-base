@@ -25,6 +25,7 @@ RunStatus = Literal[
     "usage_unknown",
     "tool_failed",
     "model_failed",
+    "internal_error",
     "invalid_answer",
     "timeout",
     "cancelled",

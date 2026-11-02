@@ -74,7 +74,7 @@ export interface WebSource extends SourceBase {
 
 export type RagSource = KnowledgeSource | WebSource
 export type RunStatus = 'running' | 'completed' | 'insufficient' | 'budget_exhausted' |
-  'usage_unknown' | 'tool_failed' | 'model_failed' | 'invalid_answer' | 'timeout' | 'cancelled'
+  'usage_unknown' | 'tool_failed' | 'model_failed' | 'internal_error' | 'invalid_answer' | 'timeout' | 'cancelled'
 
 export interface RunUsage {
   model_calls: number

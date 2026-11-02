@@ -51,6 +51,7 @@ from api.openapi.schemas.knowledge_base import (
 )
 from api.openapi.schemas.rag import RAGQueryRequest, RAGQueryResponse
 from api.openapi.schemas.retrieval import RetrievalRequest, RetrievalResponse
+from internal.biz.tool_types import ANSWER_CONTRACT_VERSION
 from internal.conf.config import ServerConfig, SessionConfig
 from internal.server.middleware.auth import AuthMiddleware
 from internal.server.middleware.metrics import MetricsMiddleware, metrics_endpoint
@@ -63,6 +64,7 @@ from internal.service.knowledge_base import KnowledgeBaseService
 from internal.streaming.sse import SSE_DONE, format_sse_data
 from pkg.errors.base import APIError
 from pkg.errors.codes import ErrorCode
+from pkg.errors.diagnostics import unexpected_error_details
 from pkg.errors.fastapi import register_exception_handlers
 from pkg.session import SessionManager
 
@@ -609,10 +611,11 @@ class HTTPServer:
                         async for event in events:
                             yield format_sse_data(event)
                     yield SSE_DONE
-                except Exception:
-                    logger.exception("rag_stream_error")
+                except Exception as exc:
+                    logger.error("rag_stream_error", **unexpected_error_details(exc))
                     yield format_sse_data({
-                        "type": "error", "version": 4,
+                        "type": "error", "version": 5, "tool_contract_version": 2,
+                        "answer_contract_version": ANSWER_CONTRACT_VERSION,
                         "error_code": "RUN_STREAM_FAILED",
                         "error": "问答传输或运行记录保存失败，请重新提问",
                     })

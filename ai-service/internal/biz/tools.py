@@ -328,14 +328,6 @@ class ReadOnlyToolExecutor:
             return ToolResult(
                 call.id, call.name, "error", errors=[ToolFailure("TOOL_TIMEOUT", "工具依赖超时")]
             )
-        except Exception:
-            # 不发送异常原文或私有资料；明确故障，不返回空结果，不自动改走网页。
-            return ToolResult(
-                call.id,
-                call.name,
-                "error",
-                errors=[ToolFailure("TOOL_DEPENDENCY_FAILED", "只读工具依赖执行失败")],
-            )
 
     async def _execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
         if session.finished:
