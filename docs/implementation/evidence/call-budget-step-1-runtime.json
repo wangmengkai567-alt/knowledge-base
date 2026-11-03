@@ -1,9 +1,0 @@
-{
-  "model_calls_1_error": "模型调用总次数必须为 2 到 6 次，至少包含一次取证决策和一次最终回答",
-  "default_model_calls": 6,
-  "source_sha256": "675466a51baa3d8cfc374a9a81cb3be1b2b5cb4d4d3df3b029a2bf3e164c224a",
-  "ready": {
-    "status": "ok",
-    "detail": "db:ok redis:ok"
-  }
-}
