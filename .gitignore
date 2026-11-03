@@ -77,3 +77,5 @@ eval/.run_eval.lock
 # 忽略任意位置的名为 面试 和 design 的文件夹
 面试/
 design/
+docs/
+/eval/*.json
