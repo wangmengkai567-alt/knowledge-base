@@ -110,7 +110,7 @@ class ToolModel:
 
     @staticmethod
     def project_history(messages: list[dict]) -> list[dict]:
-        """已用于选择读取位置的导航只保留位置，原始查找结果仍由运行快照保存。"""
+        """保留导航身份和未读预览；省去目录审计字段，原始结果仍由快照保存。"""
         find_calls = {
             call["id"]
             for message in messages
@@ -120,6 +120,14 @@ class ToolModel:
         read_ranges: dict[str, list[tuple[int, int]]] = {}
         projected = []
         for message in reversed(messages):
+            if message["role"] == "tool":
+                payload = json.loads(message["content"])
+                if payload.get("directory"):
+                    payload["directory"] = [
+                        {key: entry[key] for key in ("source_id", "url", "title", "read")}
+                        for entry in payload["directory"]
+                    ]
+                    message = {**message, "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))}
             for call in message.get("tool_calls", []):
                 if call["function"]["name"] == "web_read":
                     if not isinstance(call["function"]["arguments"], str):

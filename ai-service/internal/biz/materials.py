@@ -307,6 +307,8 @@ def question_parts(query: str) -> list[str]:
 
 
 def question_terms(query: str) -> set[str]:
+    # 网址只用于定位来源；域名和路径中的 get/com 等不是问题主题词。
+    query = re.sub(r"https?://[^\s<>]+", " ", query)
     lexical = plan_query(query).lexical
     terms = set(re.findall(r"[a-z0-9_]+(?:[-.][a-z0-9_]+)*", lexical.casefold()))
     for run in re.findall(r"[\u4e00-\u9fff]+", lexical):
@@ -434,10 +436,13 @@ def pack_sources(
     named = set()
     for index, source in enumerate(candidates):
         local_terms = terms
+        title_phrase = ""
         if isinstance(source, WebSource) and source.source_type == "web_page":
             # 模型已选择读取的正文比搜索摘要优先；标题提供跨语言主题词，仍只抽取原文。
             named.add(index)
-            local_terms = terms | question_terms(source.title)
+            title = source.title.split("|")[0].strip()
+            local_terms = terms | question_terms(title)
+            title_phrase = title.rstrip("?？").casefold()
         if isinstance(source, AnswerSource):
             stem = re.sub(r"^\d+[._-]", "", source.document_filename.rsplit(".", 1)[0]).casefold()
             if len(stem) >= 2 and stem in query.casefold():
@@ -461,6 +466,11 @@ def pack_sources(
                 neighbor = max(scores[max(0, position - 1):position + 2], default=0)
                 # 邻句保留单位、前置条件和否定；不把文档名匹配冒充正文依据。
                 score = direct * 4 + neighbor + (0.25 if hit else 0)
+                # 页标题在正文中的解释段优先于仅重复主题词的操作示例。
+                paragraph = content[left:right].casefold()
+                if (title_phrase and title_phrase in paragraph
+                        and paragraph.replace(title_phrase, "", 1).strip(" \t\r\n?？#")):
+                    score += 8
                 # 比较题中的真实数值/单位比泛泛的限制介绍更有信息量；仍须词面相关。
                 if direct and re.search(r"\d\s*(?:[KMGT]?B|[kmgt]b?|cores?|核|秒|分钟|小时|%)\b", content[left:right], re.I):
                     score += 4
@@ -513,8 +523,19 @@ def pack_sources(
     first, rest, seen = [], [], set()
     for item in excerpts:
         key = source_identity(candidates[item.source])
-        (rest if key in seen or (named and item.source not in named) else first).append(item)
+        (rest if key in seen else first).append(item)
         seen.add(key)
+    # 先为每份来源争取一个完整核心单元，再扩展邻句和背景。
+    # 避免首份来源的长邻接窗口挤掉另一份资料；核心仍须满足同一完整请求预算。
+    for item in first:
+        content, codes = contexts[item.source, item.segment]
+        core_start, core_end = next(
+            span for span in _text_ranges(content, codes)
+            if span[0] <= item.focus_start < item.focus_end <= span[1]
+        )
+        core = replace(item, start=core_start, end=core_end)
+        if fits(project([*chosen, core])):
+            chosen.append(core)
     pending = []
     for item in [*first, *rest]:
         if contained(item):
