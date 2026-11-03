@@ -47,7 +47,7 @@ const reasons: Record<string, string> = {
   output_limit: '回答超出输出长度上限', repeated_call: '重复查询未取得新资料',
   insufficient_material: '现有资料不足以完整回答', user_cancelled: '已停止本次提问',
   unsupported_code: '命令或代码无法在该条目的正文摘录中定位，未发布答案',
-  web_body_required: '需要网页正文支持，搜索摘要不能替代正文',
+  web_read_failed: '部分网页读取失败，依据已有资料生成回答',
   evidence_selection_mismatch: '最终回答与已选证据状态不一致，未发布答案',
   invalid_citation_or_format: '回答的引用或格式不符合要求，未发布答案',
   internal_error: '服务内部处理失败，本次提问已停止',

@@ -53,9 +53,14 @@ _STOP_DETAILS = {
     "repeated_call": "检测到重复工具动作，本次停止继续取证。",
     "evidence_complete": "已显式选定足以回答的证据。",
     "evidence_insufficient": "已显式确认所查资料不足以完整回答。",
+    "web_read_failed": "某个网页正文读取失败；只能依据已成功取得的资料回答，缺少必要依据时说明无法核实，不得声称读过失败网页或证明其内容不存在。",
 }
 _COVERAGE_PREFIX = "本次问题证据覆盖（词面候选，不是语义验收）："
 _BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
+_WEB_READ_FAILURES = frozenset({
+    "TOOL_INVALID_RESPONSE", "TOOL_DEPENDENCY_FAILED", "WEB_CONTENT_EMPTY",
+    "WEB_UNSUPPORTED_CONTENT", "WEB_REDIRECT_FAILED", "TOOL_RESPONSE_TOO_LARGE",
+})
 
 
 def _coverage_control(query: str, sources: list[AnswerSource | WebSource]) -> dict:
@@ -445,7 +450,12 @@ class RAGBiz:
                     window_limited = call.name == "web_read" and code in (
                         "WEB_CODE_BLOCK_TOO_LARGE", "TOOL_RESULT_TOO_LARGE",
                     )
-                    if not window_limited:
+                    read_failed = (call.name == "web_read" and bool(result_tool.errors)
+                                   and all(error.code in _WEB_READ_FAILURES for error in result_tool.errors))
+                    if read_failed:
+                        # 保留本次错误及已取得资料，进入已预留的最终生成，不重试网页。
+                        run.stop_exploration("web_read_failed")
+                    elif not window_limited:
                         run.finish(
                             "timeout" if code == "TOOL_TIMEOUT" else "tool_failed",
                             "tool_timeout" if code == "TOOL_TIMEOUT" else "tool_error",
@@ -709,6 +719,9 @@ class RAGBiz:
             run.finish("invalid_answer", "invalid_citation_or_format", "INVALID_ANSWER")
             return
         run.answer = rendered.answer
+        if any(result.name == "web_read" and any(error.code in _WEB_READ_FAILURES for error in result.errors)
+               for result in run.tool_results):
+            run.answer += "\n\n部分网页正文读取失败，本次回答仅依据已成功取得的资料；未读到的网页内容无法核实。"
         run.answer_claims = rendered.claims
         run.emit(
             "answer_validated",
