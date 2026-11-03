@@ -64,8 +64,6 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
             if evidence_id not in allowed:
                 raise AnswerEvidenceError("invalid_evidence_id")
             fragment = allowed[evidence_id]
-            if fragment.origin["source_type"] == "web_search_summary" and (payload.status == "answered" or claim.scope == "shared"):
-                raise AnswerEvidenceError("web_body_required")
             fragments.append(fragment)
             evidence.append({"evidence_id": evidence_id, "citation_id": fragment.citation_id,
                              "quote": fragment.content, "origin": fragment.origin,
@@ -75,17 +73,21 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
             raise AnswerEvidenceError("invalid_source_scope")
         supported_quantities = {
             quantity for fragment in fragments
-            if fragment.origin["source_type"] != "web_search_summary"
             for quantity in _quantities(fragment.content)
         }
         if not _quantities(text) <= supported_quantities:
             raise AnswerEvidenceError("unsupported_quantity")
         ids = sorted({fragment.citation_id for fragment in fragments})
         refs = "".join(f"[来源 {number}]" for number in ids)
+        types = {fragment.origin["source_type"] for fragment in fragments}
         label = "多来源对照" if claim.scope == "shared" else labels[fragments[0].origin["source_type"]]
+        if "web_search_summary" in types and (len(types) > 1 or claim.scope == "shared"):
+            if claim.scope == "source":
+                label = "网页资料"
+            label += "（搜索摘要）" if len(types) == 1 else "（含搜索摘要）"
         paragraphs.append(f"{label}：{html.escape(text, quote=False)}{refs}")
         for inline in re.findall(r"`([^`]+)`", text):
-            if not any(inline in fragment.content and fragment.origin["source_type"] != "web_search_summary" for fragment in fragments):
+            if not any(inline in fragment.content for fragment in fragments):
                 raise AnswerEvidenceError("unsupported_code")
         code = None
         if claim.code_evidence_id is not None:

@@ -92,7 +92,7 @@ _DESCRIPTIONS = {
     "web_search": "用一个最多 120 字符的 query 搜索。完整 directory 供选择，摘要不是网页正文。",
     "web_read": "通过 directory 中的 source_id 读取正文；首次抓取后固定使用本次快照。start/max_chars 可定位其他片段，返回原文字符范围。不能填写网址。",
     "web_find": "在已读取快照中查找 pattern，仅返回最多 10 个命中的 source_id、字符位置、短预览和 in_code；不是引用证据。选择相关命中后用 web_read 的 start/max_chars 读取小段正文；不发网络请求。",
-    "finish_research": "证据齐备或已确认资料不足时单独调用，提交实际已送模的 citation_ids 和 outcome。answered 必须有证据；使用网页摘要时还须有正文依据。该动作结束取证，随后独立生成答案，不再探索。",
+    "finish_research": "证据齐备或已确认资料不足时单独调用，提交实际已送模的 citation_ids 和 outcome。answered 必须有证据，可使用搜索摘要；用户明确要求读取网页时须先实际读取，不能把摘要当作已读正文。该动作结束取证，随后独立生成答案，不再探索。",
 }
 
 
@@ -412,9 +412,6 @@ class ReadOnlyToolExecutor:
             ids = set(arguments.citation_ids)
             if not session.evidence_actions or not ids.issubset(session.delivered_citations):
                 raise ToolError("EVIDENCE_SELECTION_INVALID", "必须先取证，且只能选择实际已送模的引用编号")
-            selected = [session.delivered_citations[number] for number in ids]
-            if arguments.outcome == "answered" and any(source.source_type == "web_search_summary" for source in selected) and not any(source.source_type == "web_page" for source in selected):
-                raise ToolError("WEB_BODY_REQUIRED", "网页摘要不足以完成回答，请先取得正文依据")
             result = ToolResult(
                 call.id, call.name, "success",
                 selection={"outcome": arguments.outcome, "citation_ids": sorted(ids)},
