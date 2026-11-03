@@ -23,7 +23,7 @@ class TavilySearch:
         api_key: str,
         timeout: float = 20,
         *,
-        search_limit: int = 5,
+        search_limit: int = 10,
         summary_chars: int = 1200,
     ) -> None:
         self._api_key = api_key

@@ -95,7 +95,7 @@ class WebRegistry:
             if title and not entry.title:
                 entry.title = title
             return entry
-        if len(self.entries) >= 53:
+        if len(self.entries) >= 103:
             raise ToolError("WEB_DIRECTORY_LIMIT", "本次网页目录超过运行允许的数量")
         entry = WebEntry(f"web_{len(self.entries) + 1}", url, title, origin, datetime.now(UTC).isoformat())
         self.entries.append(entry)

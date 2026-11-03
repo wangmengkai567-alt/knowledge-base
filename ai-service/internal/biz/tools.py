@@ -56,7 +56,7 @@ class WebSearchArguments(ToolArguments):
         min_length=1, max_length=120, pattern=r"^[^\u0000-\u001f]*\S[^\u0000-\u001f]*$",
         description="完整搜索短语，单行且非空白，最多 120 字符；仅必要公开信息，禁止私有资料原文",
     )
-    max_results: int = Field(default=5, ge=1, le=5)
+    max_results: int = Field(default=10, ge=1, le=10)
 
 class WebReadArguments(ToolArguments):
     source_id: SourceId

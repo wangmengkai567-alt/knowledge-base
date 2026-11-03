@@ -496,7 +496,7 @@ class TavilyConfig(BaseSettings):
     )
     api_key: str = Field(default="", repr=False)
     timeout: float = Field(default=20, gt=0, le=20)
-    search_limit: int = Field(default=5, ge=1, le=5)
+    search_limit: int = Field(default=10, ge=1, le=10)
     summary_chars: int = Field(default=1200, ge=100, le=1200)
 
 
