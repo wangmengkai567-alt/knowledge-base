@@ -79,3 +79,4 @@ eval/.run_eval.lock
 design/
 docs/
 /eval/*.json
+/eval/*.pending
