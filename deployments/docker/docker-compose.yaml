@@ -7,16 +7,6 @@
 #   make docker-logs        # 查看日志
 #   make docker-rebuild     # 重新构建并启动
 #
-# Ollama 本地模型（Sprint 20，可选）：
-#   docker compose --profile ollama up -d ollama
-#   docker exec -it ollama ollama pull qwen2.5:7b
-#   docker exec -it ollama ollama pull nomic-embed-text
-#   然后为 ai-service 设置：
-#   AI_LLM__PROVIDER=local
-#   AI_LLM__BASE_URL=http://ollama:11434
-#   AI_EMBEDDING__PROVIDER=local
-#   AI_EMBEDDING__BASE_URL=http://ollama:11434
-# ──────────────────────────────────────────────
 
 services:
   # ── AI Service 应用 ──

@@ -174,7 +174,7 @@ class ToolModel:
     @staticmethod
     def request_messages(messages: list[dict], session: ToolSession, *, final: bool = False) -> list[dict]:
         permission = (
-            "本次允许联网，可用 web_search、web_read 和 web_find。"
+            "本次允许联网，可用 web_search、web_read 和 web_find。知识库资料不足时，应使用必要公开关键词调用 web_search 补充依据，再判断资料是否足够；不得把本地检索为空视为网上无资料。"
             if session.scope.allow_web
             else "本次禁止联网，所有 web_ 工具均不可调用；知识库无资料时说明资料不足。"
         )

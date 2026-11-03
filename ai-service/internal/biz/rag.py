@@ -261,6 +261,7 @@ class RAGBiz:
         seen_matches: set[tuple[str, int, int]] = set()
         pending_sources: list[AnswerSource | WebSource] = []
         no_progress = 0
+        web_attempted = False
         while run.status == "running":
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
@@ -272,8 +273,6 @@ class RAGBiz:
                     run.stop_exploration("tool_call_limit")
                 elif reason := plan.stop_reason(final=False):
                     run.stop_exploration(reason)
-            if no_progress >= 2:
-                run.stop_exploration("no_new_evidence")
             final = bool(run.exploration_stop_reason)
             if final:
                 # 无论由 finish_research 还是程序限制结束取证，最终生成前都关闭工具会话。
@@ -428,6 +427,8 @@ class RAGBiz:
                     call_key=key,
                 )
                 result_tool = await self._model.executor.execute(call, session)
+                if call.name in ("web_search", "web_read"):
+                    web_attempted = True
                 run.tool_results.append(result_tool)
                 if call.name in ("web_search", "web_read"):
                     run.emit("web_directory_updated", directory=[asdict(entry) for entry in run.web_directory])
@@ -492,7 +493,8 @@ class RAGBiz:
                     citation_ids=[source.citation_id for source in bounded.sources],
                     truncated=any(source.truncated for source in bounded.sources),
                 )
-            if no_progress >= 2:
+            # 本地空结果不能耗尽尚未尝试的联网取证机会；其他预算与停止条件照常生效。
+            if no_progress >= 2 and (not session.scope.allow_web or web_attempted):
                 run.stop_exploration("no_new_evidence")
 
     @staticmethod

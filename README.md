@@ -27,17 +27,31 @@ Copy-Item ai-service/.env.example ai-service/.env
 
 ## Docker 运行与显式迁移
 
-需要 Docker Compose；前端开发需要 Node.js。镜像使用 uv 和 `ai-service/uv.lock` 安装依赖，环境位于 `/opt/venv`，源码挂载不会覆盖它。依赖改变后必须重建镜像。
+在项目根目录执行以下命令。需要已启动的 Docker Desktop（或 Docker Engine）及 Docker Compose；前端开发还需要 Node.js。先按上文创建并填写根目录 `.env`，至少设置 `POSTGRES_PASSWORD` 和所需模型密钥。以下命令只操作后端、PostgreSQL 和 Redis，不启动前端。
 
-已有数据库升级前，先按 [备份与恢复说明](docs/preparation/preparation-report.md) 保存数据库和上传文件的成对备份。以下命令只处理本项目后端、数据库和 Redis：
+### 启动服务
+
+首次启动时，先构建 AI 服务镜像并启动 PostgreSQL 和 Redis：
 
 ```bash
 docker compose -f deployments/docker/docker-compose.yaml --env-file .env build ai-service
 docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d postgres redis
-docker compose -f deployments/docker/docker-compose.yaml --env-file .env stop ai-service
+```
+
+等待 PostgreSQL 和 Redis 就绪后，执行一次数据库迁移，再启动 AI 服务：
+
+```bash
 docker compose -f deployments/docker/docker-compose.yaml --env-file .env run --rm --no-deps ai-service uv run --no-sync python -m cmd.migrate
 docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d --no-deps ai-service
 ```
+
+后续普通启动只需启动三个服务，无需重复构建和迁移：
+
+```bash
+docker compose -f deployments/docker/docker-compose.yaml --env-file .env up -d postgres redis ai-service
+```
+
+依赖变化后需重新构建镜像。数据库结构更新时，先按 [备份与恢复说明](docs/preparation/preparation-report.md) 备份数据库和上传文件，再停止 AI 服务并执行迁移，迁移成功后重新启动。
 
 迁移幂等，不覆盖已有阶段错误或把旧解析标记复制为全部就绪。启动时核实真实向量并重建关键词索引，不自动重新嵌入。上传卷为 `docker_ai-uploads`，数据库卷为 `docker_ai-postgres-data`（默认 Compose 项目名 `docker`）。不要用 `down -v` 删除已有数据。
 
