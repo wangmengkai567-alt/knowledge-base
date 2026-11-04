@@ -443,6 +443,8 @@ def pack_sources(
             title = source.title.split("|")[0].strip()
             local_terms = terms | question_terms(title)
             title_phrase = title.rstrip("?？").casefold()
+        if isinstance(source, WebSource) and source.source_type == "web_search_summary":
+            local_terms = terms | question_terms(source.title)
         if isinstance(source, AnswerSource):
             stem = re.sub(r"^\d+[._-]", "", source.document_filename.rsplit(".", 1)[0]).casefold()
             if len(stem) >= 2 and stem in query.casefold():
@@ -456,7 +458,9 @@ def pack_sources(
                 part = source.segments[segment]
                 code_ranges = [(left - part.start, right - part.start) for left, right in part.code_ranges]
             contexts[index, segment] = content, code_ranges
-            ranges = _text_ranges(content, code_ranges)
+            # 搜索摘要已是短资料，优先保留完整内容。
+            ranges = ([(0, len(content))] if content.strip() and isinstance(source, WebSource)
+                      and source.source_type == "web_search_summary" else _text_ranges(content, code_ranges))
             scores = [sum(1 for term in local_terms if term in content[left:right].casefold())
                       for left, right in ranges]
             hit = ((isinstance(source, AnswerSource) and source.segments[segment].chunk_id in hit_ids)
@@ -529,10 +533,14 @@ def pack_sources(
     # 避免首份来源的长邻接窗口挤掉另一份资料；核心仍须满足同一完整请求预算。
     for item in first:
         content, codes = contexts[item.source, item.segment]
-        core_start, core_end = next(
-            span for span in _text_ranges(content, codes)
-            if span[0] <= item.focus_start < item.focus_end <= span[1]
-        )
+        source = candidates[item.source]
+        if isinstance(source, WebSource) and source.source_type == "web_search_summary":
+            core_start, core_end = item.start, item.end
+        else:
+            core_start, core_end = next(
+                span for span in _text_ranges(content, codes)
+                if span[0] <= item.focus_start < item.focus_end <= span[1]
+            )
         core = replace(item, start=core_start, end=core_end)
         if fits(project([*chosen, core])):
             chosen.append(core)

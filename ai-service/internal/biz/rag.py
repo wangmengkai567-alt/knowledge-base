@@ -325,6 +325,7 @@ class RAGBiz:
             pending_sources = []
             session.delivered_citations = {source.citation_id: source for source in run.sources}
             if final:
+                run.sources = list(session.active_sources)
                 run.evidence_catalog = catalog
                 run.final_request = self._model.request_messages(request, session, final=True)
                 run.emit("evidence_catalog_prepared", evidence_ids=[item.evidence_id for item in catalog],
@@ -453,10 +454,8 @@ class RAGBiz:
                     )
                     read_failed = (call.name == "web_read" and bool(result_tool.errors)
                                    and all(error.code in _WEB_READ_FAILURES for error in result_tool.errors))
-                    if read_failed:
-                        # 保留本次错误及已取得资料，进入已预留的最终生成，不重试网页。
-                        run.stop_exploration("web_read_failed")
-                    elif not window_limited:
+                    # 单页失败保留错误，允许在原预算内继续核实缺失主题；不重复失败动作。
+                    if not window_limited and not read_failed:
                         run.finish(
                             "timeout" if code == "TOOL_TIMEOUT" else "tool_failed",
                             "tool_timeout" if code == "TOOL_TIMEOUT" else "tool_error",
@@ -568,6 +567,12 @@ class RAGBiz:
                 if citation_id not in registry:
                     continue  # 仅允许已送模或即将随本次最终请求送模的片段。
                 source = registry[citation_id]
+                if run.exploration_stop_reason and isinstance(source, WebSource) and source.source_type == "web_search_summary":
+                    # 最终请求不再携带工具定义，重新从本次实际取得的完整摘要分配空间。
+                    original = next((item for result in run.tool_results for item in result.sources
+                                     if isinstance(item, WebSource) and item.source_type == source.source_type
+                                     and item.url == source.url and item.fetched_at == source.fetched_at), source)
+                    source = replace(original, citation_id=source.citation_id)
                 candidates.append(source)
                 owners[source.citation_id] = ("history", index)
         for index, result in enumerate(results):
