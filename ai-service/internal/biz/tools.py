@@ -144,7 +144,11 @@ class ToolSession:
 async def run_scoped(
     operation: Callable[[], Awaitable[T]], session: ToolSession, timeout: float
 ) -> T:
-    """取消会关闭正在等待的模型/工具请求；不声称能停止供应商计算或计费。"""
+    """在会话剩余总时限与单次 timeout 内等待异步 operation，返回其执行结果。
+
+    同时监听 session.cancelled；取消时抛出 CancelledError，超时时抛出 ToolError。
+    退出前取消并等待尚未结束的本地任务，避免模型或工具请求遗留在后台。
+    """
     if session.cancelled.is_set():
         raise asyncio.CancelledError
     remaining = min(timeout, session.deadline - monotonic())
@@ -206,6 +210,11 @@ class ReadOnlyToolExecutor:
         cancelled: asyncio.Event | None = None,
         deadline: float | None = None,
     ) -> ToolSession:
+        """为一次问答创建工具会话：固定用户、知识库、联网权限，并验证初始访问范围。
+
+        user_urls 最多三个，校验为公开网址后登记到网页目录；本步骤不会抓取网页正文。
+        cancelled 和 deadline 让后续模型及工具共享同一个取消信号与截止时间。
+        """
         if type(user_id) is not int or user_id <= 0 or type(allow_web) is not bool:
             raise ToolError("INVALID_SCOPE", "工具用户或联网范围无效")
         if any(type(kid) is not int or kid <= 0 for kid in knowledge_base_ids):
@@ -232,12 +241,18 @@ class ReadOnlyToolExecutor:
         return session
 
     async def _authorize(self, scope: ToolScope) -> None:
+        """逐个核对 scope 内的知识库是否存在且归该用户所有；任一不符即拒绝本次访问。"""
         for kid in scope.knowledge_base_ids:
             kb = await self._kb_repo.get_by_id(kid)
             if kb is None or kb.owner_id != scope.user_id:
                 raise ToolError("KNOWLEDGE_BASE_FORBIDDEN", "所选知识库不存在或无访问权限")
 
     async def validate_sources(self, session: ToolSession, sources: list[AnswerSource | WebSource]) -> None:
+        """生成前或发布前再次核验证据权限、文档版本及原文范围。
+
+        知识库资料须仍对应当前就绪文档；网页正文须与本次已缓存快照一致。
+        不返回新资料；来源变化或越权时抛出异常，使问答停止发布。
+        """
         async def validate() -> None:
             await self._authorize(session.scope)
             knowledge = [source for source in sources if isinstance(source, AnswerSource)]
@@ -273,6 +288,7 @@ class ReadOnlyToolExecutor:
         return json.dumps([call.name, value], ensure_ascii=False)
 
     def definitions(self, scope: ToolScope) -> list[dict]:
+        """按服务器固定权限返回模型可调用的工具 JSON Schema；禁止联网时不暴露网页工具。"""
         names = ["knowledge_base_search"] if scope.knowledge_base_ids else []
         if scope.allow_web:
             names.extend(("web_search", "web_read", "web_find"))
@@ -292,6 +308,11 @@ class ReadOnlyToolExecutor:
         ]
 
     async def execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
+        """执行一个工具动作，返回统一的 ToolResult，供问答循环记录并接回模型。
+
+        受控的工具、依赖和超时错误转成结果中的 errors；取消异常继续向上传播。
+        实际参数与授权校验、各工具分支执行由 _execute 完成。
+        """
         started = monotonic()
         try:
             return await run_scoped(lambda: self._execute(call, session), session, self._timeout)
@@ -335,6 +356,11 @@ class ReadOnlyToolExecutor:
             )
 
     async def _execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
+        """校验并分派单个工具动作，更新会话中的网页目录、快照或取证结束标记。
+
+        call 携带模型提出的工具名和 JSON 参数，session 决定实际允许访问的范围。
+        返回结果会统一限制体积；此处抛出的受控错误由外层 execute 转为错误结果。
+        """
         if session.finished:
             raise ToolError("RUN_STOPPED", "已结束取证，不能再执行工具动作")
         if (

@@ -44,17 +44,35 @@ class IngestionBiz:
         self._locks: WeakValueDictionary[int, asyncio.Lock] = WeakValueDictionary()
 
     def lock(self, document_id: int) -> asyncio.Lock:
+        """返回指定文档专用的异步互斥锁；本函数只取出锁，不会等待或占用它。
+
+        document_id 是文档的数据库 ID。同一 ID 在锁仍被任务持有或等待时复用同一把锁，
+        不同文档使用不同的锁，因此可以并行入库。
+        调用方使用 async with self.lock(document_id): 才会等待并占用锁，退出时自动释放。
+        这样可防止同一文档的解析、重试和删除同时改写分块及索引。
+        锁只协调本服务进程内的协程，不提供跨进程或跨服务的互斥。
+        """
+        # 先复用仍存活的文档锁，确保操作同一文档的协程排在同一把锁上。
         lock = self._locks.get(document_id)
         if lock is None:
+            # 第一次使用或旧锁已回收时创建；此时仅登记锁，不会阻塞当前协程。
             lock = asyncio.Lock()
             self._locks[document_id] = lock
         return lock
 
     def new_stages(self) -> dict:
+        """创建一份新的入库状态字典，不写入数据库。
+
+        解析、分块和向量索引初始为 pending；未启用关键词索引时，该步骤标记 skipped。
+        """
         return initial_stages(self._embeddings.keyword_required)
 
     async def _record_failure(self, doc: Document, name: str, error: str, parse_error: str) -> None:
-        """同文档锁内等待失败状态写完；重复取消不让收尾留在后台。"""
+        """将指定步骤标记为失败，并确保错误状态在释放文档锁之前写入数据库。
+
+        name 指定失败步骤，error 保存步骤错误；解析失败时还使用 parse_error 更新文档状态。
+        即使外层任务再次被取消，也等待本次写入结束，随后继续抛出取消异常。
+        """
         doc.stages[name] = stage_state("failed", error)
 
         async def persist() -> None:
@@ -79,6 +97,12 @@ class IngestionBiz:
         name: str,
         action: Callable[[], Awaitable[object]],
     ) -> bool:
+        """执行一个入库步骤，并将 running → completed/failed 的变化写入数据库。
+
+        name 是步骤名，action 是不带参数的异步操作。成功返回 True；普通异常记录后返回 False，
+        由调用方决定是否继续其他步骤；取消异常在记录失败后继续抛出。
+        调用方须先持有文档锁，确保步骤状态和对应分块、索引不会被并发操作覆盖。
+        """
         # 分块一旦变化，两个下游索引都需重新核实，不能继承旧的完成状态。
         if name == "chunk":
             defaults = self.new_stages()
@@ -102,6 +126,13 @@ class IngestionBiz:
     async def process(
         self, document_id: int, *, force: bool = False, stage: str | None = None
     ) -> Document:
+        """对指定文档执行入库或重试，返回数据库中最新的文档及各步骤状态。
+
+        默认跳过已完成步骤，继续解析、分块及所需索引；force=True 会重置状态并重新解析。
+        stage 可指定 parse/chunk/vector/keyword：解析或分块后继续处理下游索引，
+        单独重试 vector 或 keyword 时只重建该索引，且要求解析、分块已经完成。
+        整个流程持有该文档的锁；步骤失败可能通过返回文档的 stages 表达，返回不代表已就绪。
+        """
         async with self.lock(document_id):
             doc = await self._documents.get_by_id(document_id)
             if doc is None:
@@ -190,7 +221,12 @@ class IngestionBiz:
             return await self._documents.get_by_id(doc.id)
 
     async def rebuild_indices(self, include_vectors: bool = False) -> int:
-        """启动时核实真实索引；内存向量需重建，持久化向量只核对，关键词按配置重建。"""
+        """服务启动时核实文档和索引状态，返回已就绪文档的分块总数。
+
+        将上次进程遗留的运行中步骤标为失败，并核对已完成分块是否实际存在。
+        include_vectors=True 时重新生成内存向量；False 时只核对持久化向量，不自动补算。
+        启用关键词检索时重建进程内关键词索引；全部必要步骤通过后才允许文档被检索。
+        """
         # 无法列出文档时让启动失败，避免带着上次进程的 ready 状态开始服务。
         documents = await self._documents.list_all()
         processed = 0

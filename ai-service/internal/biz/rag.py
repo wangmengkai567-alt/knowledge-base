@@ -64,12 +64,14 @@ _WEB_READ_FAILURES = frozenset({
 
 
 def _coverage_control(query: str, sources: list[AnswerSource | WebSource]) -> dict:
+    """根据问题和已送模资料生成覆盖情况提示，提醒模型继续核实尚未覆盖的主题。"""
     return {"role": "system", "content": _COVERAGE_PREFIX + json.dumps(
         evidence_coverage(query, sources), ensure_ascii=False, separators=(",", ":"),
     ) + "逐项核对正文是否足够，缺什么查什么；候选命中不等于已回答。比较题逐份文档取证，资料足够立即 finish_research。"}
 
 
 def _final_control(reason: str) -> dict:
+    """根据真实取证停止原因生成收尾提示，要求模型停止调用工具并输出最终答案 JSON。"""
     return {
         "role": "system",
         "content": "现在只发布最终答案，不再调用工具。依据已有资料作答；资料不足时说明缺失信息。"
@@ -97,9 +99,14 @@ class RequestBudgetPlan:
 
     @property
     def final_reservation(self) -> int:
+        """生成最终答案所需的预留额度：最终输入估算加最大输出额度。"""
         return self.final_input + self.output_tokens
 
     def stop_reason(self, *, final: bool) -> str:
+        """检查预算是否足够，返回 input_budget/token_budget；空字符串表示允许继续。
+
+        final=False 时同时计入下一轮取证和最终回答，final=True 时只检查最终回答。
+        """
         inputs = (self.final_input,) if final else (self.exploration_input, self.final_input)
         if max(inputs) > self.input_ceiling:
             return "input_budget"
@@ -110,6 +117,7 @@ class RequestBudgetPlan:
 
 
 def retrieval_results(run: AnswerRun) -> list[RetrievalResult]:
+    """从本次已送模的知识库资料中提取检索命中，按 chunk_id 去重供响应列表展示。"""
     hits = {}
     for source in run.sources:
         if isinstance(source, AnswerSource):
@@ -149,6 +157,13 @@ class RAGBiz:
         cancelled: asyncio.Event | None = None,
         on_event: Callable[[AnswerRun, RunEvent], None] | None = None,
     ) -> AnswerRun:
+        """执行一次完整问答，返回包含答案、来源、用量、事件和终态的 AnswerRun。
+
+        query 是问题，knowledge_base_ids 固定可检索范围，user_id 用于核对知识库所有权。
+        allow_web 控制联网权限；user_urls 仅能在允许联网时登记为本次可读取的网页。
+        cancelled 用于外部取消，on_event 接收执行进度。已处理的错误记录在返回的终态中，
+        任务自身被取消时仍向上传播取消异常，交由应用服务完成清理与快照保存。
+        """
         run = AnswerRun(
             ToolScope(user_id, tuple(dict.fromkeys(knowledge_base_ids)), allow_web),
             self._limits,
@@ -234,6 +249,7 @@ class RAGBiz:
 
     @staticmethod
     def _check_active(run: AnswerRun, session: ToolSession) -> None:
+        """检查本次会话是否被取消或超过总时限；任一条件满足即抛异常，中断后续操作。"""
         if session.cancelled.is_set():
             raise asyncio.CancelledError
         if monotonic() >= session.deadline:
@@ -242,6 +258,7 @@ class RAGBiz:
     def _budget_plan(
         self, messages: list[dict], session: ToolSession, run: AnswerRun, output_tokens: int,
     ) -> RequestBudgetPlan:
+        """按当前完整历史和资料分别估算下一轮取证、最终回答，返回预算计划，不扣费。"""
         return RequestBudgetPlan(
             self._model.estimate(messages, session),
             self._model.estimate(
@@ -260,6 +277,11 @@ class RAGBiz:
         output_tokens: int,
         temperature: float | None,
     ) -> None:
+        """驱动模型决策与工具执行，直到完成取证、发布答案或遇到运行限制。
+
+        每轮先检查取消、时限和预算，再请求工具动作或最终回答；工具资料经去重和裁剪后，
+        在下一次实际送模时登记。函数通过修改 run 和 session 保存进度，不返回答案字符串。
+        """
         seen_calls: set[str] = set()
         seen_ids: set[str] = set()
         seen_matches: set[tuple[str, int, int]] = set()
@@ -508,6 +530,10 @@ class RAGBiz:
     def _new_sources(
         result: ToolResult, registry: list[AnswerSource | WebSource],
     ) -> list[AnswerSource | WebSource]:
+        """去掉 registry 已登记的重复原文范围，为剩余新片段分配引用编号并返回副本。
+
+        相同来源内容仅分数变化不算新资料；网页与知识库都按来源版本和字符范围核对。
+        """
         # 只向后续模型发送尚未见过的原文范围；重排分变化不构成新证据。
         next_id = max((source.citation_id for source in registry), default=0) + 1
         sources = []
@@ -558,7 +584,12 @@ class RAGBiz:
         session: ToolSession, output_tokens: int, *,
         pending_sources: list[AnswerSource | WebSource] | None = None,
     ) -> tuple[list[ToolResult] | None, str]:
-        """历史和新结果统一抽取；已送模登记保持不变，每轮压缩范围单独留档。"""
+        """把历史资料与本轮工具结果一起装入完整请求预算，并更新当前上下文。
+
+        results 是新工具结果，messages/start 指定对应的消息位置；pending_sources 是即将送模的资料。
+        成功返回裁剪后的工具结果列表和空原因，同时更新历史消息、active_sources 与收尾预留。
+        无法满足预算时返回 (None, 停止原因)；保留的原文范围通过事件记录供核对。
+        """
         bounded = [replace(result, sources=[]) for result in results]
         candidates: list[AnswerSource | WebSource] = []
         owners: dict[int, tuple[str, int]] = {}
@@ -677,6 +708,11 @@ class RAGBiz:
         *,
         check_response: bool = True,
     ) -> None:
+        """结算第 call 次模型调用的真实用量，再检查总额度、用量一致性及响应是否完整。
+
+        run 在请求前已有预留；这里结算后释放该预留。超限或响应异常时直接设置运行终态。
+        check_response=False 用于供应商报错但携带用量的情况，仅结算并检查额度和用量。
+        """
         usage = run.usage
         entry = usage.calls[call - 1]
         if not run.settle_model(call, result.prompt_tokens, result.completion_tokens, result.total_tokens):
@@ -710,12 +746,17 @@ class RAGBiz:
 
     @staticmethod
     def _denied(call: ToolCall, code: str) -> ToolResult:
+        """为未执行的工具动作构造明确的错误结果，保持工具调用与结果一一对应。"""
         return ToolResult(
             call.id, call.name, "error", errors=[ToolFailure(code, "程序已停止新增工具动作")]
         )
 
     @staticmethod
     def _publish(run: AnswerRun, result: ChatResult) -> None:
+        """校验模型的最终 JSON、证据选择和引用绑定，通过后才写入 run.answer 并结束运行。
+
+        失败时将 run 标记为 invalid_answer，原始响应仅保留用于本地核对，不作为答案发布。
+        """
         # 模型返回结构化断言和证据编号；引用及代码由程序从原文目录中提取。
         # 校验全部通过后才写入对外可见的 run.answer。
         run.final_response = result.content

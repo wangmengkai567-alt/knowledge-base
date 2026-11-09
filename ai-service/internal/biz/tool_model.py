@@ -50,9 +50,11 @@ class ToolModel:
         allow_web: bool,
         user_urls: tuple[str, ...] = (),
     ) -> ToolSession:
+        """把问答的用户、知识库和联网设置交给工具执行器，返回校验权限后的会话。"""
         return await self.executor.create_session(user_id, knowledge_base_ids, allow_web, user_urls)
 
     async def execute(self, call: ToolCall, session: ToolSession) -> ToolResult:
+        """转交一个工具动作给执行器，返回其标准化工具结果。"""
         return await self.executor.execute(call, session)
 
     async def request_action(
@@ -93,6 +95,10 @@ class ToolModel:
         *,
         final: bool = False,
     ) -> None:
+        """在模型请求前检查工具能力、输出额度、消息历史及完整输入大小。
+
+        final=False 时要求模型支持原生工具且存在允许调用的工具；校验失败直接抛出异常。
+        """
         if not final and not self._llm.supports_native_tools:
             raise LLMError(
                 reason="TOOL_CALLING_UNSUPPORTED", message="当前模型未配置原生工具调用能力"
@@ -173,6 +179,11 @@ class ToolModel:
 
     @staticmethod
     def request_messages(messages: list[dict], session: ToolSession, *, final: bool = False) -> list[dict]:
+        """将内部历史转换为实际发送给模型的消息列表，不发起网络请求。
+
+        探索时加入允许调用的工具规则与网页目录；final=True 时只保留问题、收尾规则、
+        选定原文及答案格式约束。权限始终从 session 读取，不接受模型自行声明。
+        """
         permission = (
             "本次允许联网，可用 web_search、web_read 和 web_find。知识库资料不足时，应使用必要公开关键词调用 web_search 补充依据，再判断资料是否足够；不得把本地检索为空视为网上无资料。"
             if session.scope.allow_web
@@ -208,6 +219,10 @@ class ToolModel:
 
     @staticmethod
     def validate_history(messages: list[dict]) -> None:
+        """检查每个工具结果是否有对应且唯一的调用，且一个动作批次全部接齐才进入下一轮。
+
+        只校验消息结构，不执行工具；发现重复调用编号、缺失结果或非法角色时抛出异常。
+        """
         # 一个 assistant 动作批次的全部 tool 结果必须接齐，才能追加下一轮消息。
         pending: set[str] = set()
         seen: set[str] = set()

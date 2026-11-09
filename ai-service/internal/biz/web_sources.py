@@ -39,6 +39,11 @@ class WebPage:
     code_ranges: list[tuple[int, int]]
 
     def window(self, source_id: str, start: int, size: int) -> WebSource:
+        """从固定网页快照中读取一个正文窗口，返回带来源编号和绝对字符范围的 WebSource。
+
+        start 是网页正文中的起点，size 是最大字符数；边界会避开半段代码。
+        越界、空白窗口或完整代码无法放入窗口时抛出工具错误，不发起新的网页请求。
+        """
         if start >= len(self.content):
             raise ToolError("WEB_RANGE_INVALID", "正文起点超出该页字符范围")
         for left, right in self.code_ranges:
@@ -60,6 +65,7 @@ class WebPage:
 
 
 def unseen_web_ranges(source: WebSource, existing: list) -> list[WebSource]:
+    """去掉相同网页版本中已见且文字一致的范围，返回尚未送模的非空片段副本。"""
     portions = [source]
     for old in existing:
         if not isinstance(old, WebSource) or (old.source_id, old.fetched_at, old.source_type) != (source.source_id, source.fetched_at, source.source_type):
@@ -90,6 +96,7 @@ class WebRegistry:
     _cached_bytes: int = 0
 
     def register(self, url: str, title: str, origin: Literal["user", "search"]) -> WebEntry:
+        """把允许读取的网址登记到本次目录并返回 WebEntry；同一网址复用编号，不抓取正文。"""
         if url in self._url_ids:
             entry = self.get(self._url_ids[url])
             if title and not entry.title:
@@ -103,12 +110,17 @@ class WebRegistry:
         return entry
 
     def get(self, source_id: str) -> WebEntry:
+        """按来源编号读取本次已登记目录项；编号不在目录中时拒绝访问。"""
         for entry in self.entries:
             if entry.source_id == source_id:
                 return entry
         raise ToolError("SOURCE_NOT_APPROVED", "只能选择本次目录中实际登记的来源编号")
 
     def cache(self, source_id: str, page: WebPage) -> None:
+        """为目录来源保存唯一一版正文快照，并将目录项标记已读取。
+
+        校验快照网址和缓存总大小；拒绝覆盖已缓存正文，确保后续位置与引文始终对应同一版内容。
+        """
         entry = self.get(source_id)
         if page.url != entry.url or source_id in self.pages:
             raise ToolError("WEB_SNAPSHOT_INVALID", "正文快照必须对应已登记网址且每次运行只保存一版")
@@ -120,13 +132,17 @@ class WebRegistry:
         entry.title, entry.read = self.pages[source_id].title, True
 
     def page(self, source_id: str) -> WebPage:
+        """返回来源已经缓存的正文快照；尚未读取时抛出错误，不在此处自动抓取。"""
         self.get(source_id)
         if source_id not in self.pages:
             raise ToolError("WEB_PAGE_NOT_READ", "请先用 web_read 取得该来源正文，再进行页内查找")
         return self.pages[source_id]
 
     def find(self, source_id: str, pattern: str) -> list[WebMatch]:
-        """只返回定位导航；预览允许省略代码，不能作为引用正文。"""
+        """在已缓存网页中做区分大小写的字符串查找，返回最多十个命中的位置与短预览。
+
+        不发起网络请求；预览用于选择后续 web_read 窗口，不能直接作为引用正文。
+        """
         page = self.page(source_id)
         matches: list[WebMatch] = []
         start = 0

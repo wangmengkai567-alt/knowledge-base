@@ -43,6 +43,10 @@ class EvidenceUnit:
 
 
 def final_sources(messages: list[dict]) -> tuple[list[dict], list[dict], dict | None]:
+    """从工具历史提取最终资料、错误和取证选择，按选定引用编号过滤后返回三者。
+
+    引用编号重复时抛出 EvidenceBindingError，避免一个编号绑定多份原文。
+    """
     sources, errors, selection = [], [], None
     for message in messages:
         if message["role"] != "tool":
@@ -90,6 +94,7 @@ def catalog_units(sources: list[dict]) -> list[EvidenceUnit]:
 
 
 def catalog_sources(sources: list[dict], units: list[EvidenceUnit]) -> list[dict]:
+    """把来源正文替换为带 evidence_id 的证据单元列表，保留来源身份，供最终模型请求使用。"""
     return [
         {**{key: value for key, value in source.items()
             if key not in {"content", "excerpt_ranges", "excerpt_note", "code_ranges"}},
@@ -101,7 +106,11 @@ def catalog_sources(sources: list[dict], units: list[EvidenceUnit]) -> list[dict
 def bind_catalog(
     messages: list[dict], active_sources: list[AnswerSource | WebSource], scope: ToolScope, run_id: str,
 ) -> list[EvidenceFragment]:
-    """仅绑定本次最终请求实际包含的片段，不接受模型提供坐标或原文。"""
+    """将最终请求里的证据单元绑定到服务器掌握的真实来源，返回 EvidenceFragment 列表。
+
+    messages 决定实际送模的片段，active_sources 用于比对原文与位置，scope 限定访问范围。
+    每个片段记录 run_id、来源版本和原文坐标；内容、权限或位置不一致即抛出异常。
+    """
     sources, _, _ = final_sources(messages)
     active = {source.citation_id: source for source in active_sources}
     payloads = {source["citation_id"]: source for source in sources}

@@ -37,9 +37,15 @@ class EmbeddingBiz:
 
     @property
     def keyword_required(self) -> bool:
+        """当前是否需要关键词索引；入库编排用它决定执行还是跳过 keyword 步骤。"""
         return self._keyword_store is not None
 
     async def _index_inputs(self, document_id: int, chunks: list[Chunk]) -> tuple[list, list, list]:
+        """把已持久化分块转换为索引所需的 ID、文本和元数据三个等长列表。
+
+        索引文本包含文件名与正文；元数据包含文档和知识库 ID，供召回时隔离知识库。
+        文档不存在、分块无 ID 或正文为空时抛出异常，避免写入无法追溯的索引。
+        """
         doc = await self._document_repo.get_by_id(document_id)
         if doc is None:
             raise ValueError("索引所属文档不存在")
@@ -75,6 +81,12 @@ class EmbeddingBiz:
         return len(existing) == len(chunks)
 
     async def embed_document(self, document_id: int, chunks: list[Chunk]) -> int:
+        """批量生成未完成分块的向量并写入索引，返回本次成功处理的分块数。
+
+        chunks 应是核对真实向量后重新读取的分块，已完成分块会被跳过。
+        各批独立记录完成或失败；发生批次错误时仍处理后续批次，最后汇总抛出错误。
+        本函数只维护向量索引，关键词索引由独立步骤建立。
+        """
         # 调用方先核对真实向量并同步状态，这里只计算仍未完成的分块。
         pending = [c for c in chunks if c.embedding_status != EmbeddingStatus.COMPLETED]
         processed = 0
@@ -99,6 +111,10 @@ class EmbeddingBiz:
         return processed
 
     async def index_keywords(self, document_id: int, chunks: list[Chunk]) -> None:
+        """为文档全部当前分块建立关键词索引，并核对实际索引的 ID 与归属。
+
+        不调用嵌入模型；索引未覆盖全部分块时抛出异常，由入库编排记录失败。
+        """
         if self._keyword_store is None:
             raise ValueError("当前检索配置不需要关键词索引")
         ids, texts, metadata = await self._index_inputs(document_id, chunks)
@@ -109,6 +125,10 @@ class EmbeddingBiz:
             raise ValueError("关键词索引未覆盖当前全部分块")
 
     async def delete_embeddings(self, document_id: int, chunks: list[Chunk]) -> int:
+        """删除传入分块对应的向量及已启用的关键词索引，返回这些分块 ID 的数量。
+
+        本函数不删除数据库中的分块正文；由调用方在索引清理成功后继续删除或替换分块。
+        """
         ids = [c.id for c in chunks if c.id is not None]
         await self._vector_store.delete(ids)
         if self._keyword_store is not None:

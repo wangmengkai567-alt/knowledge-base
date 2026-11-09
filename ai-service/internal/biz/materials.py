@@ -125,6 +125,11 @@ class MaterialProcessor:
         history: list[dict] | None = None,
         query: str = "",
     ) -> PreparedMaterials:
+        """把检索命中转换为可送模资料，返回消息、保留来源和输入估算。
+
+        先核对文档与原分块，再扩展相邻块；build_messages 根据资料正文构建实际模型消息，
+        后续裁剪同时计入 tools、history 和 output_tokens 所占预算。
+        """
         return self.prepare_sources(
             await self._merge(hits), build_messages, output_tokens, tools=tools, history=history,
             query=query,
@@ -140,7 +145,11 @@ class MaterialProcessor:
         history: list[dict] | None = None,
         query: str = "",
     ) -> PreparedMaterials:
-        """知识库和网页资料共用预算、实际文字裁剪与引用编号。"""
+        """从候选知识库或网页资料中选择能放入请求的原文，返回 PreparedMaterials。
+
+        build_messages 用于重建完整消息；按 query 选择相关片段并分配引用编号。
+        若基础提示超限或有候选却容不下任何有效片段，抛出预算错误。
+        """
         budget = self._budget
         tools, history = tools or [], history or []
         if not 0 < output_tokens <= budget.output_limit:
@@ -170,6 +179,10 @@ class MaterialProcessor:
         return PreparedMaterials(messages, sources, size, output_tokens, budget.measurement)
 
     async def _read_document(self, doc_id: int):
+        """读取就绪文档并核对当前分块确实对应规范正文，返回文档、分块、位置区间和代码区间。
+
+        分块与正文或当前切分策略不一致时抛出异常，要求重新分块，避免引用错误位置。
+        """
         if self._documents is None or self._chunker is None:
             raise RAGError(reason="SOURCE_CONFIGURATION_INVALID", message="知识库资料处理缺少规范正文与分块策略")
         document = await self._documents.get_by_id(doc_id)
@@ -201,6 +214,10 @@ class MaterialProcessor:
                         raise RAGError(reason="SOURCE_CHANGED", message="证据原分块或字符范围已变化")
 
     async def _merge(self, hits: list[RetrievalResult]) -> list[AnswerSource]:
+        """按文档核对检索命中，扩展相邻块并组成连续来源，按最佳命中的顺序返回。
+
+        只合并位置连续的块，保留每个原分块的 ID 和字符范围；资料变化时抛出异常。
+        """
         by_doc: dict[int, list[RetrievalResult]] = {}
         for hit in hits:
             by_doc.setdefault(hit.document_id, []).append(hit)
@@ -270,6 +287,10 @@ class MaterialProcessor:
 
 
 def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource | WebSource:
+    """返回最多保留 length 个正文字符的来源副本，并同步缩短来源范围及命中信息。
+
+    截取点若落在代码块内部，就退到代码块起点，避免把半段代码作为原文证据。
+    """
     if isinstance(source, WebSource):
         relative_end = min(length, len(source.content))
         end = source.start + relative_end
@@ -310,6 +331,7 @@ def question_parts(query: str) -> list[str]:
 
 
 def question_terms(query: str) -> set[str]:
+    """提取用于片段选择的英文词和中文双字片段，返回去重词集合；网址不参与主题匹配。"""
     # 网址只用于定位来源；域名和路径中的 get/com 等不是问题主题词。
     query = re.sub(r"https?://[^\s<>]+", " ", query)
     lexical = plan_query(query).lexical
@@ -347,6 +369,7 @@ def evidence_coverage(query: str, sources: list[AnswerSource | WebSource]) -> di
 
 
 def source_identity(source: AnswerSource | WebSource) -> tuple:
+    """返回来源及版本的组合标识，用于把同一文档或同一次获取的网页片段归为一组。"""
     if isinstance(source, AnswerSource):
         return (source.knowledge_base_id, source.document_id, source.document_updated_at)
     return (source.url, source.fetched_at, source.source_type)
@@ -393,6 +416,7 @@ class _Excerpt:
 
 
 def _excerpt_focus(content: str, start: int, end: int, codes: list[tuple[int, int]], terms: set[str]) -> tuple[int, int]:
+    """在候选区间内找优先保留的命中位置，返回字符起止偏移；涉及代码时返回完整代码范围。"""
     for left, right in codes:
         if start < right and left < end:
             return left, right  # 匹配或邻接的代码单元只能整体选择。
@@ -405,6 +429,7 @@ def _excerpt_focus(content: str, start: int, end: int, codes: list[tuple[int, in
 
 
 def _excerpt_source(source: AnswerSource | WebSource, excerpts: list[_Excerpt]) -> AnswerSource | WebSource:
+    """按选中的原文区间重建来源副本，同时更新范围、截断标记和仍被保留的检索命中。"""
     if isinstance(source, WebSource):
         left, right = min(item.start for item in excerpts), max(item.end for item in excerpts)
         window = clip_source(replace(source, content=source.content[left:], start=source.start + left), right - left)
@@ -432,7 +457,11 @@ def pack_sources(
     *,
     query: str = "",
 ) -> list[AnswerSource | WebSource]:
-    """按问题相关原文单元分配完整请求空间；先覆盖不同文档，再添加相关上下文。"""
+    """按问题相关性选择原文片段，返回满足 fits 预算检查的来源副本列表。
+
+    candidates 是候选来源，query 用于提取主题词；fits 每次接收一组来源，
+    由调用方判断完整请求是否能放下。先为不同来源争取空间，再补上下文；代码只整块保留。
+    """
     # fits 由调用方核算完整请求；此处只选择连续原文窗口，代码块必须整体保留。
     terms = question_terms(query)
     excerpts = []
@@ -570,6 +599,7 @@ def pack_sources(
 
 
 def render_materials(sources: list[AnswerSource | WebSource]) -> str:
+    """把来源列表渲染为带引用编号和来源身份的正文字符串，供提示模板或预算估算使用。"""
     return "\n\n".join(
         (
             f"[来源 {source.citation_id}: {source.document_filename}]\n{source.content}"

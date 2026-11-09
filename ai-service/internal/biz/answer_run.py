@@ -122,6 +122,11 @@ class AnswerRun:
     on_event: Callable[[AnswerRun, RunEvent], None] | None = field(default=None, repr=False)
 
     def reserve_model(self, estimate: int, output_limit: int, final: bool) -> int:
+        """在模型请求发出前预留本次额度并登记调用，返回从 1 开始的调用编号。
+
+        estimate 是输入估算，output_limit 是最大输出额度；final 标明是否为最终生成。
+        存在未结算调用或加上收尾预留后超过总额度时抛出异常，不允许继续请求。
+        """
         usage = self.usage
         if usage.unreported_model_calls:
             raise ValueError("不能在用量未知或调用未完成时继续执行")
@@ -142,6 +147,11 @@ class AnswerRun:
         return call
 
     def settle_model(self, call: int, prompt: int, completion: int, total: int) -> bool:
+        """用供应商实际输入、输出和总用量结算指定调用，释放预留并更新累计值。
+
+        call 是 reserve_model 返回的编号。首次结算返回 True；相同用量重复结算返回 False。
+        重复结算数据不一致、用量非法或调用已标记未知时抛出异常。
+        """
         usage = self.usage
         entry = usage.calls[call - 1]
         if entry.state == "settled":
@@ -164,6 +174,7 @@ class AnswerRun:
         return True
 
     def unknown_model(self, call: int, reason: str) -> None:
+        """将指定调用标为用量未知，保留未结算计数并发送事件，阻止继续发起模型请求。"""
         entry = self.usage.calls[call - 1]
         if entry.state != "reserved":
             return
@@ -179,6 +190,7 @@ class AnswerRun:
             self.emit("exploration_stopped", reason=reason)
 
     def emit(self, kind: str, **data) -> None:
+        """追加一个带连续序号和运行耗时的过程事件，并立即调用已注册的 on_event 回调。"""
         self.events.append(
             RunEvent(
                 len(self.events) + 1,

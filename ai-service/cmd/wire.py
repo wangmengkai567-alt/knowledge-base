@@ -70,6 +70,7 @@ logger = structlog.get_logger()
 
 def _create_redis_client(redis_url: str) -> aioredis.Redis:
     
+    """创建供会话与限流共用的 Redis 客户端；开发环境安装 fakeredis 时使用内存模拟客户端。"""
     if os.environ.get("AI_ENV") == "dev":
         try:
             import fakeredis.aioredis
@@ -316,12 +317,15 @@ def create_app() -> FastAPI:
         run_store=LocalAnswerRunStore(Path(__file__).resolve().parents[1] / "data" / "answer-runs"),
     )
 
-    # ── Rate Limiter──
+    # ── 请求限流器：限制一个统计窗口内的请求次数 ──
+    # 开发环境使用进程内计数，其他环境使用 Redis；真正的拦截由 HTTP 限流中间件执行。
     use_redis_limiter = os.environ.get("AI_ENV") != "dev"
     rate_limiter = create_rate_limiter(
         use_redis=use_redis_limiter,
         redis_client=redis_client if use_redis_limiter else None,
     )
+    # standard_limit/heavy_limit 分别是普通接口和高开销接口的额度；window_seconds 是窗口秒数。
+    # enabled 控制中间件是否执行限流，初始化限流器本身不会拒绝任何请求。
     rate_limit_settings = RateLimitSettings(
         rate_limiter=rate_limiter,
         enabled=settings.rate_limit.enabled,

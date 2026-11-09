@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
 
 def source_dto(source: AnswerSource | WebSource) -> RAGSourceDTO | RAGWebSourceDTO:
+    """把知识库或网页来源转换为接口响应对象，保留实际送模正文、位置和真实评分信息。"""
     if isinstance(source, WebSource):
         return RAGWebSourceDTO(**asdict(source))
     return RAGSourceDTO(
@@ -61,6 +62,7 @@ def source_dto(source: AnswerSource | WebSource) -> RAGSourceDTO | RAGWebSourceD
 
 
 def response_dto(run: AnswerRun) -> RAGQueryResponse:
+    """从同一个 AnswerRun 构建响应，集中转换答案、终态、用量、来源、证据和事件。"""
     sources = [source_dto(source) for source in run.sources]
     return RAGQueryResponse(
         run_id=run.run_id, status=run.status, stop_reason=run.stop_reason,
@@ -102,6 +104,11 @@ class RAGService:
                 structlog.get_logger().error("answer_run_cleanup_failed", **unexpected_error_details(exc))
 
     async def _execute(self, *, on_event=None, **kwargs) -> AnswerRun:
+        """执行一次问答，并在正常结束、失败或取消时保存该用户的本地运行快照。
+
+        kwargs 传给业务入口 query；on_event 接收同一次执行的进度，供 SSE 推送使用。
+        返回 AnswerRun；快照保存失败仍向上传播，避免对外声称运行记录已保存。
+        """
         observed: AnswerRun | None = None
 
         def observe(run: AnswerRun, event: RunEvent) -> None:
@@ -146,6 +153,7 @@ class RAGService:
                     )
 
     async def query(self, **kwargs) -> RAGQueryResponse:
+        """执行问答并保存快照，返回完整响应；与流式接口共用同一业务执行入口。"""
         return response_dto(await self._execute(**kwargs))
 
     async def query_stream(self, **kwargs) -> AsyncIterator[dict]:
