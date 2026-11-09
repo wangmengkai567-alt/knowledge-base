@@ -55,7 +55,11 @@ _STOP_DETAILS = {
     "evidence_insufficient": "已显式确认所查资料不足以完整回答。",
     "web_read_failed": "某个网页正文读取失败；只能依据已成功取得的资料回答，缺少必要依据时说明无法核实，不得声称读过失败网页或证明其内容不存在。",
 }
-_COVERAGE_PREFIX = "本次问题证据覆盖（词面候选，不是语义验收）："
+# 发给模型的关键词匹配提示的固定开头；资料变化时，也用它定位并更新对应的 system 消息。
+_COVERAGE_PREFIX = (
+    "本次问题与资料的关键词匹配情况"
+    "（匹配到关键词不代表资料足以回答问题）："
+)
 _BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
 _WEB_READ_FAILURES = frozenset({
     "TOOL_INVALID_RESPONSE", "TOOL_DEPENDENCY_FAILED", "WEB_CONTENT_EMPTY",
@@ -164,21 +168,30 @@ class RAGBiz:
         cancelled 用于外部取消，on_event 接收执行进度。已处理的错误记录在返回的终态中，
         任务自身被取消时仍向上传播取消异常，交由应用服务完成清理与快照保存。
         """
+        # 建立本次问答的状态记录：答案、来源、用量和事件都汇总到 run。
+        # 知识库 ID 去重并保留原顺序；ToolScope 固定本次允许访问的用户、知识库和联网范围。
         run = AnswerRun(
             ToolScope(user_id, tuple(dict.fromkeys(knowledge_base_ids)), allow_web),
             self._limits,
             self._budget.measurement,
             on_event=on_event,
         )
+        # emit 会保存事件并调用 on_event，让流式接口可以立即展示“开始运行”。
         run.emit(
             "run_started",
             knowledge_base_ids=list(run.scope.knowledge_base_ids),
             allow_web=allow_web,
         )
+        # 未指定最大输出量时使用配置上限；下方校验请求值不能超过这个上限。
         output_tokens = max_tokens if max_tokens is not None else self._budget.output_limit
+        # 主流程负责准备会话与提示消息，具体的取证、生成和发布交给 _loop。
+        # 下方 except 把流程抛出的错误转换为问答终态；finish 的三个参数依次为
+        # 状态类别、具体停止原因、错误码。已经结束的 run 不会被重复 finish 覆盖。
         try:
             if not 1 <= output_tokens <= self._budget.output_limit or not 1 <= top_k <= 10:
                 raise ToolError("INVALID_RUN_ARGUMENTS", "回答或检索数量预算无效")
+            # 校验知识库所有权和用户网址，建立本次工具会话。
+            # 模型与工具共享取消信号和整次问答的截止时间，后续调用不会重新获得完整时限。
             session = await self._model.executor.create_session(
                 user_id,
                 knowledge_base_ids,
@@ -187,52 +200,78 @@ class RAGBiz:
                 cancelled=cancelled,
                 deadline=run.started + run.limits.timeout,
             )
+            # 保存检索数量上限和原问题，供工具执行、相关片段选择及覆盖情况提示使用。
             session.search_top_k = top_k
             session.question = query
+            # 这里只按问题里的分句列出待查主题，没有调用模型来判断资料是否足够。
             run.emit("evidence_needs_planned", questions=question_parts(query),
                      knowledge_base_ids=list(run.scope.knowledge_base_ids),
                      method="explicit_question_clauses")
+            # 共享会话的目录与快照容器，后续工具新增网页或缓存正文时，run 也能记录到。
             run.web_directory, run.web_pages = session.web.entries, session.web.pages
             if run.web_directory:
                 run.emit("web_directory_updated", directory=[asdict(entry) for entry in run.web_directory])
+            # 构建初始提示：此时尚无检索资料，正文只能由随后执行的工具提供。
             messages = self._prompts.get_template(self._template).build_messages(
                 {
                     "query": query,
                     "context": "资料仅来自后续工具结果。",
                 }
             )
+            # 先登记“尚无资料”的关键词匹配情况，循环取得资料后会更新这条 system 消息。
             messages.append(_coverage_control(query, []))
+            # 循环会直接更新 run：成功时写入答案，遇到限制或失败时记录相应终态。
             await self._loop(run, session, messages, output_tokens, temperature)
         except asyncio.CancelledError:
+            # 用户取消或外层任务取消都先记为 cancelled，保留已经发生的用量和事件。
             run.finish("cancelled", "user_cancelled")
+            # task.cancel() 会使 cancelling() 大于 0：继续抛出，让上层感知任务取消并清理。
+            # 若只是检测到 cancelled 事件后主动抛出此异常，则返回带取消状态的 run。
             if asyncio.current_task().cancelling():
                 raise
         except EvidenceBindingError as exc:
+            # 最终证据目录与登记原文、来源范围或位置不一致，不能安全地绑定引用。
+            # 将其归为资料处理失败并停止，不继续生成或发布基于这些证据的答案。
             run.finish("tool_failed", str(exc), "EVIDENCE_BINDING_INVALID")
         except ToolError as exc:
+            # 工具会话校验或执行抛出的受控错误：超时单独标记 timeout，
+            # 参数无效、越权等其他错误标记 tool_failed，并保留原始错误码供定位。
             run.finish(
                 "timeout" if exc.code == "TOOL_TIMEOUT" else "tool_failed",
                 "execution_timeout" if exc.code == "TOOL_TIMEOUT" else "tool_error",
                 exc.code,
             )
         except APIError as exc:
+            # APIError 是内部统一业务异常，也用于模型和资料处理；这里按 reason 分类，
+            # 转换为问答结果中的状态，而不是在此直接构造 HTTP 错误响应。
             if exc.reason.startswith("SOURCE_"):
+                # 文档版本、分块、原文范围等来源校验失败，属于资料处理问题。
                 run.finish("tool_failed", exc.reason.lower(), exc.reason)
             elif exc.reason == "LLM_USAGE_UNKNOWN":
+                # 模型没有返回完整实际用量，无法继续可靠扣减预算；标记未知并停止，
+                # 不把未知消耗当成零，也不用本地估算冒充供应商实际用量。
                 run.finish("usage_unknown", "usage_unknown", exc.reason)
             elif exc.reason in ("INPUT_BUDGET_EXCEEDED", "MATERIAL_BUDGET_EXCEEDED", "OUTPUT_BUDGET_EXCEEDED"):
+                # 请求或资料无法放入输入预算，或要求的输出量超限，统一标记 budget_exhausted。
+                # 用停止原因进一步区分输出超限与输入空间不足，避免混成模型故障。
                 reason = "output_limit" if exc.reason == "OUTPUT_BUDGET_EXCEEDED" else "input_budget"
                 run.finish("budget_exhausted", reason, exc.reason)
             else:
+                # 其余统一业务异常在这里按模型调用失败处理；reason 以 TIMEOUT 结尾时，
+                # 单独记录模型超时，其他情况记录 model_failed，并保留原始业务错误码。
                 run.finish(
                     "timeout" if exc.reason.endswith("TIMEOUT") else "model_failed",
                     "model_timeout" if exc.reason.endswith("TIMEOUT") else "model_error",
                     exc.reason,
                 )
         except Exception as exc:
+            # 未被上面识别的异常视为内部错误，不能当作“资料不足”正常返回。
+            # 日志只记录异常类型与代码位置；对外使用统一错误码，避免泄露内部异常内容。
             logger.error("answer_run_unexpected_error", run_id=run.run_id, **unexpected_error_details(exc))
             run.finish("internal_error", "internal_error", "RUN_INTERNAL_ERROR")
         finally:
+            # 正常结束、失败和取消都会执行这里，统一记录最终状态及已发生用量。
+            # finally 只负责日志；取消后的清理和运行快照保存由上层 RAGService 负责。
             logger.info(
                 "answer_run_finished",
                 run_id=run.run_id,
@@ -245,6 +284,7 @@ class RAGBiz:
                 settled_tokens=run.usage.settled_tokens,
                 actual_total_tokens=run.usage.actual_total_tokens,
             )
+        # 返回统一结果，由调用方读取 status 区分成功、失败或取消；返回本身不表示问答成功。
         return run
 
     @staticmethod
@@ -258,14 +298,24 @@ class RAGBiz:
     def _budget_plan(
         self, messages: list[dict], session: ToolSession, run: AnswerRun, output_tokens: int,
     ) -> RequestBudgetPlan:
-        """按当前完整历史和资料分别估算下一轮取证、最终回答，返回预算计划，不扣费。"""
+        """根据当前请求上下文，构建下一轮取证和最终回答的预算计划。
+
+        分别估算两种请求的完整输入规模，并计算单次输入上限及剩余总额度。
+        输入规模采用 UTF-8 字节数的保守估算，不代表供应商返回的实际 token 用量。
+        本方法只返回计算结果，不发起模型请求，也不修改 run 中的用量或预留记录。
+        """
         return RequestBudgetPlan(
+            # 取证请求的输入估算，包含提示消息、历史资料和可用工具定义。
             self._model.estimate(messages, session),
+            # 按最长收尾提示估算最终请求；最终请求不携带工具定义，但包含答案 Schema。
+            # finished=True 只设置在会话副本上，不改变原会话的取证状态。
             self._model.estimate(
                 [*messages, _FINAL_RESERVE_CONTROL], replace(session, finished=True), final=True,
             ),
             output_tokens,
+            # 结合配置输入限额和模型总上下文容量，计算本次允许的输入上限。
             self._budget.input_ceiling(output_tokens),
+            # 总额度减去已结算的实际用量，作为后续预算判断的剩余额度。
             run.limits.total_tokens - run.usage.settled_tokens,
         )
 
