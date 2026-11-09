@@ -106,6 +106,7 @@ def bind_catalog(
     active = {source.citation_id: source for source in active_sources}
     payloads = {source["citation_id"]: source for source in sources}
     bound = []
+    # 先比对送模资料与服务器登记值，再将最终请求中的偏移还原到原分块或网页。
     for unit in catalog_units(sources):
         source = active.get(unit.citation_id)
         if source is None or ToolResult("", "", "success", sources=[source]).source_values()[0] != payloads[unit.citation_id]:

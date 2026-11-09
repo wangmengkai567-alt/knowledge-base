@@ -2,8 +2,8 @@
 internal/data/retriever/factory.py — Retriever 工厂
 
 根据配置创建对应的 Retriever 实例：
-- vector：纯向量检索（Sprint 8 默认）
-- hybrid：向量 + 关键词 RRF 融合（Sprint 18）
+- vector：纯向量检索
+- hybrid：向量 + 关键词 RRF 融合
 """
 
 from __future__ import annotations

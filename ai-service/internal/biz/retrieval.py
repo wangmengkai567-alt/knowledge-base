@@ -32,12 +32,9 @@ if TYPE_CHECKING:
 
 
 class RetrievalBiz:
-    """向量检索业务逻辑 — 不感知协议、不感知存储。
+    """统一检索业务：规划查询、召回候选、补全来源，再按配置重排与筛选。
 
-    注意：检索结果在返回前会经过可选的 Reranker 重排序。
-    此前 Reranker 只接在 RAG 对话链路，搜索（retrieve）接口完全没用上，
-    导致纯向量语义检索对短关键词（如 "docker"）召回不相关文档排在前。
-    把 Reranker 接入检索链路后，关键词精确命中会被重排序提到最前。
+    搜索列表可按文档去重，问答保留多个相关分块；底层检索策略由注入的 Retriever 决定。
     """
 
     def __init__(
@@ -85,6 +82,7 @@ class RetrievalBiz:
                     task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
         hits = [hit for batch in batches for hit in batch]
+        # 只有同类型、同计算方式的分数可跨库比较，不能直接混排余弦分与 RRF 分。
         if len({(hit.score_type, hit.score_method) for hit in hits}) > 1:
             raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
         hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
@@ -280,6 +278,7 @@ class RetrievalBiz:
         if len(ranked_lists) == 1:
             return ranked_lists[0]
 
+        # 多个查询变体按名次融合；原始各路分数保留在 scores 中供追溯。
         fused = reciprocal_rank_fusion(
             [[(item.chunk_id, item.score) for item in ranked] for ranked in ranked_lists],
             k=self._rrf_k,

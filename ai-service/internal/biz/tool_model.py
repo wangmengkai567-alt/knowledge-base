@@ -199,6 +199,7 @@ class ToolModel:
         ]
 
     def estimate(self, messages: list[dict], session: ToolSession, *, final: bool = False) -> int:
+        """按实际请求投影估算；探索计入工具定义，最终生成计入答案 JSON 约束。"""
         definitions = [] if final else self.executor.definitions(session.scope)
         estimate = self._budget.estimate(self.request_messages(messages, session, final=final), definitions, [])
         if final:
@@ -207,6 +208,7 @@ class ToolModel:
 
     @staticmethod
     def validate_history(messages: list[dict]) -> None:
+        # 一个 assistant 动作批次的全部 tool 结果必须接齐，才能追加下一轮消息。
         pending: set[str] = set()
         seen: set[str] = set()
         for message in messages:

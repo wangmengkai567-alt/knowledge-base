@@ -183,18 +183,15 @@ class DocumentBiz:
     async def list_documents(self, knowledge_base_id: int, user_id: int) -> list[Document]:
         """列出知识库下所有文档。
 
-        注意：当前不校验知识库所有权（Sprint 3 知识库 CRUD 已完成，
-        所有权校验在 Service 层完成）。
+        调用前由 HTTP 路由校验知识库所有权；此处仅按知识库 ID 查询。
         """
         return await self._document_repo.list_by_kb(knowledge_base_id)
 
     async def get_document(self, document_id: int, user_id: int | None = None) -> Document:
         """查单个文档详情。
 
-        归属模型说明（与 list_documents 保持一致）：
-        系统当前没有"知识库所有者"概念，文档列表按 knowledge_base_id 返回，
-        不校验上传者。为避免"列表能看到却打不开/删不掉"的不一致，这里也只做
-        "文档是否存在"的校验，不再按文档 user_id 拦截。user_id 仅保留入参兼容性。
+        这里只校验文档存在；HTTP 路由负责校验知识库所有权和文档归属。
+        本方法不使用 user_id，直接调用时不能据此推断用户已有访问权限。
         """
         document = await self._document_repo.get_by_id(document_id)
         if document is None:

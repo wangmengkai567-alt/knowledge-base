@@ -14,7 +14,7 @@ Session 数据结构（Redis 中）：
 为什么不用 JWT？
 - 本项目是单体应用，不需要 JWT 的跨服务无状态特性。
 - Session + Redis 安全性更高：token 不可逆向，服务端可即时吊销。
-- 后续 Sprint 必然引入 Redis（限流、缓存），不如现在统一引入。
+- Session 与限流共用 Redis，统一连接配置和服务端状态管理。
 
 安全设计：
 - access/refresh token 均存储 fingerprint（user_agent 摘要），验证时校验一致性。

@@ -25,6 +25,8 @@ logger = structlog.get_logger()
 
 
 class IngestionBiz:
+    """解析 → 分块后分别建立向量与关键词索引，各步骤独立持久化成功或失败。"""
+
     def __init__(
         self,
         documents: DocumentRepo,
@@ -38,6 +40,7 @@ class IngestionBiz:
         self._chunk_biz = chunk_biz
         self._embeddings = embeddings
         self._parser_factory = parser_factory
+        # 同文档的解析、重试与删除共用锁；无等待者和持有者后可自动回收。
         self._locks: WeakValueDictionary[int, asyncio.Lock] = WeakValueDictionary()
 
     def lock(self, document_id: int) -> asyncio.Lock:
@@ -76,6 +79,7 @@ class IngestionBiz:
         name: str,
         action: Callable[[], Awaitable[object]],
     ) -> bool:
+        # 分块一旦变化，两个下游索引都需重新核实，不能继承旧的完成状态。
         if name == "chunk":
             defaults = self.new_stages()
             doc.stages["vector"] = defaults["vector"]
@@ -115,6 +119,7 @@ class IngestionBiz:
                 )
             if stage is not None:
                 index = STAGES.index(stage)
+                # 向量与关键词都依赖解析和分块，彼此独立，允许只重试其中一个索引。
                 prerequisites = STAGES[: min(index, 2)]
                 if any(doc.stages[name]["status"] != "completed" for name in prerequisites):
                     raise APIError(
@@ -159,6 +164,7 @@ class IngestionBiz:
                 )
             ):
                 return await self._documents.get_by_id(doc.id)
+            # 后续仅执行请求范围内且未完成的步骤；关键词重试不会重新调用嵌入模型。
             chunks = await self._chunks.list_by_document(doc.id)
             if (
                 stage in (None, "parse", "chunk", "vector")
@@ -184,6 +190,7 @@ class IngestionBiz:
             return await self._documents.get_by_id(doc.id)
 
     async def rebuild_indices(self, include_vectors: bool = False) -> int:
+        """启动时核实真实索引；内存向量需重建，持久化向量只核对，关键词按配置重建。"""
         # 无法列出文档时让启动失败，避免带着上次进程的 ready 状态开始服务。
         documents = await self._documents.list_all()
         processed = 0

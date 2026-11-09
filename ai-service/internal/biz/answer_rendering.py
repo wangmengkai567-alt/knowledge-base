@@ -51,6 +51,7 @@ def _source_identity(origin: dict) -> tuple:
 
 
 def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) -> RenderedAnswer:
+    """只使用已登记证据生成引文与代码，同时检查来源范围、数值单位及展示格式。"""
     paragraphs, records, used = [], [], set()
     labels = {"knowledge_base": "知识库", "web_page": "网页正文", "web_search_summary": "搜索摘要"}
     for claim in payload.claims:

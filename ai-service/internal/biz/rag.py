@@ -87,6 +87,8 @@ _FINAL_RESERVE_CONTROL = max(
 
 @dataclass(frozen=True)
 class RequestBudgetPlan:
+    """同时核算下一轮取证与最终回答，确保继续搜索后仍有额度生成答案。"""
+
     exploration_input: int
     final_input: int
     output_tokens: int
@@ -117,6 +119,8 @@ def retrieval_results(run: AnswerRun) -> list[RetrievalResult]:
 
 
 class RAGBiz:
+    """问答编排入口：固定权限、循环取证、预留收尾预算，最后校验并发布答案。"""
+
     def __init__(
         self,
         model: ToolModel,
@@ -259,6 +263,7 @@ class RAGBiz:
         seen_calls: set[str] = set()
         seen_ids: set[str] = set()
         seen_matches: set[tuple[str, int, int]] = set()
+        # 工具取得的资料先暂存；只有随下一次模型请求发出时才加入 run.sources。
         pending_sources: list[AnswerSource | WebSource] = []
         no_progress = 0
         web_attempted = False
@@ -266,6 +271,7 @@ class RAGBiz:
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
             plan = self._budget_plan(messages, session, run, output_tokens)
+            # 停止取证后仍需执行最终生成；只有 run.finish() 才结束整次问答。
             if not run.exploration_stop_reason:
                 if usage.model_calls >= limits.model_calls - 1:
                     run.stop_exploration("model_call_limit")
@@ -312,6 +318,7 @@ class RAGBiz:
                 run.finish("budget_exhausted", reason)
                 return
             self._model.validate_request(request, session, output_tokens, final=final)
+            # 最终请求只使用当前有效原文，并由程序建立证据编号到来源位置的映射。
             catalog = []
             if final:
                 await self._model.executor.validate_sources(session, session.active_sources)
@@ -350,6 +357,7 @@ class RAGBiz:
                     temperature=temperature,
                 )
             except BaseException as exc:
+                # 请求失败也可能已经计费；未返回实际用量时标记未知，不能当作零消耗。
                 reported = exc.metadata.get("reported_usage") if isinstance(exc, APIError) else None
                 if reported is not None:
                     self._account(run, ChatResult("", self._budget.model, **reported), call_number, check_response=False)
@@ -586,6 +594,7 @@ class RAGBiz:
                       or run.usage.model_calls >= run.limits.model_calls - 1
                       or run.usage.tool_calls >= run.limits.tool_calls)
 
+        # 每次试装都重建完整消息，再核算历史、工具定义和收尾额度，不能只算正文。
         def project(values):
             grouped: dict[tuple[str, int], list] = {}
             for source in values:
@@ -707,6 +716,8 @@ class RAGBiz:
 
     @staticmethod
     def _publish(run: AnswerRun, result: ChatResult) -> None:
+        # 模型返回结构化断言和证据编号；引用及代码由程序从原文目录中提取。
+        # 校验全部通过后才写入对外可见的 run.answer。
         run.final_response = result.content
         run.emit("answer_check_started")
         try:
@@ -717,6 +728,7 @@ class RAGBiz:
                     run.finish("invalid_answer", "evidence_selection_mismatch", "EVIDENCE_SELECTION_MISMATCH")
                     return
                 allowed &= set(run.evidence_selection["citation_ids"])
+            # 此处校验编号、来源、数值和格式；不等同于判断原文在语义上支持结论。
             rendered = render_answer(value, {item.evidence_id: item for item in run.evidence_catalog
                                              if item.citation_id in allowed and item.run_id == run.run_id})
         except AnswerEvidenceError as exc:

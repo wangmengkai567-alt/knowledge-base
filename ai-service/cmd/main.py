@@ -4,13 +4,8 @@ cmd/main.py — 应用启动入口
 只负责拿到组装好的 Server 并启动。
 所有依赖组装逻辑在 wire.py 中完成。
 
-为什么 uvicorn.run 传字符串 "cmd.wire:app" 而非 app 对象？
-- 多进程模式（workers>1）下，uvicorn 需要 fork 子进程，
-  每个子进程独立 import 模块并创建 app 实例。
-- 传 app 对象时 workers 参数不生效（只能单进程）。
-- 传字符串引用时，每个 worker 独立 import cmd.wire 并获取 app，
-  实现真正的多进程。
-- 单进程模式（workers=1）下两者行为一致。
+uvicorn 通过 "cmd.wire:app" 导入统一组装的应用。
+当前配置要求 workers=1，因为关键词索引和文档互斥锁均保存在进程内。
 """
 
 from __future__ import annotations

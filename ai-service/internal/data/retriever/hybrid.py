@@ -1,5 +1,5 @@
 """
-internal/data/retriever/hybrid.py — 混合检索器（Sprint 18）
+internal/data/retriever/hybrid.py — 混合检索器
 
 组合向量检索（语义）+ 关键词检索（BM25 精确匹配），
 用 RRF（Reciprocal Rank Fusion）融合两路结果，提升召回率与准确率。
@@ -58,7 +58,7 @@ class HybridRetriever(Retriever):
 
         两路各取 ``top_k * candidate_multiplier`` 个候选，融合后截断到
         ``top_k``，避免融合后可用候选不足。候选倍率可通过构造参数调节，
-        默认 2 与历史行为保持一致。
+        默认候选倍率为 2。
 
         ``keyword_query`` 供自然语言提问：向量用完整问句，BM25 用抽词后的
         主题词；未传时回退 ``query_text``。

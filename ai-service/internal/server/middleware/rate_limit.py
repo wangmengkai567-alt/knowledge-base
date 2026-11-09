@@ -16,7 +16,7 @@ internal/server/middleware/rate_limit.py — 限流中间件
 - 自研滑动窗口更灵活，可直接用 Redis sorted set 实现
 - 避免额外依赖，Redis 已在项目中使用
 
-P0 修复（Sprint 15 Review）：
+执行顺序与原子性约束：
 - 中间件注册顺序：RateLimit 必须在 Auth 之后注册（更内层），
   这样 Auth 先执行设置 user_id，RateLimit 后执行读取 user_id。
 - Redis 限流器使用 Lua 脚本保证 check+add 原子性，消除 TOCTOU 竞态。
@@ -42,7 +42,7 @@ logger = structlog.get_logger()
 
 # ──────────────────────────────────────────────
 # 共享运维路径常量 — rate_limit + metrics 共用
-# 抽取原因：避免两个中间件各自维护相同列表（P2 修复）
+# 抽取原因：避免两个中间件各自维护相同列表
 
 OPERATIONS_PATHS: frozenset[str] = frozenset({
     "/health/live",
@@ -172,7 +172,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 class RateLimiter(ABC):
-    """限流器接口 — ABC 模式，与 Reranker/LLMProvider 保持一致（P2 修复）。"""
+    """限流器接口 — ABC 模式，与 Reranker/LLMProvider 保持一致。"""
 
     @abstractmethod
     async def check(
@@ -186,7 +186,7 @@ class RateLimiter(ABC):
         ...
 
 
-# Lua 脚本：原子化 check + add，消除 TOCTOU 竞态（P1 修复）
+# Lua 脚本：原子化 check + add，消除 TOCTOU 竞态
 # 在单个 Redis EVAL 中完成：清除过期 → 计数 → 判断 → 写入，全程原子
 _SLIDING_WINDOW_LUA = """
 local key = KEYS[1]
@@ -303,7 +303,7 @@ def create_rate_limiter(use_redis: bool = False, redis_client: Any = None) -> Ra
 
 @dataclass
 class RateLimitSettings:
-    """限流配置聚合 — 封装限流器实例 + 参数，避免 HTTPServer 参数膨胀（P2 修复）。"""
+    """限流配置聚合 — 封装限流器实例 + 参数，避免 HTTPServer 参数膨胀。"""
 
     rate_limiter: RateLimiter
     enabled: bool = True

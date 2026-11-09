@@ -275,7 +275,7 @@ class Retriever(ABC):
     接收已嵌入的查询向量，返回相似度排序的分块 ID + 分数。
     不负责嵌入文本（那是 EmbeddingProvider 的职责）。
 
-    Sprint 18：`query_text` 是可选参数，纯向量检索器忽略；
+    `query_text` 是可选参数，纯向量检索器忽略；
     混合检索器（HybridRetriever）用它执行关键词分支（BM25）。
     这样保留单一接口，避免调用方针对不同实现分支判断。
     """
@@ -310,7 +310,7 @@ class Retriever(ABC):
 
 
 class KeywordStore(ABC):
-    """关键词索引存储接口 — biz 层定义，data 层实现（Sprint 18）。
+    """关键词索引存储接口 — biz 层定义，data 层实现。
 
     与 VectorStore 对称设计：负责关键词全文检索（BM25 等）的存储与查询。
     由入库编排独立触发关键词建立与删除。

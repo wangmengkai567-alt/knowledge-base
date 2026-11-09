@@ -65,14 +65,14 @@ class BM25KeywordStore(KeywordStore):
         self._doc_len: dict[int, int] = {}
         # chunk_id → metadata（与 _doc_len 同步：仅非空文档）
         self._metadata: dict[int, dict] = {}
-        # Sprint 18-fix (P1)：增量维护总长度，避免 search 时 O(N) 求和
+        # 增量维护总长度，避免 search 时 O(N) 求和
         self._total_doc_len: int = 0
         # 用于写操作互斥
         self._lock = asyncio.Lock()
 
     @property
     def _avg_doc_len(self) -> float:
-        # Sprint 18-fix (P1)：O(1) 计算，依赖 _total_doc_len 与 _doc_len 在 index/remove 同步维护。
+        # O(1) 计算，依赖 _total_doc_len 与 _doc_len 在 index/remove 同步维护。
         n = len(self._doc_len)
         return self._total_doc_len / n if n else 0.0
 
@@ -103,7 +103,7 @@ class BM25KeywordStore(KeywordStore):
             for i, chunk_id in enumerate(chunk_ids):
                 tokens = _tokenize(texts[i])
                 if not tokens:
-                    # Sprint 18-fix (P1)：空文档不入索引也不占位。
+                    # 空文档不入索引也不占位。
                     # 旧实现将 doc_len[cid]=0 写入，会拉低 avg_dl，
                     # 导致非空文档的 BM25 长度惩罚项被放大、得分偏低。
                     # delete 已是 pop(cid, None) 幂等，无需占位保证。
@@ -120,7 +120,7 @@ class BM25KeywordStore(KeywordStore):
 
                 dl = len(tokens)
                 self._doc_len[chunk_id] = dl
-                self._total_doc_len += dl  # Sprint 18-fix (P1)：增量维护
+                self._total_doc_len += dl  # 增量维护
                 if metadatas is not None:
                     self._metadata[chunk_id] = metadatas[i]
 

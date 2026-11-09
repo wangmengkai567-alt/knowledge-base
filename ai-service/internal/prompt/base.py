@@ -9,8 +9,8 @@ internal/prompt/base.py — PromptTemplate 数据类 + build_messages()
 变量语法：{{ variable_name }}
 内置变量：
 - {{ query }}：用户查询
-- {{ context }}：RAG 检索到的上下文（Sprint 12 注入）
-- {{ history }}：对话历史（Sprint 10 注入）
+- {{ context }}：调用方提供的资料上下文
+- {{ history }}：调用方提供的对话历史
 """
 
 from __future__ import annotations
@@ -102,7 +102,7 @@ class PromptTemplate:
         """执行变量替换。
 
         - 已知变量：替换为值
-        - 未知变量：保留原样（如 {{ context }} 在 Sprint 12 才注入）
+        - 未知变量：保留原样（如未提供值的 {{ context }}）
         - 空字符串变量：替换为空（不报错）
         """
 

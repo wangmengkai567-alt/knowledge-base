@@ -149,6 +149,7 @@ class RAGService:
         return response_dto(await self._execute(**kwargs))
 
     async def query_stream(self, **kwargs) -> AsyncIterator[dict]:
+        """同一次执行经队列推送过程事件，保存快照后再发送最终结果；答案一次发布。"""
         queue: asyncio.Queue[dict | None] = asyncio.Queue()
 
         def emit(run: AnswerRun, event: RunEvent) -> None:
@@ -162,6 +163,7 @@ class RAGService:
             queue.put_nowait(payload)
 
         task = asyncio.create_task(self._execute(**kwargs, on_event=emit))
+        # 任务成功或异常都会唤醒消费者；队列结束后 await task 才取得结果或抛出错误。
         task.add_done_callback(lambda _: queue.put_nowait(None))
         try:
             while (event := await queue.get()) is not None:

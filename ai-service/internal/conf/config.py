@@ -305,7 +305,7 @@ class RAGConfig(BaseSettings):
 
     rerank_enabled: bool = Field(
         default=False,
-        description="是否启用 Reranker 重排序（Sprint 14）",
+        description="是否启用 Reranker 重排序",
     )
     min_relevance: float = Field(
         default=0.0,

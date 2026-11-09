@@ -38,6 +38,7 @@ export type RagStreamHandler = (event:
   | { type: 'result'; result: RunResult }
 ) => void
 
+/** 网络数据块不等于 SSE 事件：先增量解码 UTF-8，再按空行拼出完整帧。 */
 async function readSseStream(res: Response, onEvent: (data: any) => void): Promise<void> {
   if (!res.body) throw new Error('问答连接没有响应正文')
   const reader = res.body.getReader()
@@ -57,6 +58,7 @@ async function readSseStream(res: Response, onEvent: (data: any) => void): Promi
         if (data === '[DONE]') { finished = true; break }
         if (data) onEvent(JSON.parse(data))
       }
+      // 读到连接结束仍不等于协议完成，必须收到服务端的 [DONE] 标记。
       if (done && !finished) throw new Error('问答连接中断，请重新提问')
     }
   } finally {
@@ -65,7 +67,7 @@ async function readSseStream(res: Response, onEvent: (data: any) => void): Promi
   }
 }
 
-/** 单知识库向量检索：POST /api/v1/knowledge/bases/{kbId}/retrieve */
+/** 单知识库检索（策略由后端配置）：POST /api/v1/knowledge/bases/{kbId}/retrieve */
 export const searchApi = {
   retrieve: (
     kbId: number,
@@ -126,6 +128,7 @@ export const searchApi = {
       }
       throw new Error(msg)
     }
+    // 独立校验协议版本、运行编号和事件顺序，避免将不同运行或缺失事件的结果拼接。
     let runId = ''
     let sequence = 0
     let terminal = false

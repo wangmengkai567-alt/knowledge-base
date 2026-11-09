@@ -105,7 +105,7 @@ services:
     networks:
       - ai-network
 
-  # ── Ollama（Sprint 20，可选）──
+  # ── Ollama（可选）──
   ollama:
     image: ollama/ollama:latest
     container_name: ollama

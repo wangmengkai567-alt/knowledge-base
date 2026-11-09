@@ -68,6 +68,8 @@ class ModelCallUsage:
 
 @dataclass
 class RunUsage:
+    """分开记录请求估算、在途预留和已结算用量；实际用量未知时不以估算代替。"""
+
     model_calls: int = 0
     tool_calls: int = 0
     estimated_input_tokens: int = 0
@@ -91,6 +93,8 @@ class RunEvent:
 
 @dataclass
 class AnswerRun:
+    """一次请求的共享状态；同步响应、过程事件和本地运行快照均从这里取值。"""
+
     scope: ToolScope
     limits: RunLimits
     input_measurement: str
@@ -122,6 +126,7 @@ class AnswerRun:
         if usage.unreported_model_calls:
             raise ValueError("不能在用量未知或调用未完成时继续执行")
         call = usage.model_calls + 1
+        # 发请求前预留输入估算与最大输出，同时保留独立的最终回答额度。
         reservation = estimate + output_limit
         if final:
             usage.final_reserved_tokens = 0
@@ -149,6 +154,7 @@ class AnswerRun:
             raise ValueError("用量必须是非负整数")
         entry.state = "settled"
         entry.prompt_tokens, entry.completion_tokens, entry.provider_total_tokens = prompt, completion, total
+        # 返回真实用量后释放本次预留，再按输入与输出的实际消耗累计。
         usage.reserved_tokens -= entry.reservation
         usage.unreported_model_calls -= 1
         usage.prompt_tokens += prompt
@@ -167,6 +173,7 @@ class AnswerRun:
         self.emit("model_usage_unknown", call=call, reason=reason)
 
     def stop_exploration(self, reason: str) -> None:
+        """仅锁定首次取证停止原因，运行仍可进入最终回答阶段。"""
         if not self.exploration_stop_reason:
             self.exploration_stop_reason = reason
             self.emit("exploration_stopped", reason=reason)
@@ -185,6 +192,7 @@ class AnswerRun:
             self.on_event(self, self.events[-1])
 
     def finish(self, status: RunStatus, reason: str, error_code: str | None = None) -> None:
+        """终态只设置一次，防止清理或取消逻辑覆盖已经确定的结果。"""
         if self.status != "running":
             return
         self.usage.final_reserved_tokens = 0

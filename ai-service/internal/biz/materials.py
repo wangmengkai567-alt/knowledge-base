@@ -31,6 +31,8 @@ def select_materials(
 
 @dataclass(frozen=True)
 class MaterialSegment:
+    """原分块中的连续切片；start/end 是分块内字符偏移，范围为左闭右开。"""
+
     chunk_id: int
     position: int
     start: int
@@ -77,7 +79,7 @@ class InputBudget:
     model: str
     input_limit: int = 16000
     output_limit: int = 2048
-    # 该模型的规格来自准备阶段；更换模型必须显式确认容量。
+    # 容量针对当前配置模型确认；更换模型时需同步核对输入、输出和总上下文限制。
     context_capacity: int = 1000000
     measurement: str = "utf8_bytes_estimate"
 
@@ -216,6 +218,7 @@ class MaterialProcessor:
                 chunk = by_position[hit.chunk_position]
                 if chunk.id != hit.chunk_id or chunk.content != hit.chunk_content:
                     raise RAGError(reason="SOURCE_CHANGED", message="检索资料已变化，请重新提问")
+            # 扩展命中块的相邻位置，再按连续区间分组；不连续片段分别保留来源。
             selected = sorted(
                 {
                     pos
@@ -430,6 +433,7 @@ def pack_sources(
     query: str = "",
 ) -> list[AnswerSource | WebSource]:
     """按问题相关原文单元分配完整请求空间；先覆盖不同文档，再添加相关上下文。"""
+    # fits 由调用方核算完整请求；此处只选择连续原文窗口，代码块必须整体保留。
     terms = question_terms(query)
     excerpts = []
     contexts = {}

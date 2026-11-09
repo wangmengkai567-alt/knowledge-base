@@ -1,7 +1,7 @@
 """
 internal/data/retriever/vector.py — 纯向量检索器实现
 
-基于 VectorStore 的相似度搜索，是 Sprint 8 的默认检索器。
+基于 VectorStore 的相似度搜索，供纯向量检索配置使用。
 后续可扩展为混合检索（向量 + BM25）。
 """
 

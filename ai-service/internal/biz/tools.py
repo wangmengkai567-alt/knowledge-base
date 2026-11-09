@@ -118,6 +118,8 @@ def _parse_arguments(call: ToolCall) -> ToolArguments:
 
 @dataclass(frozen=True)
 class ToolScope:
+    """服务器确定的用户、知识库和联网权限；模型参数不能扩大此范围。"""
+
     user_id: int
     knowledge_base_ids: tuple[int, ...]
     allow_web: bool
@@ -130,6 +132,7 @@ class ToolSession:
     cancelled: asyncio.Event = field(default_factory=asyncio.Event)
     # 由服务器根据本次搜索结果或用户明确提供的网址登记，不接受模型设置。
     web: WebRegistry = field(default_factory=WebRegistry)
+    # 已送模编号用于校验 finish_research 的选择；active_sources 是当前上下文保留的原文。
     delivered_citations: dict = field(default_factory=dict)
     evidence_actions: int = 0
     finished: bool = False
@@ -166,6 +169,8 @@ async def run_scoped(
 
 
 class ReadOnlyToolExecutor:
+    """只读工具的统一入口：校验参数与权限，限制执行时限并约束返回资料大小。"""
+
     def __init__(
         self,
         retrieval: RetrievalBiz,
@@ -345,6 +350,7 @@ class ReadOnlyToolExecutor:
         if call.name.startswith("web_") and not session.scope.allow_web:
             raise ToolError("WEB_DISABLED", "本次提问未开启联网")
         arguments = _parse_arguments(call)
+        # 每次调用重新核验所有权，避免长问答沿用已经失效的访问权限。
         await self._authorize(session.scope)
         if isinstance(arguments, KnowledgeSearchArguments):
             if not session.scope.knowledge_base_ids:
@@ -383,6 +389,7 @@ class ReadOnlyToolExecutor:
             diagnostics = []
             phase = "snapshot_cache"
             try:
+                # 同一网址在本次运行只抓取一次，后续窗口读取与定位共用固定快照。
                 if entry.source_id not in session.web.pages:
                     web = await self._web.read([entry.url])
                     diagnostics = web.diagnostics

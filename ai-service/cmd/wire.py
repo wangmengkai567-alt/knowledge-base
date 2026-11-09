@@ -8,8 +8,8 @@ cmd/wire.py — 依赖注入编排
 - create_app() 是唯一工厂函数，封装完整的依赖组装逻辑。
 - 模块级 app 变量供 uvicorn.run("cmd.wire:app") 字符串引用加载。
 - _settings 供 main.py 读取 host/port/workers 等启动参数。
-- 不再有双重初始化：模块级变量通过 create_app() 创建，不重复组装。
-- 不再有模块级 asyncio.run()：建表逻辑在 lifespan 中执行。
+- 模块加载时调用 create_app()；数据库建表与索引核实在 HTTP lifespan 中执行。
+- HTTP 层处理请求与权限，Service 层转换协议数据，Biz 层执行入库和问答流程。
 """
 
 from __future__ import annotations
@@ -124,7 +124,7 @@ def create_app() -> FastAPI:
         upload_dir=settings.storage.upload_dir,
     )
 
-    # ── Chunk 链路（Sprint 6）──
+    # ── Chunk 链路 ──
     chunk_repo = create_chunk_repo(session_factory)
     text_chunker = create_text_chunker(
         chunk_size=settings.rag.chunk_size,
@@ -152,7 +152,7 @@ def create_app() -> FastAPI:
         is_mock=llm_provider.is_mock,
     )
 
-    # ── Embedding 链路（Sprint 7）──
+    # ── Embedding 链路 ──
     embedding_provider = CachedEmbeddingProvider(
         create_embedding_provider(
             provider=settings.embedding.provider,
@@ -198,17 +198,18 @@ def create_app() -> FastAPI:
         vector_store=vector_store,
         batch_size=settings.embedding.batch_size,
         keyword_store=keyword_store,
-        # Sprint 18-fix (P0)：注入 document_repo，供 metadata 写入 knowledge_base_id，
+        # 注入 document_repo，供索引 metadata 写入 knowledge_base_id，
         # 保障多知识库场景下 Retriever 能在存储层完成 kb 隔离。
         document_repo=document_repo,
     )
 
-    # ChunkBiz 回调触发 EmbeddingBiz
+    # 删除分块前先清理对应向量与关键词；索引创建由 IngestionBiz 分步触发。
     chunk_biz = ChunkBiz(
         chunk_repo=chunk_repo,
         chunker=text_chunker,
         on_chunk_delete=embedding_biz.delete_embeddings,
     )
+    # 入库状态、互斥和重试由同一编排器管理；文档删除也复用它的同文档锁。
     ingestion = IngestionBiz(document_repo, chunk_repo, chunk_biz, embedding_biz, create_document_parser)
     # ChunkService 复用文档校验
     document_biz = DocumentBiz(
@@ -237,7 +238,7 @@ def create_app() -> FastAPI:
     # ── Retrieval 链路──
     # ── Reranker ──
     # 提前在 Retrieval 链路之前创建，使搜索（retrieve）与 RAG 共用同一 Reranker。
-    # 仅当开启 rerank 时创建实例；未开启则 reranker=None，检索/重排均优雅降级。
+    # 开启时必须提供有效重排器；关闭时按召回分排序，重排失败由检索层直接上报。
     reranker = None
     if settings.rag.rerank_enabled:
         reranker = create_reranker(
@@ -270,7 +271,7 @@ def create_app() -> FastAPI:
         retriever=retriever,
         chunk_repo=chunk_repo,
         document_repo=document_repo,
-        # 否则纯向量语义检索对短关键词（如 "docker"）会召回不相关文档排在前。
+        # 独立检索接口和问答工具共用重排与相关性筛选规则。
         reranker=reranker,
         rerank_enabled=settings.rag.rerank_enabled,
         min_relevance=settings.rag.min_relevance,

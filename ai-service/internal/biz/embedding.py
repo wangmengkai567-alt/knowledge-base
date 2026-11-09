@@ -75,6 +75,7 @@ class EmbeddingBiz:
         return len(existing) == len(chunks)
 
     async def embed_document(self, document_id: int, chunks: list[Chunk]) -> int:
+        # 调用方先核对真实向量并同步状态，这里只计算仍未完成的分块。
         pending = [c for c in chunks if c.embedding_status != EmbeddingStatus.COMPLETED]
         processed = 0
         errors = []
@@ -86,6 +87,7 @@ class EmbeddingBiz:
                 result = await self._embedding_provider.embed(texts)
                 if len(result.vectors) != len(ids):
                     raise ValueError("嵌入结果数量与分块不符")
+                # 先写向量再标记成功；各批独立记录，后续批失败不抹掉已完成进度。
                 await self._vector_store.upsert(ids, result.vectors, metadata)
                 await self._chunk_repo.update_embedding_status(ids, EmbeddingStatus.COMPLETED)
                 processed += len(batch)

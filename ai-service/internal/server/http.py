@@ -134,7 +134,7 @@ class HTTPServer:
         engine: AsyncEngine | None = None,
         rate_limit_settings: RateLimitSettings | None = None,
         ingestion: object | None = None,
-        # Sprint 18 修复：memory 向量库为进程内易失结构，重启后清空，
+        # memory 向量库为进程内易失结构，重启后清空，
         # 启动时需从 DB 重建向量索引。pgvector 持久化则无需重建。
         rebuild_vectors: bool = False,
         # 使用 pgvector 时：启动时幂等创建 extension + chunk_vectors。
@@ -429,6 +429,7 @@ class HTTPServer:
         assert document_service is not None and kb_service is not None
 
         async def authorize_document(kb_id: int, doc_id: int, user_id: int) -> DocumentResponse:
+            # 知识库所有权与文档归属在路由统一校验，不能只凭文档 ID 调用业务操作。
             await kb_service.get_knowledge_base(kb_id, user_id=user_id)
             document = await document_service.get_document(doc_id, user_id=user_id)
             if document.knowledge_base_id != kb_id:
@@ -547,7 +548,7 @@ class HTTPServer:
         return router
 
     def _rag_router(self) -> APIRouter:
-        """RAG 路由 — 检索增强生成（Sprint 12/13）。"""
+        """问答路由：校验知识库权限，再转交同步或 SSE 应用服务。"""
         router = APIRouter(
             prefix="/api/v1/knowledge/bases/{kb_id}/rag",
             tags=["RAG"],

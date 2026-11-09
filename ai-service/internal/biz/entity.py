@@ -96,7 +96,7 @@ class Chunk:
     """文档分块领域对象 — 解析后文本的切片。
 
     每个 chunk 属于一个 document，有独立 ID、内容、位置序号。
-    Sprint 7 新增 embedding_status 追踪嵌入进度。
+    embedding_status 记录该分块的向量索引状态，供入库重试使用。
     """
 
     id: int | None
@@ -128,7 +128,7 @@ class RetrievedChunk:
 
 @dataclass
 class RetrievalResult:
-    """检索结果值对象 — Sprint 8。
+    """检索结果值对象。
 
     包含分块信息、相似度分数、来源文档信息。
     """
@@ -154,7 +154,7 @@ class RetrievalResult:
 
 @dataclass
 class ChatResult:
-    """LLM 对话结果值对象 — Sprint 10。
+    """LLM 对话结果值对象。
 
     包含模型回复内容、token 用量、模型名称。
     """

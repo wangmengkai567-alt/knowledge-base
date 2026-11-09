@@ -14,6 +14,7 @@ export function useSearch() {
   const loading = ref(false)
   const query = ref('')
   const hits = ref<SearchHit[]>([])
+  // rawHits 保留后端结果，allHits 是本地筛选列表，hits 仅包含当前页。
   const rawHits = ref<SearchHit[]>([])
   const allHits = ref<SearchHit[]>([])
   const answer = ref('')
@@ -38,6 +39,7 @@ export function useSearch() {
   function refreshPage() {
     hits.value = paginateSlice(allHits.value, page.value, pageSize.value)
   }
+  // 文件类型、时间与名称排序只调整列表，不改变本次答案及实际引用来源。
   function recompute() {
     let list = [...rawHits.value]
     if (filters.fileTypes.length) list = list.filter((hit) => filters.fileTypes.includes(hit.fileType))
@@ -71,6 +73,7 @@ export function useSearch() {
     const text = query.value.trim()
     const kbIds = [...new Set(filters.kbIds.length ? filters.kbIds : knowledge.kbs.map((kb) => kb.kbId))].sort((a, b) => a - b)
     if (!text) return
+    // 相同请求正在运行时不重复发起；条件改变则取消旧连接并创建独立控制器。
     const key = JSON.stringify([text, kbIds, allowWeb.value])
     if (loading.value && key === activeKey) return
     abort?.abort()
@@ -96,6 +99,7 @@ export function useSearch() {
     try {
       if (!kbIds.length) throw new Error('请先创建或选择知识库')
       await searchApi.ragSummaryStream(kbIds[0], text, 8, (message) => {
+        // 旧连接可能有排队中的回调，必须同时校验取消状态和控制器身份。
         if (signal.aborted || abort !== controller) return
         if (message.type === 'event') {
           runId.value = message.runId
@@ -112,6 +116,7 @@ export function useSearch() {
             recompute()
           }
         } else {
+          // 过程事件只展示进度与资料，最终 result 到达后才更新完整答案与用量。
           const result = message.result
           runId.value = result.runId
           status.value = result.status
@@ -159,6 +164,7 @@ export function useSearch() {
     usage.value = null
     recompute()
   }
+  // 知识库和联网权限会改变后端取证范围，因此需重新运行问答。
   watch(() => [filters.kbIds.join(','), allowWeb.value], () => { if (query.value.trim()) run() })
   watch(() => [filters.fileTypes.join(','), filters.timeRange, sort.value], recompute)
   watch(page, refreshPage)
