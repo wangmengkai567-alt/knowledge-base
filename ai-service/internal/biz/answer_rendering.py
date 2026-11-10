@@ -49,13 +49,6 @@ class RenderedAnswer:
     citation_ids: list[int]
 
 
-# 判断证据是否来自同一份文档或网页，避免把同一来源的多段内容当成多来源。
-def _source_identity(origin: dict) -> tuple:
-    if origin["source_type"] == "knowledge_base":
-        return "knowledge_base", origin["knowledge_base_id"], origin["document_id"]
-    return "web", origin["url"]
-
-
 def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) -> RenderedAnswer:
     """只使用已登记证据生成引文与代码，同时检查来源范围、数值单位及展示格式。"""
     paragraphs, records, used = [], [], set()
@@ -75,10 +68,6 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
             evidence.append({"evidence_id": evidence_id, "citation_id": fragment.citation_id,
                              "quote": fragment.content, "origin": fragment.origin,
                              "range_basis": "registered_original_slice"})
-        identities = {_source_identity(fragment.origin) for fragment in fragments}
-        # 单来源事实不能混用来源；共同结论必须由至少两个独立来源支持。
-        if (claim.scope == "source" and len(identities) != 1) or (claim.scope == "shared" and len(identities) < 2):
-            raise AnswerEvidenceError("invalid_source_scope")
         supported_quantities = {
             quantity for fragment in fragments
             for quantity in _quantities(fragment.content)
@@ -88,11 +77,9 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
         ids = sorted({fragment.citation_id for fragment in fragments})
         refs = "".join(f"[来源 {number}]" for number in ids)
         types = {fragment.origin["source_type"] for fragment in fragments}
-        label = "多来源对照" if claim.scope == "shared" else labels[fragments[0].origin["source_type"]]
-        if "web_search_summary" in types and (len(types) > 1 or claim.scope == "shared"):
-            if claim.scope == "source":
-                label = "网页资料"
-            label += "（搜索摘要）" if len(types) == 1 else "（含搜索摘要）"
+        label = labels[next(iter(types))] if len(types) == 1 else "多来源资料"
+        if len(types) > 1 and "web_search_summary" in types:
+            label += "（含搜索摘要）"
         paragraphs.append(f"{label}：{html.escape(text, quote=False)}{refs}")
         for inline in re.findall(r"`([^`]+)`", text):
             if not any(inline in fragment.content for fragment in fragments):
@@ -110,7 +97,7 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
                 raise AnswerEvidenceError("empty_code_evidence")
             fence = "`" * max(3, max((len(match.group()) + 1 for match in re.finditer(r"`+", code)), default=3))
             paragraphs.append(f"{fence}{language}\n{code}" + ("" if code.endswith("\n") else "\n") + f"{fence}\n\n{refs}")
-        records.append({"scope": claim.scope, "text": text, "evidence_ids": claim.evidence_ids,
+        records.append({"text": text, "evidence_ids": claim.evidence_ids,
                         "code_evidence_id": claim.code_evidence_id, "code": code,
                         "citation_ids": ids, "evidence": evidence, "quote_owner": "program"})
         used.update(ids)

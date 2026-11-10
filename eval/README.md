@@ -145,7 +145,7 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 本次按用户要求只运行 W01—W04 四题各一次，结果另存 `rag-quality-phase-3-web-results.json`。W01 正文取得但 COPY 代码参数缺失；W02 选择未授权网址；W03 正文读取成功后生成超长关键词；W04 正确说明资料不足。阶段验收未通过，自动 completed 不能替代正文支撑核对。改动、有限探针及逐题复核见[第 3 阶段实施记录](../docs/implementation/rag-quality-phase-3-report.md)。
 
-## 网页取证修复顺序 2：当前工具契约
+## 网页取证修复顺序 2：历史工具契约
 
 历史 `tool_contract_version=2`：网页搜索使用最多 120 字符的单字符串 `query`，读取使用本次目录的 `source_id`，`web_find` 只查本次已保存的正文快照。旧 `keywords`/`urls` 工具参数已删除。目录与实际证据分离；范围字段只描述实际送模片段，完整规范正文保存在快照 `web_pages` 中。
 
@@ -159,7 +159,7 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 取证通过 `finish_research` 选择实际已送模引用后进入独立最终生成；仍遵守原有模型、工具、用量和时间上限。目录不可引用，围栏代码必须有引用正文支撑。新契约评测核对目录身份、完整快照、原文范围及代码块边界，并直接读取规范调用键。旧历史结果按原契约只读解析，不补造新字段或改写历史答案。
 
-最终模型协议为 `answer_contract_version=2`：输出 `status/claims/missing`，不再接受自由 `answer` 字段。每条事实包含 `scope/text/evidence/code`，每份依据包含已选 `citation_id` 与实际送模内容中的连续原样 `quote`；程序校验后统一生成展示答案及引用。`source` 只能归于一个原始来源，`shared` 必须有至少两个独立来源，同一网页多个窗口或同一知识库文档多个块不重复计数。缺失项只作为限定于本次已读资料的问题主题呈现，不能附加自由事实尾段。
+历史最终模型协议为 `answer_contract_version=2`：输出 `status/claims/missing`，不再接受自由 `answer` 字段。每条事实包含 `scope/text/evidence/code`，每份依据包含已选 `citation_id` 与实际送模内容中的连续原样 `quote`；程序校验后统一生成展示答案及引用。`source` 只能归于一个原始来源，`shared` 必须有至少两个独立来源，同一网页多个窗口或同一知识库文档多个块不重复计数。缺失项只作为限定于本次已读资料的问题主题呈现，不能附加自由事实尾段。
 
 代码须在该事实自己的非摘要摘录中原样出现；answered 的每条事实均不能以搜索摘要替代正文。任何条目校验失败都不发布整份答案，不修复格式或自动重答。快照保留原始最终 JSON、规范事实及摘录的送模内容相对范围；`answer_validated` 记录原文绑定通过，但 `semantic_support` 仍为 `not_evaluated`。原样摘录、引用身份和来源数量正确并不证明自然语言结论得到语义蕴含，现有关键词/重合率也不能充当语义门禁。外部 API/SSE 继续返回程序渲染的 Markdown `answer`，工具契约仍为 2；历史结果保持原样。
 
@@ -167,8 +167,16 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 ## 当前 Token 预算与计量契约
 
-同步/SSE 版本为 6，工具契约为 3，答案契约维持 3。`counting` 标记 `model_tokenizer_estimate`，保存模型、固定 tokenizer_ref、请求投影版本、比例及固定余量；调用账本保存内容、协议及安全余量，供应商实际用量另列。
+同步/SSE 版本为 6，工具契约为 3，答案契约为 4。`counting` 标记 `model_tokenizer_estimate`，保存模型、固定 tokenizer_ref、请求投影版本、比例及固定余量；调用账本保存内容、协议及安全余量，供应商实际用量另列。
 
 `web_read.max_tokens` 为网页窗口额度（64～2000），字符 `start/end` 与 `total_chars` 保持原义；搜索摘要上限 512 token，定位预览上限 64 token，工具完整 content 上限 3000 token，完整消息另受 12000 字节限制。仅根据后续成功读取的实际范围逐项省略已读预览；请求失败和未读预览仍保留。
 
 `score_run` 按版本核验新账本与计量元数据。`summarize_runs` 按计量方法、tokenizer_ref、投影版本及余量分组输入估算；不混加旧字节估算，也不改写历史快照或既有评测分数。上文有关工具契约 2、字符窗口和字节估算的内容描述历史阶段，不代表当前运行协议。
+
+## 当前答案契约 4 与来源评测
+
+当前同步响应、SSE、错误帧和新快照使用 6/3/4，最终 Schema 为 `grounded_answer_v4`。单条结论只包含 `text/evidence_ids/code_evidence_id`，不含 `scope`；可以引用一个或多个不同文档或网页的互补证据。程序按实际 `citation_id` 去重、排序并绑定原文，保留访问范围、原文坐标、代码和数字单位检查。类型混合显示“多来源资料”，含摘要显示“多来源资料（含搜索摘要）”；同类型的多个来源保持该类型标签，不自动表示对照或共识。数字单位核对不等于完整语义事实核验。
+
+`score_run` 的 `evidence_metrics_version=2` 分别核对准备事件、历史送模事件、实际模型请求中的工具消息、最终选择、证据目录与最终请求。最终来源允许是历史已送来源的合法子集，曾发送 6 项、最终选择 5 项不会仅因数量差异报错；未准备、未发送、越权、未读网页、原文或目录不符仍会失败。版本 6 的完整请求还需与原始工具结果及最终请求记录一致，Schema 须匹配声明的答案契约。
+
+离线评测只读识别契约 3 的 `scope` 结构并核对其历史来源归属；旧响应版本 5 的来源列表可能保留全部已送材料，最终请求与证据目录仍须一致。未知答案契约明确报错。上述历史说明均保持各自版本，不作为在线回退。重新评测应另存结果并保留原始快照，评测版本与原分数变化需一起记录，不能将新计算覆盖为当时的验收结论。

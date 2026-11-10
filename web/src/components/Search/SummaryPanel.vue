@@ -57,7 +57,6 @@ const reasons: Record<string, string> = {
   code_evidence_required: '所选证据不是代码，未发布答案',
   invalid_code_evidence: '代码证据格式无效，未发布答案',
   empty_code_evidence: '代码证据没有正文，未发布答案',
-  invalid_source_scope: '事实归属与独立来源要求不符，未发布答案',
 }
 const statusLabel = computed(() => props.status ? labels[props.status] : '')
 const noticeType = computed(() => props.status === 'cancelled' ? 'info' :

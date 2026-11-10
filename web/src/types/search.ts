@@ -122,7 +122,7 @@ export interface EvidenceFragment {
 export interface RunResult {
   counting: TokenCountingMetadata
   runId: string
-  answerContractVersion: 3
+  answerContractVersion: 4
   evidenceCatalog: EvidenceFragment[]
   status: RunStatus
   stopReason: string

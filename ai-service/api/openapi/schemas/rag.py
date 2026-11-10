@@ -154,7 +154,7 @@ class TokenCountingDTO(BaseModel):
 class RAGQueryResponse(BaseModel):
     version: Literal[6] = 6
     tool_contract_version: Literal[3] = 3
-    answer_contract_version: Literal[3] = 3
+    answer_contract_version: Literal[4] = 4
     evidence_catalog: list[EvidenceFragmentDTO]
     run_id: str
     status: str

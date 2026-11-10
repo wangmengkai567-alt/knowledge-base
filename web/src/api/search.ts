@@ -133,7 +133,7 @@ export const searchApi = {
     let sequence = 0
     let terminal = false
     await readSseStream(res, (data) => {
-      if (data.version !== 6 || data.tool_contract_version !== 3 || data.answer_contract_version !== 3) throw new Error('问答协议已更新，请刷新页面')
+      if (data.version !== 6 || data.tool_contract_version !== 3 || data.answer_contract_version !== 4) throw new Error('问答协议已更新，请刷新页面')
       if (data.type === 'error') throw new Error(data.error)
       if (data.counting?.measurement !== 'model_tokenizer_estimate' ||
           data.counting.request_projection_version !== 1 || !data.counting.tokenizer_ref) {

@@ -7,8 +7,10 @@ import re
 from collections import Counter
 from math import ceil
 
-from evidence_metrics import audit_evidence
+from evidence_metrics import audit_evidence, audit_source_delivery
 from faithfulness import unsupported_sentences
+
+EVIDENCE_METRICS_VERSION = 2
 
 CITATION = re.compile(r"\[来源\s*([1-9]\d*)\s*\]")
 
@@ -49,6 +51,10 @@ def score_run(snapshot: dict, item: dict) -> dict:
     contract = snapshot.get("tool_contract_version", 1)
     if contract not in (1, 2, 3):
         raise ValueError("unsupported saved tool contract")
+    answer_contract = snapshot.get("answer_contract_version", 1 if contract == 1 else None)
+    if (answer_contract not in (1, 2, 3, 4)
+            or (run.get("version") == 6 and answer_contract not in (3, 4))):
+        raise ValueError("unsupported saved answer contract")
     directory = {entry["source_id"]: entry for entry in run.get("web_directory", [])}
     ids = [source["citation_id"] for source in sources]
     cited = [int(value) for value in CITATION.findall(run["answer"])]
@@ -85,6 +91,8 @@ def score_run(snapshot: dict, item: dict) -> dict:
                 if not entry or entry["url"] != source["url"] or start < 0 or end - start != len(source["content"]) or end > source["total_chars"]:
                     evidence_errors.append("invalid web directory or range")
                 if source["source_type"] == "web_page":
+                    if entry and not entry["read"]:
+                        evidence_errors.append("web page was not read")
                     page = snapshot["web_pages"].get(source["source_id"])
                     if not page or page["url"] != source["url"] or page["fetched_at"] != source["fetched_at"] or page["content"][start:end] != source["content"] or len(page["content"]) != source["total_chars"]:
                         evidence_errors.append("web snapshot/content mismatch")
@@ -92,16 +100,8 @@ def score_run(snapshot: dict, item: dict) -> dict:
                         evidence_errors.append("web code block cut by window")
         else:
             evidence_errors.append("unknown source type")
-    prepared = set()
-    sent = set()
-    for event in events:
-        if event["kind"] == "materials_prepared":
-            prepared.update(event["data"]["citation_ids"])
-        if event["kind"] == "sources_updated":
-            sent.update(event["data"]["citation_ids"])
-    if set(ids) != sent or not sent.issubset(prepared):
-        evidence_errors.append("source registration differs from sent materials")
-    binding = audit_evidence(snapshot) if snapshot.get("answer_contract_version") == 3 else {}
+    evidence_errors.extend(audit_source_delivery(snapshot))
+    binding = audit_evidence(snapshot) if answer_contract in (3, 4) else {}
     evidence_errors.extend(binding.get("evidence_binding_errors", []))
     evidence_errors.extend(binding.get("program_claim_binding_errors", []))
     valid = valid and not evidence_errors
@@ -133,8 +133,18 @@ def score_run(snapshot: dict, item: dict) -> dict:
     token_limits = snapshot.get("token_limits")
     measurement_valid = None
     if run.get("version") == 6:
+        try:
+            final_schemas_valid = all(
+                request["response_format"]["json_schema"]["name"] == f"grounded_answer_v{answer_contract}"
+                and set(request["response_format"]["json_schema"]["schema"]["$defs"]["AnswerClaim"]["properties"])
+                == ({"text", "evidence_ids", "code_evidence_id"} | ({"scope"} if answer_contract == 3 else set()))
+                for request in snapshot.get("model_requests", []) if request["phase"] == "final"
+            )
+        except (KeyError, TypeError):
+            final_schemas_valid = False
         measurement_valid = (
-            contract == 3 and measurement == "model_tokenizer_estimate"
+            final_schemas_valid
+            and contract == 3 and measurement == "model_tokenizer_estimate"
             and isinstance(token_limits, dict)
             and 0 < token_limits["input_limit"] <= 16000
             and 0 < token_limits["output_limit"] <= 2048
@@ -236,6 +246,7 @@ def score_run(snapshot: dict, item: dict) -> dict:
     final_calls = ([event["data"] for event in model_starts if event["data"]["final"]]
                    if compression_events else [])
     return {
+        "evidence_metrics_version": EVIDENCE_METRICS_VERSION,
         **binding,
         **({"evidence_coverage": coverage_events[-1] if coverage_events else None, "material_compression": compression_events,
             "final_estimated_input_tokens": final_calls[-1]["estimated_input_tokens"] if final_calls else None}

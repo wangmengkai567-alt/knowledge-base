@@ -104,7 +104,7 @@ npm run dev
 {"query":"Docker 镜像和容器有什么区别？","knowledge_base_ids":[3],"top_k":8,"allow_web":false}
 ```
 
-`user_urls` 可提供最多三个公开网址，要求开启联网。请求不接受旧的 `chunk_ids`。SSE/同步响应协议版本为 6，工具契约版本为 3，答案契约版本为 3；SSE 依次发送 `type=event` 过程、`type=result` 结果和 `[DONE]`；回答不是逐字流式输出。来源包含实际送模 `content`，知识库有分块位置、片段范围和文档版本时间，网页有 URL 与抓取时间。
+`user_urls` 可提供最多三个公开网址，要求开启联网。请求不接受旧的 `chunk_ids`。SSE/同步响应协议版本为 6，工具契约版本为 3，答案契约版本为 4；SSE 依次发送 `type=event` 过程、`type=result` 结果和 `[DONE]`；回答不是逐字流式输出。每条结论使用 `text/evidence_ids/code_evidence_id`，可引用一个或多个互补证据；程序绑定原文和引用，不按来源数量拒绝。标签按实际来源类型显示“知识库”“网页正文”“搜索摘要”，混合类型显示“多来源资料”，含摘要时明确标注；标签不表示共识。来源包含实际送模 `content`，知识库有分块位置、片段范围和文档版本时间，网页有 URL 与抓取时间。
 
 ## 项目记录
 

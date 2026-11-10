@@ -186,7 +186,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, executor, retrieval, _ = research_setup(
             [action(query="启动顺序"), finish_action("insufficient", [1])],
             grounded_answer("insufficient", claims=[{
-                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
             }], missing=["加载配置后的启动步骤"]), contents=("启动顺序：先加载配置。",),
         )
         run = await self.query(biz)
@@ -222,7 +222,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="启动顺序"), finish_action("answered", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": content, "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": content, "evidence_ids": ["E1"], "code_evidence_id": None,
             }]), contents=(content,),
         )
         run = await self.query(biz)
@@ -243,7 +243,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="启动顺序"), finish_action("answered", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "启动步骤会加载配置并连接存储。", "evidence_ids": ["E1"],
+                "text": "启动步骤会加载配置并连接存储。", "evidence_ids": ["E1"],
                 "code_evidence_id": None,
             }]), contents=(content,),
         )
@@ -264,7 +264,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="memory_limit"), finish_action("answered", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
             }]), contents=(content,),
         )
         generate_answer = llm.generate_answer.side_effect
@@ -297,7 +297,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, executor, retrieval, _ = research_setup(
             [action(query="memory_limit"), action("c2", "memory_limit second source"), finish_action("answered", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": "内存限制为512MB。", "evidence_ids": ["E1"], "code_evidence_id": None,
             }]), contents=(content,),
         )
         run = await biz.query(query="memory_limit?", knowledge_base_ids=[1], user_id=1)
@@ -329,9 +329,9 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="启动顺序"), finish_action("answered", [1, 2])],
             grounded_answer("answered", claims=[
-                {"scope": "source", "text": old, "evidence_ids": ["E1"], "code_evidence_id": None},
-                {"scope": "source", "text": current, "evidence_ids": ["E2"], "code_evidence_id": None},
-                {"scope": "shared", "text": "两份版本资料描述的启动顺序不同。",
+                {"text": old, "evidence_ids": ["E1"], "code_evidence_id": None},
+                {"text": current, "evidence_ids": ["E2"], "code_evidence_id": None},
+                {"text": "两份版本资料描述的启动顺序不同。",
                  "evidence_ids": ["E1", "E2"], "code_evidence_id": None},
             ]), contents=(old, current),
         )
@@ -349,7 +349,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="启动顺序"), finish_action("answered", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "编造结论。", "evidence_ids": ["E9999"], "code_evidence_id": None,
+                "text": "编造结论。", "evidence_ids": ["E9999"], "code_evidence_id": None,
             }]),
         )
         run = await self.query(biz)
@@ -375,7 +375,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, executor, retrieval, sessions = research_setup(
             [action(query="启动顺序"), action("c2", " 启动顺序 ")],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
             }]),
         )
         run = await self.query(biz)
@@ -393,7 +393,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
             with self.subTest(reason=reason):
                 biz, llm, executor, retrieval, sessions = research_setup(
                     [action(query="启动顺序")], grounded_answer("answered", claims=[{
-                        "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"],
+                        "text": "启动时先加载配置。", "evidence_ids": ["E1"],
                         "code_evidence_id": None,
                     }]), limits=limits,
                 )
@@ -450,7 +450,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         biz, llm, _, _, _ = research_setup(
             [action(query="启动顺序"), finish_action("insufficient", [1])],
             grounded_answer("answered", claims=[{
-                "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
             }]),
         )
         run = await self.query(biz)
@@ -461,7 +461,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_exploration_answer_cannot_skip_finish_research(self):
         answer = grounded_answer("answered", claims=[{
-            "scope": "source", "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
+            "text": "启动时先加载配置。", "evidence_ids": ["E1"], "code_evidence_id": None,
         }])
         biz, llm, _, _, _ = research_setup([action(query="启动顺序"), answer], answer)
         run = await self.query(biz)
@@ -476,7 +476,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
                 biz, llm, _, _, _ = research_setup(
                     [action(query="启动顺序"), finish_action("answered", [2])],
                     grounded_answer("answered", claims=[{
-                        "scope": "source", "text": "启动时先连接存储。", "evidence_ids": [evidence_id],
+                        "text": "启动时先连接存储。", "evidence_ids": [evidence_id],
                         "code_evidence_id": None,
                     }]), contents=("启动顺序：先加载配置。", "启动顺序：先连接存储。"),
                 )
@@ -507,7 +507,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         content = "启动顺序：先加载配置，再连接存储。"
         response = grounded_answer(
             "answered" if has_evidence else "insufficient", claims=[{
-                "scope": "source", "text": content, "evidence_ids": ["E1"], "code_evidence_id": None,
+                "text": content, "evidence_ids": ["E1"], "code_evidence_id": None,
             }] if has_evidence else [], missing=[] if has_evidence else ["启动顺序的原文依据"],
         )
         return research_setup(
@@ -650,7 +650,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
                 frames = [frame async for frame in response.body_iterator]
             self.assertEqual(frames[-1], "data: [DONE]\n\n")
             payload = json.loads(frames[-2].removeprefix("data: "))
-            self.assertEqual((payload["version"], payload["tool_contract_version"], payload["answer_contract_version"]), (6, 3, 3))
+            self.assertEqual((payload["version"], payload["tool_contract_version"], payload["answer_contract_version"]), (6, 3, 4))
             self.assertEqual(payload["error_code"], "RUN_STREAM_FAILED")
             self.assertNotIn("private-test-marker", "".join(frames))
             details = log.error.call_args.kwargs
@@ -682,8 +682,8 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
             events = [e async for e in service.query_stream(query="启动顺序？", knowledge_base_ids=[1], user_id=1)]
             result = events[-1]
             self.assertEqual(result["status"], status)
-            self.assertEqual(result["answer_contract_version"], 3)
-            self.assertTrue(all((e["version"], e["tool_contract_version"], e["answer_contract_version"]) == (6, 3, 3) for e in events))
+            self.assertEqual(result["answer_contract_version"], 4)
+            self.assertTrue(all((e["version"], e["tool_contract_version"], e["answer_contract_version"]) == (6, 3, 4) for e in events))
             saved = json.loads(next(Path(folder).glob("user-1/*.json")).read_text(encoding="utf-8"))
             self.assertEqual(saved["result"], {k: v for k, v in result.items() if k != "type"})
             self.assertTrue(all(e["run_id"] == result["run_id"] for e in events))

@@ -35,7 +35,7 @@ npm run typecheck
 - 成功：直接返回资源 JSON（如文档对象、检索 `results`），**没有** `{ code, data }` 信封。
 - 失败：`{ code, reason, message }`；Axios 拦截器按 `code` 或 HTTP 状态提示。
 - 鉴权：`Authorization: Bearer <access_token>`。
-- 流式 RAG：`POST /api/v1/knowledge/bases/{id}/rag/query/stream`，用 `fetch` 解析 SSE（不能用 EventSource）。响应/SSE 版本 6、工具契约 3、答案契约 3，实时展示过程事件，引用检查后一次发布最终回答；使用 status、stop_reason、error_code 区分资料不足、失败、超时、预算用尽和取消。用户开启联网后才允许网页工具。
+- 流式 RAG：`POST /api/v1/knowledge/bases/{id}/rag/query/stream`，用 `fetch` 解析 SSE（不能用 EventSource）。响应/SSE 版本 6、工具契约 3、答案契约 4，实时展示过程事件，引用检查后一次发布最终回答；使用 status、stop_reason、error_code 区分资料不足、失败、超时、预算用尽和取消。用户开启联网后才允许网页工具。结论可引用多个互补片段，引用及原文由程序绑定；单一来源类型显示“知识库 / 网页正文 / 搜索摘要”，混合类型显示“多来源资料”，涉及摘要时标注“含搜索摘要”，不根据数量声称共识。
 
 不要使用已废弃路径 `GET /api/v1/kbs`。知识库是：
 

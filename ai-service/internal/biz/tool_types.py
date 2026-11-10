@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 
 # 标识最终答案的数据格式，供接口响应和本地运行记录保持一致。
-ANSWER_CONTRACT_VERSION = 3
+ANSWER_CONTRACT_VERSION = 4
 # 最终回答的格式与引用提示词。
 FINAL_ANSWER_INSTRUCTIONS = """最终只输出 Schema 规定的 status/claims/missing，不增加 answer、总结或备注。
 claims 每条是一段事实：text 不写换行、来源引用或代码围栏。evidence_ids 只选择最终资料目录 sources[].evidence 中直接支持本条事实的 E 编号，不能填写 citation_id、原文 quote 或代码字符串。
-scope=source 时，evidence_ids 必须全部取自同一个 sources[] 对象，不能跨对象选 E 编号。例如 sources[0] 含 E1、sources[1] 含 E2，单来源事实只能选 ["E1"] 或 ["E2"]，绝不能选 ["E1","E2"]。同一 sources[] 内有多段证据时才可选择多个 E 编号。多来源对照分别有据；shared 必须选择至少两个独立来源直接支持的证据，同一文档/网页的两段不是两来源，不能补写共识。
+一条事实可以选择一个或多个相关 E 编号，不同文档、网页以及知识库和网页的证据可以共同或互补支持本条事实。来源有分歧时分别准确表达，不把不同观点写成一致结论，不根据来源数量声称共识。
 需要展示代码时，code_evidence_id 选择本条 evidence_ids 中 kind=code 的编号，由程序原样取得代码正文并渲染；text 只简短说明代码用途，不得再抄完整命令、压成一行或省略引号。没有代码展示时 code_evidence_id 为 null。text 中的行内命令也必须在所选证据中存在。
 说明中的数值与单位必须采用本条 evidence_ids 所选原文的写法，只允许数字与单位之间的空白差异；不得自行展开单位缩写、改写大小写或换算。原文为 256m 时保留 256m，不能凭常识写成 256MB 或 256MiB；其他未选证据中的数值也不能作为本条依据。
-解释概念、原理或规则时，按问题所问的各项分别组织事实条目，每项写清定义、具体要求及必要前提；资料提到的其他类别不属于问题时不要展开。输出前逐项核对是否都有实质解释，某项仅提及名称或前置关系仍算缺失。不能只列名称、重复题目或提供泛泛背景就声称答全。资料只支持部分内容时，保留已有依据的解释，并用 insufficient 和 missing 明确尚缺的主题。普通概念解释，每条选择一个最直接且完整支持该解释的 E 编号，scope=source，避免把多个网页的重复表述堆在同一条中。只有问题要求多来源对照时才分别列出各方事实；shared 只用于确有两个独立来源直接支持的共同结论。
+解释概念、原理或规则时，按问题所问的各项分别组织事实条目，每项写清定义、具体要求及必要前提；资料提到的其他类别不属于问题时不要展开。输出前逐项核对是否都有实质解释，某项仅提及名称或前置关系仍算缺失。不能只列名称、重复题目或提供泛泛背景就声称答全。资料只支持部分内容时，保留已有依据的解释，并用 insufficient 和 missing 明确尚缺的主题。每条选择直接支持该解释的相关证据，可由多个片段补充必要前提和具体要求，避免堆叠无关或重复资料。
 answered 须有 claims 且 missing=[]，可引用搜索摘要，但只能陈述所选片段支持的内容。摘要与正文均可概括转述，摘要不能冒充逐字正文。用户明确要求读取网页时，未实际读到不能声称已经读取。insufficient 可保留有依据的 claims，missing 仅列具体缺失主题，不能写事实或声称整份原文不存在信息。
 资料目录 errors 中的网页读取失败不是正文证据，不能据此声称网页没有相关信息；仅凭已有成功资料作答，必要依据缺失时返回 insufficient 并在 missing 中列出待核实主题。程序会另外显示网页读取失败的提示，无需在 claims 中编造错误说明。
 比较题除了分别列值，还须基于所选双方原文明确回答是否相同；不得把不同来源示例数字合成统一标准。"""
@@ -38,7 +38,6 @@ MissingTopic = Annotated[str, StringConstraints(min_length=1, max_length=120, pa
 class AnswerClaim(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
-    scope: Literal["source", "shared"]
     text: str = Field(min_length=1, max_length=1600, pattern=r"^[^\r\n]+$")
     evidence_ids: list[EvidenceId] = Field(min_length=1, max_length=6)
     code_evidence_id: EvidenceId | None
@@ -64,7 +63,7 @@ class AnswerPayload(BaseModel):
 
 # 将答案结构交给模型接口，要求最终响应符合这份 Schema。
 ANSWER_RESPONSE_FORMAT = {"type": "json_schema", "json_schema": {
-    "name": "grounded_answer_v3", "strict": True, "schema": AnswerPayload.model_json_schema(),
+    "name": "grounded_answer_v4", "strict": True, "schema": AnswerPayload.model_json_schema(),
 }}
 
 
