@@ -234,7 +234,7 @@ def summary(rows: list[dict], baseline: dict, expected: int) -> dict:
         no_repeat_execution=not result["repeated_executions"],
         expected_tools=all(r.get("tool_selection_ok") is True for r in rows),
     )
-    if any(r.get("protocol_version") == 5 for r in rows):
+    if any(r.get("protocol_version") in (5, 6) for r in rows):
         gates["usage_ledger"] = all(r.get("ledger_valid") is True for r in rows)
     if any("generation_protocol_valid" in r for r in rows):
         gates["generation_protocol"] = all(r.get("generation_protocol_valid") is True for r in rows)

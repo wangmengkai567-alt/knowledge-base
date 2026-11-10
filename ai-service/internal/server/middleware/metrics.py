@@ -1,17 +1,7 @@
-"""
-internal/server/middleware/metrics.py — Prometheus 指标中间件
+"""声明 Prometheus 指标，记录非运维路由的 HTTP 次数与耗时。
 
-记录以下指标供 Prometheus 抓取：
-- http_requests_total{method,endpoint,status} — HTTP 请求计数
-- http_request_duration_seconds{method,endpoint} — HTTP 请求耗时直方图
-- llm_requests_total{operation,model} — LLM 调用计数
-- llm_request_duration_seconds{operation,model} — LLM 调用耗时直方图
-- llm_tokens_total{type,model} — Token 用量累计
-
-设计要点：
-- prometheus_client 为可选依赖，未安装时指标为空操作（不阻断应用）
-- /metrics 端点暴露 Prometheus 文本格式
-- 排除 /health、/docs、/metrics 等运维路径，避免噪声
+模型指标由调用方显式调用 record_llm_* 更新，metrics_endpoint 提供文本响应。
+未安装 prometheus_client 时不创建指标对象。
 """
 
 from __future__ import annotations
@@ -28,7 +18,7 @@ from internal.server.middleware.rate_limit import OPERATIONS_PATHS
 logger = structlog.get_logger()
 
 # ──────────────────────────────────────────────
-# Prometheus 可选导入 — 未安装时降级为 no-op
+# 未安装 prometheus_client 时不创建指标，辅助函数直接跳过记录。
 
 try:
     from prometheus_client import (
@@ -39,15 +29,18 @@ try:
         CONTENT_TYPE_LATEST,
     )
 
+    # 本服务独立的 Prometheus 指标注册表，供 /metrics 导出。
     REGISTRY = CollectorRegistry()
 
     # HTTP 指标
+    # HTTP 请求累计次数，按请求方法、归一化路径和响应状态分组。
     HTTP_REQUESTS = Counter(
         "http_requests_total",
         "Total HTTP requests",
         ["method", "endpoint", "status"],
         registry=REGISTRY,
     )
+    # HTTP 请求处理耗时分布，单位秒，按方法和归一化路径分组。
     HTTP_DURATION = Histogram(
         "http_request_duration_seconds",
         "HTTP request duration in seconds",
@@ -56,18 +49,21 @@ try:
     )
 
     # LLM 指标
+    # 模型请求累计次数，按操作类型和模型标识分组。
     LLM_REQUESTS = Counter(
         "llm_requests_total",
         "Total LLM requests",
         ["operation", "model"],
         registry=REGISTRY,
     )
+    # 模型调用耗时分布，单位秒，按操作类型和模型标识分组。
     LLM_DURATION = Histogram(
         "llm_request_duration_seconds",
         "LLM request duration in seconds",
         ["operation", "model"],
         registry=REGISTRY,
     )
+    # 模型 token 累计消耗，按 token 类型和模型标识分组。
     LLM_TOKENS = Counter(
         "llm_tokens_total",
         "Total tokens consumed",
@@ -75,6 +71,7 @@ try:
         registry=REGISTRY,
     )
 
+    # 标记 Prometheus 依赖已成功导入，记录函数和中间件据此决定是否采集。
     PROMETHEUS_AVAILABLE = True
 
 except ImportError:
@@ -113,6 +110,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+        """为非运维请求记录方法、归一化路径、响应状态和耗时；未启用指标时直接转发。"""
         if not PROMETHEUS_AVAILABLE:
             return await call_next(request)
 

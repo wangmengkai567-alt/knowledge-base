@@ -14,10 +14,12 @@ if TYPE_CHECKING:
     from internal.biz.tools import ToolScope
 
 
+# 表示证据编号无法唯一对应原文，阻止不可靠的引用进入答案。
 class EvidenceBindingError(ValueError):
     pass
 
 
+# 将已登记的证据原文绑定到本次问答及其来源，供最终答案校验引用。
 @dataclass(frozen=True)
 class EvidenceFragment:
     evidence_id: str
@@ -28,6 +30,7 @@ class EvidenceFragment:
     origin: dict
 
 
+# 将连续原文拆成模型可选择的证据单元，正文与代码分别编号。
 @dataclass(frozen=True)
 class EvidenceUnit:
     evidence_id: str
@@ -39,6 +42,7 @@ class EvidenceUnit:
     content: str
 
     def model_value(self) -> dict:
+        """输出供模型选择的证据编号、类型和原文；内部位置仍保存在 EvidenceUnit 中。"""
         return {"evidence_id": self.evidence_id, "kind": self.kind, "content": self.content}
 
 

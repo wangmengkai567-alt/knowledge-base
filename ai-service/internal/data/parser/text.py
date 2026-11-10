@@ -18,6 +18,7 @@ class TextParser(BaseDocumentParser):
     """纯文本解析器。"""
 
     def _parse_sync(self, file_path: str) -> str:
+        """以 UTF-8 读取文件并展开竖线表格为检索文本；表格处理失败时记录日志并返回已读取正文。"""
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
         try:

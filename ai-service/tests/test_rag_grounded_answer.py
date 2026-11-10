@@ -19,17 +19,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from api.openapi.schemas.rag import RAGQueryRequest
 from internal.biz.answer_run import RunLimits
 from internal.biz.entity import ChatResult, Chunk, RetrievalResult
-from internal.biz.materials import AnswerSource, InputBudget, MaterialSegment
+from internal.biz.materials import AnswerSource, MaterialSegment
 from internal.biz.rag import RAGBiz
+from internal.biz.token_budget import InputBudget, TokenLimits
 from internal.biz.tool_model import ToolModel
 from internal.biz.tool_types import ToolCall, ToolResult
 from internal.biz.tools import ReadOnlyToolExecutor
 from internal.data.answer_runs import LocalAnswerRunStore
 from internal.data.chunker.recursive import RecursiveCharacterChunker
+from internal.data.token_counter import TOKENIZER_REF, ModelTokenCounter
 from internal.prompt.base import PromptTemplate
 from internal.server.http import HTTPServer
 from internal.service.rag import RAGService
 from pkg.errors.base import LLMError
+
+_COUNTER = ModelTokenCounter(str(Path(__file__).resolve().parents[1] / "resources/qwen38-flash"),
+                             model="qwen3.8-flash", tokenizer_ref=TOKENIZER_REF)
+
+def make_budget(input_limit=16000):
+    limits = TokenLimits(input_limit=input_limit, tool_result_max_tokens=min(3000, input_limit),
+                         page_tokens=min(2000, input_limit), summary_tokens=min(512, input_limit),
+                         preview_tokens=min(64, input_limit))
+    return InputBudget("qwen3.8-flash", _COUNTER, _COUNTER.render_request, TOKENIZER_REF, limits)
 
 
 class Prompts:
@@ -68,7 +79,7 @@ class LLM:
             raise value
         return value
 
-    async def generate_answer(self, messages, *, max_tokens, temperature=None):
+    async def generate_answer(self, messages, *, response_format, max_tokens, temperature=None):
         if isinstance(self.answer, Exception):
             raise self.answer
         return self.answer
@@ -91,7 +102,7 @@ def grounded_answer(status, claims=(), missing=()):
 
 
 def research_setup(actions, answer, *, contents=("启动顺序：先加载配置，再连接存储。",), limits=None, timeout=30):
-    budget = InputBudget("qwen3.8-flash")
+    budget = make_budget()
     chunker = RecursiveCharacterChunker(256, 32)
     documents, chunks_by_document, hits = {}, {}, []
     for number, content in enumerate(contents, 1):
@@ -152,7 +163,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(tools for tools in llm.tools))
         self.assertTrue(all(sum(m["role"] == "system" for m in messages) == 1 for messages, _ in llm.calls))
         llm.generate_answer.assert_awaited_once()
-        self.assertEqual(set(llm.generate_answer.await_args.kwargs), {"max_tokens", "temperature"})
+        self.assertEqual(set(llm.generate_answer.await_args.kwargs), {"response_format", "max_tokens", "temperature"})
 
     def test_kb_tool_context_omits_internal_index_metadata(self):
         material = AnswerSource(1, 3, "note.md", 1, [MaterialSegment(11, 0, 0, 5, "abcde")], [])
@@ -305,7 +316,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
             [action(query="代码")], grounded_answer("insufficient", missing=["代码原文"]), contents=(content,),
         )
         run = await biz.query(query="代码", knowledge_base_ids=[1], user_id=1)
-        self.assertEqual(run.error_code, "MATERIAL_BUDGET_EXCEEDED")
+        self.assertEqual(run.error_code, "TOOL_RESULT_TOO_LARGE")
         self.assertIn("代码块", run.tool_results[0].errors[0].message)
         self.assertEqual(run.usage.model_calls, 1)
         llm.generate_answer.assert_not_awaited()
@@ -513,7 +524,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(llm.calls), 1)
         self.assertEqual(executor.execute.await_count, 1)
         llm.generate_answer.assert_awaited_once()
-        self.assertEqual(set(llm.generate_answer.await_args.kwargs), {"max_tokens", "temperature"})
+        self.assertEqual(set(llm.generate_answer.await_args.kwargs), {"response_format", "max_tokens", "temperature"})
         self.assertIn("先加载配置", run.answer)
         self.assertEqual(run.answer_claims[0]["evidence_ids"], ["E1"])
         self.assertEqual(run.usage.actual_total_tokens, 60)
@@ -639,7 +650,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
                 frames = [frame async for frame in response.body_iterator]
             self.assertEqual(frames[-1], "data: [DONE]\n\n")
             payload = json.loads(frames[-2].removeprefix("data: "))
-            self.assertEqual((payload["version"], payload["tool_contract_version"], payload["answer_contract_version"]), (5, 2, 3))
+            self.assertEqual((payload["version"], payload["tool_contract_version"], payload["answer_contract_version"]), (6, 3, 3))
             self.assertEqual(payload["error_code"], "RUN_STREAM_FAILED")
             self.assertNotIn("private-test-marker", "".join(frames))
             details = log.error.call_args.kwargs
@@ -672,7 +683,7 @@ class BoundedRunTest(unittest.IsolatedAsyncioTestCase):
             result = events[-1]
             self.assertEqual(result["status"], status)
             self.assertEqual(result["answer_contract_version"], 3)
-            self.assertTrue(all((e["version"], e["tool_contract_version"], e["answer_contract_version"]) == (5, 2, 3) for e in events))
+            self.assertTrue(all((e["version"], e["tool_contract_version"], e["answer_contract_version"]) == (6, 3, 3) for e in events))
             saved = json.loads(next(Path(folder).glob("user-1/*.json")).read_text(encoding="utf-8"))
             self.assertEqual(saved["result"], {k: v for k, v in result.items() if k != "type"})
             self.assertTrue(all(e["run_id"] == result["run_id"] for e in events))

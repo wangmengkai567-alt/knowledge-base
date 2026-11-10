@@ -1,16 +1,13 @@
-"""
-internal/conf/config.py — 全局配置模型
+"""应用配置模型、YAML 配置源及跨字段校验。
 
-使用 Pydantic Settings：自动类型校验、默认值填充、env 覆盖、yaml 加载。
-- env_prefix="AI_" + env_nested_delimiter="__"：AI_SERVER__HTTP_PORT → server.http_port
-- env 优先级 > yaml > 代码默认值，密钥始终走 env
-- extra="ignore"：忽略无关环境变量
-- 安全默认值原则：代码默认值始终最安全（空密码、空 CORS、debug=False），
-  yaml/env 显式开放。
+优先级为构造参数、环境变量、.env、YAML、密钥文件和代码默认值。
+嵌套环境变量使用 AI_ 前缀及双下划线，例如 AI_SERVER__HTTP_PORT。
 """
 
 from __future__ import annotations
 
+import os
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -23,6 +20,8 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
+from internal.biz.token_budget import TokenLimits
+
 
 def _yaml_config_path() -> list[str]:
     """返回唯一的 YAML 配置文件路径（文件不存在则跳过）。"""
@@ -32,7 +31,7 @@ def _yaml_config_path() -> list[str]:
 
 # ──────────────────────────────────────────────
 # 嵌套配置子模型
-# 拆分原因：语义分组 + 嵌套覆盖 + 验证隔离 + 后续扩展不互相影响
+# 各配置组声明自己的字段和校验规则，并由 AppConfig 聚合。
 
 
 class ServerConfig(BaseSettings):
@@ -74,8 +73,7 @@ class ServerConfig(BaseSettings):
         description="服务标识，用于日志和监控",
     )
 
-    # CORS 配置 — 安全默认值原则：代码默认值最安全（空列表），
-    # yaml/env 显式开放。
+    # CORS 允许的来源、方法与请求头；实际值可由 YAML 或环境变量覆盖。
     cors_origins: list[str] = Field(
         default_factory=list,
         description="CORS 允许的来源列表，默认空（最安全），需通过 yaml/env 显式配置",
@@ -114,7 +112,7 @@ class DatabaseConfig(BaseSettings):
 
 
 class LLMConfig(BaseSettings):
-    """LLM 推理服务配置 — 最频繁变更的参数，拆出便于 A/B 实验。"""
+    """对话模型的提供商、连接、默认生成参数及请求时限配置。"""
 
     provider: Literal["openai", "deepseek", "local", "memory", "aliyun", "tencent", "zhipu"] = Field(
         default="deepseek",
@@ -170,7 +168,7 @@ class LLMConfig(BaseSettings):
 
 
 class RedisConfig(BaseSettings):
-    """Redis 配置 — 用于 Session 存储、缓存、限流。"""
+    """Redis 连接地址与会话键前缀；供会话管理和 Redis 限流器使用。"""
 
     url: str = Field(
         default="redis://localhost:6379/0",
@@ -257,7 +255,7 @@ class StorageConfig(BaseSettings):
 
 
 class RAGConfig(BaseSettings):
-    """RAG 核心参数 — 效果调优的关键变量，拆出便于 A/B 实验。"""
+    """分块大小、检索候选、查询扩展、相邻块范围及重排筛选参数。"""
 
     chunk_size: int = Field(
         default=500,
@@ -356,11 +354,15 @@ _TENCENT_EMBEDDING_DIMENSIONS: dict[str, int] = {
     "kinfra-vl-embedding-8b": 4096,
 }
 
+# 智谱接口的默认基础地址。
 _ZHIPU_API_BASE = "https://open.bigmodel.cn/api/paas/v4"
 # embedding-2 固定 1024；embedding-3 可选 256/512/1024/2048（默认 2048）
 _ZHIPU_EMBEDDING_3_DIMS = frozenset({256, 512, 1024, 2048})
+# 需要替换的旧接口主机。
 _STALE_API_HOSTS = ("deepseek.com", "openai.com", "tokenhub.tencentmaas.com")
+# 需要替换的旧对话模型名。
 _STALE_CHAT_MODELS = frozenset({"", "deepseek-chat", "hy3", "qwen2.5:7b"})
+# 需要替换的旧嵌入模型名。
 _STALE_EMBED_MODELS = frozenset({
     "",
     "text-embedding-3-small",
@@ -371,6 +373,7 @@ _STALE_EMBED_MODELS = frozenset({
 
 
 def _needs_zhipu_base(url: str) -> bool:
+    """判断地址是否为空或仍含已列出的旧供应商主机，以决定是否换成智谱基础地址。"""
     if not url.strip():
         return True
     lowered = url.lower()
@@ -484,6 +487,7 @@ class KeywordStoreConfig(BaseSettings):
 # 全局配置聚合根
 
 
+# 控制统一工具执行器的单次调用时限，仍受整次问答的总时限约束。
 class ToolConfig(BaseSettings):
     timeout: float = Field(default=30, gt=0, le=60, description="单次只读工具超时秒数")
 
@@ -497,12 +501,56 @@ class TavilyConfig(BaseSettings):
     api_key: str = Field(default="", repr=False)
     timeout: float = Field(default=20, gt=0, le=20)
     search_limit: int = Field(default=10, ge=1, le=10)
-    summary_chars: int = Field(default=1200, ge=100, le=1200)
 
 
+# 配置网页正文读取超时；正文窗口大小由 token_budget.page_tokens 单独配置。
 class WebReaderConfig(BaseSettings):
     timeout: float = Field(default=20, gt=0, le=20)
-    page_chars: int = Field(default=5000, ge=100, le=5000)
+
+
+# 本地 token 计数资源和各层预算配置；字段额度交给 TokenLimits 统一检查。
+class TokenBudgetConfig(BaseSettings):
+    model_config = SettingsConfigDict(extra="forbid")
+    # 单次模型请求输入 token 上限，包含历史、工具定义和估算余量。
+    input_limit: int = 16000
+    # 单次模型请求允许输出的最大 token 数。
+    output_limit: int = 2048
+    # 完整问答累计输入与输出的 token 总额度。
+    total_tokens: int = 64000
+    # 模型单次输入与输出合计的上下文 token 容量。
+    context_capacity: int = 1_000_000
+    # 单次工具结果 content 字符串的 token 上限。
+    tool_result_max_tokens: int = 3000
+    # 完整工具消息序列化后的 UTF-8 字节上限，独立于 token 限额。
+    tool_result_max_bytes: int = 12000
+    # 每条公开网页搜索摘要保留的 token 上限。
+    summary_tokens: int = 512
+    # 每次网页正文读取窗口的 token 上限。
+    page_tokens: int = 2000
+    # 每条页内查找预览的 token 上限。
+    preview_tokens: int = 64
+    # 部署内分词器资源目录，必须包含与清单一致的模型文件和请求模板。
+    tokenizer_dir: str = str(Path(__file__).resolve().parents[2] / "resources/qwen38-flash")
+    # 固定的分词器仓库及提交版本标识，加载时核对，不随运行自动更新。
+    tokenizer_ref: str = "Qwen/Qwen3.8-Flash-Next@812d96e10a0dd82b69d749e68693698cf6c36daa"
+    # 在完整请求模板计数之上追加的比例余量，取值 0～1。
+    safety_ratio: float = Field(default=0.1, ge=0, le=1, allow_inf_nan=False)
+    # 除比例余量之外追加的固定 token 数，必须小于输入上限。
+    fixed_reserve_tokens: int = Field(default=256, ge=0)
+
+    def limits(self) -> TokenLimits:
+        """将数量限制字段构造成 TokenLimits，创建时同时校验各项上限和嵌套关系。"""
+        return TokenLimits(**{name: getattr(self, name) for name in TokenLimits.__dataclass_fields__})
+
+    @model_validator(mode="after")
+    def validate_limits(self) -> TokenBudgetConfig:
+        """核对固定余量小于输入上限，且分词器标识对应程序确认的资源版本。"""
+        limits = self.limits()
+        if self.fixed_reserve_tokens >= limits.input_limit:
+            raise ValueError("固定请求余量必须小于输入上限")
+        if self.tokenizer_ref != "Qwen/Qwen3.8-Flash-Next@812d96e10a0dd82b69d749e68693698cf6c36daa":
+            raise ValueError("tokenizer_ref 不是已确认的固定资源版本")
+        return self
 
 
 class AppConfig(BaseSettings):
@@ -533,11 +581,39 @@ class AppConfig(BaseSettings):
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
     vector_store: VectorStoreConfig = Field(default_factory=VectorStoreConfig)
     keyword_store: KeywordStoreConfig = Field(default_factory=KeywordStoreConfig)
+    token_budget: TokenBudgetConfig = Field(default_factory=TokenBudgetConfig)
     tools: ToolConfig = Field(default_factory=ToolConfig)
     tavily: TavilyConfig = Field(default_factory=TavilyConfig)
     web_reader: WebReaderConfig = Field(default_factory=WebReaderConfig)
     prompt: PromptConfig = Field(default_factory=PromptConfig)
     log: LogConfig = Field(default_factory=LogConfig)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_obsolete_budget(cls, values):
+        """拒绝环境变量、.env 或配置对象中已废弃的字符预算字段，要求显式配置 token 额度。"""
+        obsolete = {"AI_TAVILY__SUMMARY_CHARS", "TAVILY_SUMMARY_CHARS", "AI_WEB_READER__PAGE_CHARS"}
+        present = obsolete.intersection(key.upper() for key in os.environ)
+        env_file = Path(".env")
+        if env_file.exists():
+            for line in env_file.read_text(encoding="utf-8-sig").splitlines():
+                match = re.match(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z_0-9]*)\s*=", line)
+                if match and match[1].upper() in obsolete:
+                    present.add(match[1].upper())
+        if isinstance(values, dict):
+            for group, old in (("tavily", "summary_chars"), ("web_reader", "page_chars")):
+                if isinstance(values.get(group), dict) and old in values[group]:
+                    present.add(group + "." + old)
+        if present:
+            raise ValueError("已废弃字符预算配置：" + ", ".join(sorted(present)) + "; 请迁移到 AI_TOKEN_BUDGET__SUMMARY_TOKENS/PAGE_TOKENS，不能按字符值直接换算")
+        return values
+
+    @model_validator(mode="after")
+    def validate_token_model(self) -> AppConfig:
+        """确认对话模型与当前固定计数资源对应；模型不匹配时拒绝加载配置。"""
+        if self.llm.chat_model != "qwen3.8-flash":
+            raise ValueError("当前 token 预算仅确认 qwen3.8-flash 与配置的固定资源对应")
+        return self
 
     @model_validator(mode="after")
     def _align_embedding_with_llm(self) -> AppConfig:
@@ -624,7 +700,7 @@ class AppConfig(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        """自定义配置源优先级：env > .env > yaml > 代码默认值。"""
+        """按优先级加载配置：构造参数、环境变量、.env、YAML、密钥文件、代码默认值。"""
         yaml_source = YamlConfigSettingsSource(
             settings_cls,
             yaml_file=_yaml_config_path(),
@@ -641,6 +717,7 @@ class AppConfig(BaseSettings):
 
 @lru_cache
 def get_settings() -> AppConfig:
+    # 复用已加载的配置，避免各模块重复读取环境变量和配置文件。
     return AppConfig()
 
 

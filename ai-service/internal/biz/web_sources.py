@@ -7,9 +7,11 @@ from datetime import UTC, datetime
 from typing import Literal, TypedDict
 
 from internal.biz.materials import WebSource
+from internal.biz.token_budget import TokenCounter, original_window
 from internal.biz.tool_types import ToolError
 
 
+# 返回页内查找命中的位置和预览，帮助模型决定接下来读取哪一段。
 class WebMatch(TypedDict):
     source_id: str
     start: int
@@ -20,6 +22,7 @@ class WebMatch(TypedDict):
     in_code: bool
 
 
+# 登记本次允许访问的网页，并跟踪正文是否已经读取。
 @dataclass
 class WebEntry:
     source_id: str
@@ -30,6 +33,7 @@ class WebEntry:
     read: bool = False
 
 
+# 固定一次抓取的完整正文，后续片段读取和页内查找都使用这一份内容。
 @dataclass(frozen=True)
 class WebPage:
     url: str
@@ -38,21 +42,15 @@ class WebPage:
     content: str
     code_ranges: list[tuple[int, int]]
 
-    def window(self, source_id: str, start: int, size: int) -> WebSource:
+    def window(self, source_id: str, start: int, max_tokens: int, counter: TokenCounter) -> WebSource:
         """从固定网页快照中读取一个正文窗口，返回带来源编号和绝对字符范围的 WebSource。
 
-        start 是网页正文中的起点，size 是最大字符数；边界会避开半段代码。
+        start 为原文字符起点，max_tokens 为窗口 token 额度；返回实际字符范围。
         越界、空白窗口或完整代码无法放入窗口时抛出工具错误，不发起新的网页请求。
         """
         if start >= len(self.content):
             raise ToolError("WEB_RANGE_INVALID", "正文起点超出该页字符范围")
-        for left, right in self.code_ranges:
-            if left < start < right:
-                start = left
-        end = min(start + size, len(self.content))
-        for left, right in self.code_ranges:
-            if left < end < right:
-                end = left
+        start, end = original_window(self.content, counter, max_tokens, start=start, code_ranges=self.code_ranges)
         if end <= start:
             raise ToolError("WEB_CODE_BLOCK_TOO_LARGE", "完整代码块超过本次片段上限，不能返回半段代码")
         if not self.content[start:end].strip():
@@ -88,6 +86,7 @@ def unseen_web_ranges(source: WebSource, existing: list) -> list[WebSource]:
     return portions
 
 
+# 统一管理一次问答中的网页目录和正文缓存，防止读取未登记地址或替换已有快照。
 @dataclass
 class WebRegistry:
     entries: list[WebEntry] = field(default_factory=list)
@@ -138,7 +137,7 @@ class WebRegistry:
             raise ToolError("WEB_PAGE_NOT_READ", "请先用 web_read 取得该来源正文，再进行页内查找")
         return self.pages[source_id]
 
-    def find(self, source_id: str, pattern: str) -> list[WebMatch]:
+    def find(self, source_id: str, pattern: str, counter: TokenCounter, preview_tokens: int) -> list[WebMatch]:
         """在已缓存网页中做区分大小写的字符串查找，返回最多十个命中的位置与短预览。
 
         不发起网络请求；预览用于选择后续 web_read 窗口，不能直接作为引用正文。
@@ -150,8 +149,7 @@ class WebRegistry:
             offset = page.content.find(pattern, start)
             if offset < 0:
                 break
-            preview_start = max(0, offset - (120 - len(pattern)) // 2)
-            preview_end = min(len(page.content), preview_start + 120)
+            preview_start, preview_end = original_window(page.content, counter, preview_tokens, start=offset)
             matches.append({
                 "source_id": source_id,
                 "start": offset,

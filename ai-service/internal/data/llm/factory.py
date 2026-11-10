@@ -2,7 +2,7 @@
 internal/data/llm/factory.py — LLMProvider 工厂
 
 根据配置创建对应的 LLMProvider 实例。
-支持 openai / deepseek / local(Ollama) / memory（内存伪模型）。
+云端兼容服务共用 OpenAILLM；local 使用 Ollama，memory 使用内存伪模型。
 """
 
 from __future__ import annotations

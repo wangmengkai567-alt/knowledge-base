@@ -1,15 +1,7 @@
-"""
-internal/data/keyword/bm25.py — BM25 关键词索引（内存实现）
+"""进程内 BM25 关键词索引：保存分块词频、长度和来源元数据。
 
-零外部依赖的 BM25 实现，用于混合检索。
-- 中英文混合分词：中文按字符切分，英文按单词切分（正则匹配）
-- 参数：k1=1.5, b=0.75（业界经验值）
-- 倒排索引结构：term → {chunk_id → term_freq}
-- 支持 metadata 过滤（如 knowledge_base_id），与 VectorStore 语义一致
-
-内存实现的定位：
-- 与 MemoryVectorStore 对称，进程内倒排，零外部依赖
-- 索引在进程内维护，重启后需要重建（IngestionBiz 启动时逐文档重建并记录状态）
+搜索先限制文档及元数据范围，再计算分数并返回前 top_k 项。
+索引不持久化，进程启动时由入库编排重建。
 """
 
 from __future__ import annotations
@@ -30,12 +22,7 @@ _TOKEN_PATTERN = re.compile(r"[\u4e00-\u9fa5]|[a-zA-Z0-9]+")
 
 
 def _tokenize(text: str) -> list[str]:
-    """中英文混合分词。
-
-    - 中文：按单字切分（BM25 不依赖分词质量，字符级足以召回）
-    - 英文/数字：按连续字母数字切分，转小写
-    - 忽略标点与其他符号
-    """
+    """将中文按单字、英文和数字按连续词串切分，英文转小写，忽略标点。"""
     if not text:
         return []
     tokens: list[str] = []
@@ -48,20 +35,23 @@ def _tokenize(text: str) -> list[str]:
 
 
 class BM25KeywordStore(KeywordStore):
-    """BM25 内存关键词索引。
+    """保存分块词频、长度和元数据的进程内索引。
 
-    并发安全：通过 asyncio.Lock 序列化写操作。
-    search 无需加锁——安全依赖于“asyncio 单线程 + search 内部本身无 await”，
-    使得 search 执行不会被写协程抓断（GIL 仅保证单次读写原子，不保护迭代）。
-    INVARIANT: search 及其内部方法不得引入 await——否则需同时加读锁。
+    写入和删除持有 _lock；search 不挂起协程，同一事件循环中的写协程无法在其读取中途进入。
+    若在读取过程中增加 await，必须同步调整读写互斥。
     """
 
     def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
+        """初始化空索引及 BM25 评分参数。
+
+        k1 控制词频增加时评分的饱和程度；b 控制文档长度归一化的影响。
+        这里的文档长度是 _tokenize 产生的词项数量，不是模型 token 用量。
+        """
         self._k1 = k1
         self._b = b
         # 词项 → {chunk_id: 词频}
         self._inverted: dict[str, dict[int, int]] = defaultdict(dict)
-        # chunk_id → 文档长度（token 数）；仅包含非空文档
+        # 分块 ID → 分词后的词项数量；只记录非空分块，不是模型 token 用量。
         self._doc_len: dict[int, int] = {}
         # chunk_id → metadata（与 _doc_len 同步：仅非空文档）
         self._metadata: dict[int, dict] = {}
@@ -78,6 +68,7 @@ class BM25KeywordStore(KeywordStore):
 
     @property
     def _num_docs(self) -> int:
+        """返回当前关键词索引中的分块数量；BM25 将每个分块视为一个检索文档。"""
         return len(self._doc_len)
 
     async def index(
@@ -103,10 +94,7 @@ class BM25KeywordStore(KeywordStore):
             for i, chunk_id in enumerate(chunk_ids):
                 tokens = _tokenize(texts[i])
                 if not tokens:
-                    # 空文档不入索引也不占位。
-                    # 旧实现将 doc_len[cid]=0 写入，会拉低 avg_dl，
-                    # 导致非空文档的 BM25 长度惩罚项被放大、得分偏低。
-                    # delete 已是 pop(cid, None) 幂等，无需占位保证。
+                    # 空分块不写入词频、长度或元数据，也不参与平均长度计算。
                     continue
 
                 # 词频统计
@@ -132,6 +120,7 @@ class BM25KeywordStore(KeywordStore):
         )
 
     async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        """返回已建关键词索引且元数据匹配指定文档、知识库的分块 ID。"""
         return {cid for cid in chunk_ids if cid in self._doc_len
                 and self._metadata.get(cid, {}).get("document_id") == document_id
                 and self._metadata.get(cid, {}).get("knowledge_base_id") == knowledge_base_id}
@@ -171,11 +160,10 @@ class BM25KeywordStore(KeywordStore):
         *,
         document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
-        """BM25 相关性搜索。
+        """对匹配查询词的分块计算 BM25 分数，返回前 top_k 个 (chunk_id, score)。
 
-        BM25 公式：
-            score(D, Q) = Σ IDF(q) × (tf × (k1 + 1)) / (tf + k1 × (1 - b + b × |D| / avgdl))
-            IDF(q) = log((N - df + 0.5) / (df + 0.5) + 1)   # Okapi BM25 平滑
+        document_ids 和 filter_metadata 在评分前限制候选范围；空查询或无匹配时返回空列表。
+        重复查询词只计一次贡献，分数使用本索引的词频与文档长度统计。
         """
         if not query or not query.strip():
             return []
@@ -186,7 +174,7 @@ class BM25KeywordStore(KeywordStore):
         if not query_tokens:
             return []
 
-        # 去重（BM25 通常对同一 term 只计一次贡献）
+        # 每个查询词在本次评分中只贡献一次，避免重复词增加权重。
         unique_terms = list(set(query_tokens))
 
         # 候选文档集：所有出现过任一 query term 的文档

@@ -1,8 +1,8 @@
 """
-internal/biz/retrieval.py — 向量检索业务逻辑
+internal/biz/retrieval.py — 知识库检索业务逻辑
 
 RetrievalBiz 负责：
-- retrieve：query → embed → search → enrich → 返回检索结果
+- 规划查询、召回候选、补齐来源，并按配置重排和筛选结果。
 
 """
 
@@ -22,10 +22,11 @@ from pkg.errors.base import RAGError
 
 logger = structlog.get_logger()
 
-# 重排/闸门前至少留够候选。过小的融合截断会让「stdin/stderr」这类
-# 在多篇笔记里都出现的术语，把真正带编号的段落挤出重排窗口。
-_RERANK_CANDIDATE_CAP = 64
-_RERANK_CANDIDATE_FLOOR = 32
+# 每个查询变体向检索器请求的候选分块数，按 top_k 的 4 倍计算，再限制在以下范围内。
+# 这是进入后续重排和筛选的候选数量；最终结果仍按请求的 top_k 截取。
+_RERANK_CANDIDATE_CAP = 64    # 请求候选数量的上限，限制每个查询变体的检索规模。
+_RERANK_CANDIDATE_FLOOR = 32  # 请求候选数量的下限，避免 top_k 较小时只检索少量分块。
+# 下限仅约束请求数量；符合条件的分块不足时，检索器实际返回的数量可以少于 32。
 
 if TYPE_CHECKING:
     from internal.biz.repo import ChunkRepo, DocumentRepo, EmbeddingProvider, Reranker, Retriever
@@ -50,6 +51,7 @@ class RetrievalBiz:
         max_query_variants: int = 3,
         rrf_k: int = 60,
     ) -> None:
+        """配置召回、重排和查询扩展；min_relevance 为重排分阈值，rrf_k 为排名融合参数。"""
         self._embedding_provider = embedding_provider
         self._retriever = retriever
         self._chunk_repo = chunk_repo
@@ -59,8 +61,7 @@ class RetrievalBiz:
         if rerank_enabled and reranker is None:
             raise ValueError("rerank_enabled requires a reranker")
         self._rerank_enabled = rerank_enabled
-        # 最低相关度门槛：重排后分数 < 该值的结果被丢弃（仅重排开启时生效）。
-        # 防止跨知识库扇出时把各库"最不差"的无关 chunk 也展示出来。
+        # 开启重排后，结合分数门槛和问题中的术语筛选资料，避免保留无关候选。
         self._min_relevance = min_relevance if self._rerank_enabled else 0.0
         self._query_expand_enabled = query_expand_enabled
         self._max_query_variants = max(1, max_query_variants)
@@ -87,7 +88,7 @@ class RetrievalBiz:
             raise RAGError(reason="INCOMPARABLE_SCORES", message="不同类型的检索分不能混合排序")
         hits.sort(key=lambda hit: (hit.score is not None, hit.score), reverse=True)
         # 跨库比较先为每个有相关命中的授权库、再为不同文档保留候选；
-        # 不能让同库/同文档的相邻块占满全局 top_k。仍只返回过闸门的真实命中。
+        # 避免同库或同文档的多个分块占满全局 top_k；这里只分配各库已通过相关性筛选的结果。
         by_kb, by_doc, rest = [], [], []
         seen_kbs, seen_docs = set(), set()
         for hit in hits:
@@ -144,6 +145,7 @@ class RetrievalBiz:
             return []
 
         filter_metadata = {"knowledge_base_id": knowledge_base_id}
+        # 根据查询计划执行检索，返回分块 ID 和各路检索分数。
         raw_results = await self._multi_retrieve(
             plan=plan,
             top_k=top_k,
@@ -158,6 +160,7 @@ class RetrievalBiz:
         # 3. 批量获取 chunk 详情
         chunk_ids = [item.chunk_id for item in raw_results]
         chunks = await self._chunk_repo.get_by_ids(chunk_ids)
+        # 按分块 ID 建立索引，供后面组装正文和来源信息。
         chunk_map = {c.id: c for c in chunks}
 
         # 4. 批量获取 document 详情
@@ -177,10 +180,7 @@ class RetrievalBiz:
             if doc is None or ingestion_status(doc.stages) != "ready":
                 continue
 
-            # 过滤：只返回指定知识库内的结果
-            # defense-in-depth——存储层已按 metadata 过滤，
-            # 这里保留作为二道保险：历史写入时未带 kb_id 的 chunk（旧数据）
-            # 可能绕过存储层过滤，在此统一拦截。
+            # 根据数据库中的文档归属再次核对知识库 ID，不仅依赖索引 metadata。
             if doc.knowledge_base_id != knowledge_base_id:
                 continue
 
@@ -198,10 +198,7 @@ class RetrievalBiz:
                 document_updated_at=doc.updated_at or doc.created_at,
             ))
 
-        # 5.5 文档级去重（仅搜索列表）。
-        # 检索命中以 chunk 为单位，同一文档常被多个 chunk 命中。
-        # 搜索结果需要每篇文档只展示一条；RAG 必须保留多 chunk，否则
-        # 长文档里排第二的相关段落进不了 context。
+        # 搜索列表每篇文档保留最高分分块；问答调用关闭此选项，保留同文档的多个相关分块。
         if dedupe_by_document:
             doc_best: dict[int, RetrievalResult] = {}
             for r in candidates:
@@ -210,8 +207,8 @@ class RetrievalBiz:
                     doc_best[r.document_id] = r
             candidates = sorted(doc_best.values(), key=lambda x: x.score, reverse=True)
 
-        # 6. 可选重排序：先给全部候选打分，再由门槛/术语闸门截断。
-        # 若这里按请求 top_k 截断，灰区分数的对题块会在进闸门前就被丢掉。
+        # 6. 开启重排时，为当前候选逐项计算问题相关性分数。
+        # top_k=None 表示此处不截取前 top_k 项：先执行下方筛选，再从保留结果中取 top_k 项。
         if self._rerank_enabled and candidates:
             candidates = await self._maybe_rerank(
                 plan.rerank_query or plan.original,
@@ -219,8 +216,11 @@ class RetrievalBiz:
                 top_k=None,
             )
 
-        # 6.5 相关性闸门：重排分过线，或问句英文术语全在笔记里。
-        # 过线但术语一个都碰不到的邻居丢掉，避免无关最近邻进生成。
+        # 7. 根据重排分数和问题关键词筛选结果，具体规则由 select_materials 调用 apply_relevance_gate 执行。
+        # 关键词由 query_english_terms 从问题中提取（英文或数字，去除停用词）；文件名和分块正文均参与匹配。
+        # 问题没有这类关键词：仅保留分数 >= min_relevance 的结果。
+        # 问题有这类关键词：分数 >= min_relevance 时至少匹配一个词；分数低于阈值时须匹配全部词。
+        # 未满足对应条件的结果被移除；apply_threshold=False 或阈值为 0 时不执行此筛选。
         if apply_threshold and self._min_relevance > 0:
             logger.info(
                 "retrieval_candidates_before_gate",
@@ -261,6 +261,8 @@ class RetrievalBiz:
         if len(embed_result.vectors) != len(plan.embed_texts):
             raise ValueError("embedding response count does not match query variants")
 
+        # 例如 top_k=5 或 8 时请求 32 个候选，top_k=10 时请求 40 个候选。
+        # 该数量分别应用于每个查询变体；多个变体融合后的候选总数可以超过 64。
         branch_k = min(_RERANK_CANDIDATE_CAP, max(top_k * 4, _RERANK_CANDIDATE_FLOOR))
         tasks = [
             self._retriever.retrieve(

@@ -1,17 +1,4 @@
-"""
-internal/data/llm/local.py — Ollama 本地 LLM 实现
-
-基于 Ollama 原生接口（/api/chat）实现 LLMProvider。
-无需 API 密钥，不依赖外部云。
-
-Ollama 接口文档：https://github.com/ollama/ollama/blob/main/docs/api.md
-
-与 OpenAI 兼容层（/v1/chat/completions）的区别：
-- 使用原生 /api/chat，响应更精简
-- 可用 keep_alive 控制模型在内存中的驻留时间
-- 流式用 NDJSON（每行一个 JSON），不是 SSE
-- 原生接口不需要 Authorization 请求头
-"""
+"""通过 Ollama /api/chat 发起非流式对话请求，返回正文及接口报告的输入、输出用量。"""
 
 from __future__ import annotations
 
@@ -42,6 +29,7 @@ class OllamaLLM(LLMProvider):
         timeout: int = 120,
         keep_alive: str = "5m",
     ) -> None:
+        """配置本地对话接口；max_tokens 限制输出，timeout 单位为秒，keep_alive 为模型驻留时间。"""
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._temperature = temperature
@@ -51,6 +39,7 @@ class OllamaLLM(LLMProvider):
 
     @property
     def model_name(self) -> str:
+        """返回本适配器请求的 Ollama 模型名称。"""
         return self._model
 
     async def generate(
@@ -136,12 +125,14 @@ class OllamaLLM(LLMProvider):
             return result
 
         except httpx.TimeoutException as exc:
+            # 单独标记请求超时，调用方可据此区分执行时限与其他依赖错误。
             logger.error("ollama_llm_timeout", url=url, timeout=self._timeout)
             raise APIError(
                 code=ErrorCode.LLM_TIMEOUT,
                 message=f"Ollama API timeout after {self._timeout}s",
             ) from exc
         except httpx.ConnectError as e:
+            # 连接服务失败时返回依赖错误，不返回空向量或空回答。
             logger.error("ollama_llm_connect_error", url=url, error=str(e))
             raise APIError(
                 code=ErrorCode.LLM_ERROR,
@@ -152,8 +143,10 @@ class OllamaLLM(LLMProvider):
                 ),
             ) from e
         except APIError:
+            # 保留前面已分类的服务响应或数据校验错误，不再包装成未预期异常。
             raise
         except Exception as e:
+            # 将其余响应解析或处理异常转换为统一业务错误，并保留异常链。
             logger.error("ollama_llm_unexpected_error", error=str(e))
             raise APIError(
                 code=ErrorCode.LLM_ERROR,

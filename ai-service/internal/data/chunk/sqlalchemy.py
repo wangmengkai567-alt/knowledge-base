@@ -1,9 +1,4 @@
-"""
-internal/data/chunk/sqlalchemy.py — ChunkRepo 的 SQLAlchemy 实现
-
-data 层实现 biz 定义的 ChunkRepo 接口（依赖倒置）。
-负责技术细节：SQLAlchemy ORM 操作、PO ↔ DO 转换。
-"""
+"""通过 SQLAlchemy 读写分块、替换文档分块集合和更新嵌入状态。"""
 
 from __future__ import annotations
 
@@ -20,6 +15,7 @@ class SQLAlchemyChunkRepo(ChunkRepo):
     """ChunkRepo 的 SQLAlchemy 实现。"""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        """保存异步数据库会话工厂；每次仓储操作通过它创建独立会话。"""
         self._session_factory = session_factory
 
     async def create_batch(self, chunks: list[Chunk]) -> list[Chunk]:

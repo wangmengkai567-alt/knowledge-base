@@ -1,9 +1,4 @@
-"""Retrieval relevance gate: rerank score plus query-term overlap.
-
-Zhipu raw logits squash into a gray zone around min_relevance. A hard
-score cutoff then drops notes that actually contain the asker's terms,
-and can keep a high-scoring neighbor that shares none of them.
-"""
+"""结合重排分数和问题中的英文术语，筛选与问题相关的资料。"""
 
 from __future__ import annotations
 
@@ -24,13 +19,11 @@ def apply_relevance_gate(
     candidates: list[RetrievalResult],
     min_relevance: float,
 ) -> list[RetrievalResult]:
-    """Keep notes that clear the score line or carry every query term.
+    """按实际重排分数和原问题关键词筛选候选，返回保留结果。
 
-    - No English terms in the query: trust the rerank score only.
-    - Score >= min_relevance: keep if at least one query term appears
-      (drop neighbors the reranker liked but the question never mentioned).
-    - Score < min_relevance: keep only if every query term appears
-      (rescue on-topic notes the reranker under-scored).
+    阈值小于等于 0 时原样返回。否则，仅接受具有真实重排分数的候选。
+    问题无英文或数字关键词时，要求分数达到阈值；有关键词时，达到阈值还须匹配至少一个词，
+    低于阈值则须匹配全部词。匹配同时检查文件名和分块正文。
     """
     if min_relevance <= 0:
         return list(candidates)

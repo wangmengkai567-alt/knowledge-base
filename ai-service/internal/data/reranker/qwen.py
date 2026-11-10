@@ -1,15 +1,7 @@
-"""
-internal/data/reranker/qwen.py — 千问文本重排序（DashScope 原生接口）
+"""通过千问原生重排接口获取候选分块的相关性分数。
 
-协议见：https://platform.qianwenai.com/docs/api-reference/rerank/dashscope-rerank
-POST {origin}/api/v1/services/rerank/text-rerank/text-rerank
-Authorization: Bearer {api_key}
-
-请求：model / input.query / input.documents，可选 parameters.top_n / instruct。
-响应：output.results[].index、output.results[].relevance_score（0~1）。
-
-qwen3.7-text-rerank 不支持 OpenAI 兼容的 /compatible-api/v1/reranks，
-base_url 填 /compatible-mode/v1 也只取其域名。
+根据响应 index 关联输入候选，校验分数与数量后返回重排结果。
+接口地址从 base_url 取协议和域名，再使用本模块固定的重排路径。
 """
 
 from __future__ import annotations
@@ -27,18 +19,19 @@ from pkg.errors.base import RAGError
 
 logger = structlog.get_logger()
 
+# 千问原生重排接口路径。
 _RERANK_PATH = "/api/v1/services/rerank/text-rerank/text-rerank"
+# 千问重排请求的默认任务说明。
 _DEFAULT_INSTRUCT = "Given a web search query, retrieve relevant passages that answer the query."
-# qwen3.7-text-rerank：最多 500 篇；单篇上限远高于分块长度，按字符截断只防异常大块。
-_MAX_DOCUMENTS = 500
-_MAX_CHARS = 8000
+_MAX_DOCUMENTS = 500  # 一次重排请求最多发送的候选数量；超出时截取输入列表前部。
+_MAX_CHARS = 8000     # 查询及每条“文件名 + 正文”的字符数上限，不是 token 上限。
 
 if TYPE_CHECKING:
     from internal.biz.entity import RetrievalResult
 
 
 def rerank_endpoint(base_url: str) -> str:
-    """任意千问 base_url（含 /compatible-mode/v1）都落到 DashScope 原生重排路径。"""
+    """保留已含原生重排路径的地址；否则从有效 base_url 取协议与域名，追加固定重排路径。"""
     raw = (base_url or "").strip().rstrip("/")
     if _RERANK_PATH in raw:
         return raw
@@ -49,6 +42,7 @@ def rerank_endpoint(base_url: str) -> str:
 
 
 def _document_text(item: RetrievalResult) -> str:
+    """把文件名与分块正文组合成一条重排文本，并按单条字符数上限截取。"""
     name = (item.document_filename or "").strip()
     content = (item.chunk_content or "").strip()
     text = f"{name}\n{content}" if name and content else (content or name)
@@ -66,6 +60,7 @@ class QwenReranker(Reranker):
         timeout: int = 30,
         instruct: str = _DEFAULT_INSTRUCT,
     ) -> None:
+        """配置千问重排地址、密钥和模型；timeout 为超时秒数，instruct 为重排任务说明。"""
         self._url = rerank_endpoint(base_url)
         self._api_key = api_key
         self._model = model
@@ -74,14 +69,21 @@ class QwenReranker(Reranker):
 
     @property
     def model_name(self) -> str:
+        """返回请求千问重排接口时使用的模型名。"""
         return self._model
 
+    # 请求千问对候选分块重新打分，核对返回索引和数量后按分数排序。
     async def rerank(
         self,
         query: str,
         results: list[RetrievalResult],
         top_k: int | None = None,
     ) -> list[RetrievalResult]:
+        """向千问提交查询和候选文本，通过响应 index 取得原候选并更新重排分。
+
+        候选列表超出本模块数量上限时截取前部；top_k=None 或非正数时请求全部候选评分。
+        响应缺失、重复索引或分数不在 0～1 范围内时抛出 RAGError。
+        """
         if not results:
             return []
         if len(results) > _MAX_DOCUMENTS:
@@ -116,12 +118,14 @@ class QwenReranker(Reranker):
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.post(self._url, json=payload, headers=headers)
         except httpx.TimeoutException as e:
+            # 保留 RERANK_TIMEOUT 分类，供检索工具和问答层识别超时终止。
             raise RAGError(
                 reason="RERANK_TIMEOUT",
                 message=f"千问重排序超时（{self._timeout}s）",
                 metadata={"url": self._url, "model": self._model},
             ) from e
         except httpx.HTTPError as e:
+            # 网络失败直接作为重排失败上报，不使用原检索排序替代重排结果。
             raise RAGError(
                 reason="RERANK_CONNECT_ERROR",
                 message=f"千问重排序连接失败：{e}",
@@ -138,6 +142,7 @@ class QwenReranker(Reranker):
         try:
             data = response.json()
         except ValueError as e:
+            # HTTP 成功仍可能返回无法解析的 JSON，此时明确报告响应格式错误。
             raise RAGError(
                 reason="RERANK_BAD_RESPONSE",
                 message="千问重排序返回了无法解析的响应",
@@ -152,6 +157,7 @@ class QwenReranker(Reranker):
             )
 
         reranked: list[RetrievalResult] = []
+        # 供应商返回的是输入位置，通过它关联原分块，不能按返回顺序直接配对。
         seen: set[int] = set()
         for item in api_results:
             idx = item.get("index")
@@ -161,6 +167,7 @@ class QwenReranker(Reranker):
             try:
                 score = float(item["relevance_score"])
             except (KeyError, TypeError, ValueError) as exc:
+                # 候选索引或真实分数缺失时拒绝结果，不按返回位置补配候选或生成分数。
                 raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排缺少真实分数") from exc
             if not math.isfinite(score) or not 0 <= score <= 1:
                 raise RAGError(reason="RERANK_BAD_RESPONSE", message="重排分数无效")
@@ -184,6 +191,7 @@ class QwenReranker(Reranker):
 
 
 def _error_message(response: httpx.Response) -> str:
+    """从响应中提取千问错误码和说明；无法解析时保留状态码及最多 200 字符响应文本。"""
     try:
         body = response.json()
         if isinstance(body, dict) and body.get("message"):

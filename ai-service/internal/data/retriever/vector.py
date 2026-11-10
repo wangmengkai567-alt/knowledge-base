@@ -1,9 +1,4 @@
-"""
-internal/data/retriever/vector.py — 纯向量检索器实现
-
-基于 VectorStore 的相似度搜索，供纯向量检索配置使用。
-后续可扩展为混合检索（向量 + BM25）。
-"""
+"""将查询向量、元数据及文档范围交给 VectorStore，返回带评分类型的候选分块。"""
 
 from __future__ import annotations
 
@@ -19,6 +14,7 @@ class VectorRetriever(Retriever):
     """纯向量检索器 — 委托 VectorStore 执行相似度搜索。"""
 
     def __init__(self, vector_store: VectorStore) -> None:
+        """注入向量存储，检索时由它执行相似度搜索和元数据过滤。"""
         self._vector_store = vector_store
 
     async def retrieve(
@@ -31,10 +27,7 @@ class VectorRetriever(Retriever):
         *,
         document_ids: list[int] | None = None,
     ) -> list[RetrievedChunk]:
-        """委托 VectorStore.search 执行相似度检索。
-
-        `query_text` / `keyword_query` 仅供接口统一，纯向量检索忽略。
-        """
+        """向向量存储查询指定来源范围内的前 top_k 项；不使用 query_text 或 keyword_query。"""
         results = await self._vector_store.search(
             query_vector=query_vector,
             top_k=top_k,

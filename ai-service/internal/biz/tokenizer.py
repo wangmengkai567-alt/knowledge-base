@@ -22,8 +22,10 @@ def token_spans(text: str) -> list[tuple[int, int]]:
 
 
 def tokenize(text: str) -> list[str]:
+    """按 token_spans 返回的原文范围提取估算词项，不改写原文。"""
     return [text[start:end] for start, end in token_spans(text or "")]
 
 
 def count_tokens(text: str) -> int:
+    """返回本地估算词项数量，不是供应商 tokenizer 的精确 token 数。"""
     return len(tokenize(text))

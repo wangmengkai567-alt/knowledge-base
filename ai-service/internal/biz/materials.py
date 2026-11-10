@@ -1,8 +1,8 @@
-"""资料的唯一处理入口：筛选、邻块合并、完整提示预算与引用映射。"""
+"""资料的唯一处理入口：筛选、邻块合并、预算内原文选择与引用映射。"""
+# 管理输入预算、资料组织和上下文裁剪
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
@@ -31,16 +31,17 @@ def select_materials(
 
 @dataclass(frozen=True)
 class MaterialSegment:
-    """原分块中的连续切片；start/end 是分块内字符偏移，范围为左闭右开。"""
+    """原分块中的连续原文切片；start/end 为原分块内的字符范围，左闭右开。"""
 
     chunk_id: int
-    position: int
-    start: int
-    end: int
-    content: str
-    code_ranges: list[tuple[int, int]] = field(default_factory=list)
+    position: int  # 原文中的分块序号，从 0 开始。
+    start: int     # 原分块内的字符起点，包含该位置。
+    end: int       # 原分块内的字符终点，不包含该位置。
+    content: str   # 必须等于原分块正文的 [start:end]。
+    code_ranges: list[tuple[int, int]] = field(default_factory=list)  # 原分块内完整代码块的字符范围。
 
 
+# 将同一文档的原文片段组织为可引用资料，供模型作答和后续核验使用。
 @dataclass
 class AnswerSource:
     citation_id: int
@@ -55,9 +56,11 @@ class AnswerSource:
 
     @property
     def content(self) -> str:
+        """按 segments 的顺序用换行连接实际引用的原文；各段在源文档中不一定连续。"""
         return "\n".join(segment.content for segment in self.segments)
 
 
+# 将网页摘要或正文组织为可引用资料，并保留原文位置。
 @dataclass
 class WebSource:
     citation_id: int
@@ -74,109 +77,21 @@ class WebSource:
     code_ranges: list[tuple[int, int]] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
-class InputBudget:
-    model: str
-    input_limit: int = 16000
-    output_limit: int = 2048
-    # 容量针对当前配置模型确认；更换模型时需同步核对输入、输出和总上下文限制。
-    context_capacity: int = 1000000
-    measurement: str = "utf8_bytes_estimate"
-
-    def input_ceiling(self, output_tokens: int) -> int:
-        """输入限额独立于输出限额；只有模型总上下文容量需要扣除输出。"""
-        return min(self.input_limit, self.context_capacity - output_tokens)
-
-    def estimate(self, messages: list[dict], tools: list[dict], history: list[dict]) -> int:
-        """保守的 UTF-8 字节估算，包含消息包装；不是供应商精确 token 计量。"""
-        payload = {"messages": [*history, *messages], "tools": tools}
-        return len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) + 256
-
-
-@dataclass
-class PreparedMaterials:
-    messages: list[dict]
-    sources: list[AnswerSource | WebSource]
-    estimated_input_tokens: int
-    output_tokens: int
-    measurement: str
-
-
+# 将检索结果整理为模型可用的资料：核对原文、补充相邻分块并控制请求大小。
 class MaterialProcessor:
     def __init__(
-        self, chunk_repo: ChunkRepo, context_window: int, budget: InputBudget, *,
+        self, chunk_repo: ChunkRepo, context_window: int, *,
         document_repo: DocumentRepo | None = None, chunker: TextChunker | None = None,
     ) -> None:
-        if budget.model != "qwen3.8-flash":
-            raise ValueError("资料预算尚未确认此模型的容量：" + budget.model)
+        """注入原文及分块依赖；context_window 为命中块两侧各扩展的块数。"""
         self._chunk_repo = chunk_repo
         self._window = context_window
-        self._budget = budget
         self._documents = document_repo
         self._chunker = chunker
 
-    async def prepare(
-        self,
-        hits: list[RetrievalResult],
-        build_messages: Callable[[str], list[dict]],
-        output_tokens: int,
-        *,
-        tools: list[dict] | None = None,
-        history: list[dict] | None = None,
-        query: str = "",
-    ) -> PreparedMaterials:
-        """把检索命中转换为可送模资料，返回消息、保留来源和输入估算。
-
-        先核对文档与原分块，再扩展相邻块；build_messages 根据资料正文构建实际模型消息，
-        后续裁剪同时计入 tools、history 和 output_tokens 所占预算。
-        """
-        return self.prepare_sources(
-            await self._merge(hits), build_messages, output_tokens, tools=tools, history=history,
-            query=query,
-        )
-
-    def prepare_sources(
-        self,
-        candidates: list[AnswerSource | WebSource],
-        build_messages: Callable[[str], list[dict]],
-        output_tokens: int,
-        *,
-        tools: list[dict] | None = None,
-        history: list[dict] | None = None,
-        query: str = "",
-    ) -> PreparedMaterials:
-        """从候选知识库或网页资料中选择能放入请求的原文，返回 PreparedMaterials。
-
-        build_messages 用于重建完整消息；按 query 选择相关片段并分配引用编号。
-        若基础提示超限或有候选却容不下任何有效片段，抛出预算错误。
-        """
-        budget = self._budget
-        tools, history = tools or [], history or []
-        if not 0 < output_tokens <= budget.output_limit:
-            raise RAGError(reason="OUTPUT_BUDGET_EXCEEDED", message="回答预算必须在 1 到 2048 之间")
-        limit = budget.input_ceiling(output_tokens)
-
-        def measure(sources: list[AnswerSource | WebSource]) -> tuple[list[dict], int]:
-            messages = build_messages(render_materials(sources))
-            return messages, budget.estimate(messages, tools, history)
-
-        _, base_size = measure([])
-        if base_size >= limit:
-            raise RAGError(reason="INPUT_BUDGET_EXCEEDED", message="问题及系统提示已超过输入预算")
-
-        sources = pack_sources(
-            [replace(source, citation_id=index) for index, source in enumerate(candidates, 1)],
-            lambda values: measure(values)[1] <= limit,
-            query=query,
-        )
-        messages, size = measure(sources)
-        if candidates and not sources:
-            message = "输入预算不足以容纳资料"
-            if any(any(part.code_ranges for part in source.segments) if isinstance(source, AnswerSource)
-                   else source.code_ranges for source in candidates):
-                message += "；代码块必须完整保留，不能截断"
-            raise RAGError(reason="MATERIAL_BUDGET_EXCEEDED", message=message)
-        return PreparedMaterials(messages, sources, size, output_tokens, budget.measurement)
+    async def prepare(self, hits: list[RetrievalResult]) -> list[AnswerSource]:
+        """核验并合并候选原文；工具与完整请求分别用实际发送视图装包。"""
+        return await self._merge(hits)
 
     async def _read_document(self, doc_id: int):
         """读取就绪文档并核对当前分块确实对应规范正文，返回文档、分块、位置区间和代码区间。
@@ -324,7 +239,7 @@ def clip_source(source: AnswerSource | WebSource, length: int) -> AnswerSource |
 
 
 def question_parts(query: str) -> list[str]:
-    """只按显式分句列出待核查主题；词面匹配不宣称语义覆盖。"""
+    """按问号、分号等显式分隔符拆分问题，去重后返回待查询主题，不调用模型。"""
     return list(dict.fromkeys(
         part.strip() for part in re.split(r"[；;？?。\n]+|以及|(?<=\s)和(?=\s)", query) if part.strip()
     ))
@@ -342,7 +257,10 @@ def question_terms(query: str) -> set[str]:
 
 
 def evidence_coverage(query: str, sources: list[AnswerSource | WebSource]) -> dict:
-    """按问题分句和真实来源登记候选；缺失仅指本次送模片段未命中。"""
+    """列出每个问题分句在已送模片段中匹配到的引用编号，以及这些片段的来源版本。
+
+    匹配按关键词完成；未匹配只表示当前片段未命中，不说明整份文档不存在相关内容。
+    """
     topics = []
     for part in question_parts(query):
         terms = question_terms(part)
@@ -381,6 +299,7 @@ def _text_ranges(content: str, code_ranges: list[tuple[int, int]]) -> list[tuple
     cursor = 0
 
     def prose(start: int, end: int) -> None:
+        """将非代码区间按行和中文句末标点拆成字符范围，保留行尾换行及附属空白行。"""
         offset = start
         for line in content[start:end].splitlines(keepends=True):
             line_end = offset + len(line)
@@ -404,6 +323,7 @@ def _text_ranges(content: str, code_ranges: list[tuple[int, int]]) -> list[tuple
     return ranges
 
 
+# 保存候选摘录的位置和相关性，供预算不足时挑选、缩短原文片段。
 @dataclass(frozen=True)
 class _Excerpt:
     source: int
@@ -501,14 +421,14 @@ def pack_sources(
             for position, (left, right) in enumerate(ranges):
                 direct = scores[position]
                 neighbor = max(scores[max(0, position - 1):position + 2], default=0)
-                # 邻句保留单位、前置条件和否定；不把文档名匹配冒充正文依据。
+                # 同时考虑相邻句的关键词命中，选择正文时保留命中位置前后的句子。
                 score = direct * 4 + neighbor + (0.25 if hit else 0)
-                # 页标题在正文中的解释段优先于仅重复主题词的操作示例。
+                # 正文既包含完整页标题又有其他说明文字时，增加该片段的排序分。
                 paragraph = content[left:right].casefold()
                 if (title_phrase and title_phrase in paragraph
                         and paragraph.replace(title_phrase, "", 1).strip(" \t\r\n?？#")):
                     score += 8
-                # 比较题中的真实数值/单位比泛泛的限制介绍更有信息量；仍须词面相关。
+                # 片段命中问题关键词且包含数值单位时，增加其排序分。
                 if direct and re.search(r"\d\s*(?:[KMGT]?B|[kmgt]b?|cores?|核|秒|分钟|小时|%)\b", content[left:right], re.I):
                     score += 4
                 if not terms or score > 0:
@@ -521,21 +441,27 @@ def pack_sources(
     chosen: list[_Excerpt] = []
 
     def project(items: list[_Excerpt]) -> list[AnswerSource | WebSource]:
+        """按候选来源分组已选摘录，重新构造可送入模型的来源对象列表。"""
         grouped: dict[int, list[_Excerpt]] = {}
         for item in items:
             grouped.setdefault(item.source, []).append(item)
         return [_excerpt_source(candidates[index], group) for index, group in sorted(grouped.items())]
 
     def contained(item: _Excerpt) -> bool:
+        """检查同一来源、同一片段中是否已选过覆盖该摘录的更大字符区间。"""
         return any(old.source == item.source and old.segment == item.segment
                    and old.start <= item.start and item.end <= old.end for old in chosen)
 
     def budgeted_window(item: _Excerpt) -> _Excerpt | None:
+        # 对有限原文候选逐项核验，不假定 token 数随字符窗口严格单调。
         content, codes = contexts[item.source, item.segment]
         minimum = item.focus_end - item.focus_start
-        low, high, best = minimum, item.end - item.start, None
-        while low <= high:
-            length = (low + high) // 2
+        maximum = item.end - item.start
+        lengths = {minimum, maximum}
+        lengths.update(minimum + (maximum - minimum) * step // 128 for step in range(129))
+        lengths.update(min(maximum, minimum + 2 ** power) for power in range(maximum.bit_length()))
+        seen = set()
+        for length in sorted(lengths, reverse=True):
             start = max(item.start, min(item.focus_start - (length - minimum) // 2, item.end - length))
             end = start + length
             for left, right in codes:
@@ -543,27 +469,25 @@ def pack_sources(
                     start = right
                 if left < end < right:
                     end = left
-            # 保留原 CRLF 对；窗口可以省略整对换行，不能只留下其中一个字符。
             if content[start - 1:start + 1] == "\r\n":
                 start += 1
             if content[end - 1:end + 1] == "\r\n":
                 end -= 1
+            if (start, end) in seen:
+                continue
+            seen.add((start, end))
             window = replace(item, start=start, end=end)
             if start <= item.focus_start < item.focus_end <= end and fits(project([*chosen, window])):
-                best = window
-                low = length + 1
-            else:
-                high = length - 1
-        return best
+                return window
+        return None
 
-    # 每份文档最相关的完整单元先争取空间；之后按相关度补齐，绝不等长截取每份开头。
+    # 先按来源分组保留各来源排名最高的片段，其余片段按相关度补充。
     first, rest, seen = [], [], set()
     for item in excerpts:
         key = source_identity(candidates[item.source])
         (rest if key in seen else first).append(item)
         seen.add(key)
-    # 先为每份来源争取一个完整核心单元，再扩展邻句和背景。
-    # 避免首份来源的长邻接窗口挤掉另一份资料；核心仍须满足同一完整请求预算。
+    # 首轮仅尝试每份来源的核心句或完整代码块；能否保留仍由完整请求预算决定。
     for item in first:
         content, codes = contexts[item.source, item.segment]
         source = candidates[item.source]

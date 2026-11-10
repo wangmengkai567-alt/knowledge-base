@@ -1,13 +1,4 @@
-"""
-internal/server/middleware/security.py — 安全响应头中间件
-
-添加标准安全 HTTP 头，防止常见的 Web 攻击：
-- X-Content-Type-Options: nosniff — 防止 MIME 类型嗅探
-- X-Frame-Options: DENY — 防止点击劫持
-- X-XSS-Protection: 0 — 现代浏览器建议关闭（用 CSP 替代）
-- Referrer-Policy: strict-origin-when-cross-origin — 限制 Referer 泄露
-- Strict-Transport-Security — 强制 HTTPS（仅 HTTPS 有效）
-"""
+"""为响应设置 MIME 嗅探、页面嵌入、来源信息和 HTTPS 传输相关的安全头。"""
 
 from __future__ import annotations
 
@@ -22,6 +13,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+        """取得下游响应后设置浏览器安全响应头，再将响应返回客户端。"""
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"

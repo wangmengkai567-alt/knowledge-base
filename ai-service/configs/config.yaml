@@ -1,5 +1,5 @@
 # 非密钥默认值。优先级：环境变量 > .env > 本文件 > 代码默认值。
-# 密钥、智谱模型名、Postgres 连接串写在 .env，不要写进本文件。
+# 密钥、当前模型名及数据库连接串通过本地 .env 或环境变量配置。
 
 server:
   host: "0.0.0.0"
@@ -93,3 +93,18 @@ prompt:
 log:
   level: "INFO"
   format: "json"
+
+# 面向模型的 token 预算；传输字节限制与原文字符坐标分别保留。
+token_budget:
+  input_limit: 16000
+  output_limit: 2048
+  total_tokens: 64000
+  context_capacity: 1000000
+  tool_result_max_tokens: 3000
+  tool_result_max_bytes: 12000
+  summary_tokens: 512
+  page_tokens: 2000
+  preview_tokens: 64
+  safety_ratio: 0.1
+  fixed_reserve_tokens: 256
+  tokenizer_ref: "Qwen/Qwen3.8-Flash-Next@812d96e10a0dd82b69d749e68693698cf6c36daa"

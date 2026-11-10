@@ -12,8 +12,11 @@ import structlog
 
 logger = structlog.get_logger()
 
+# 识别竖线表格行。
 _PIPE_LINE = re.compile(r"^\s*\|.*\|\s*$")
+# 识别 Markdown 表头分隔符，如 ---、:---:。
 _SEP_CELL = re.compile(r"^:?-{3,}:?$")
+# 识别四位数字的年份表头。
 _YEAR = re.compile(r"^\d{4}$")
 
 
@@ -36,6 +39,7 @@ class StructuredTable:
         blocks.extend(self.row_texts())
         return "\n\n".join(block for block in blocks if block.strip())
 
+    # 将每一行展开为带表头和来源信息的文本，便于单独检索某一行。
     def row_texts(self) -> list[str]:
         lines_per_row: list[str] = []
         for index, row in enumerate(self.rows, start=1):
@@ -57,6 +61,7 @@ class StructuredTable:
             lines_per_row.append("\n".join(head + pairs))
         return lines_per_row
 
+    # 生成整张表的标题和表头概览，补充仅靠数据行无法表达的上下文。
     def _summary_text(self) -> str:
         head = ["类型：表格", f"表格编号：{self.table_id}"]
         if self.page is not None:
@@ -87,10 +92,12 @@ def build_table(
             logger.warning("table_empty", table_id=table_id)
             return None
         filled = _fill_spans(normalized, mask)
+        # 将多层表头合成列名，再把每行数据与列名对应起来。
         header_rows, data_rows = _split_header(filled)
         headers = _flatten_headers(header_rows)
         records = _records(headers, data_rows)
         raw_header, raw_data = _split_header(normalized)
+        # 原始表格使用补全前的网格，避免将推断出的合并单元格内容冒充原值。
         raw_markdown = _to_markdown(raw_header + raw_data, header_count=max(len(raw_header), 1))
         if not records and len(filled) == 1:
             logger.info("table_header_only", table_id=table_id)
@@ -163,6 +170,7 @@ def enrich_pipe_tables(text: str) -> str:
         return text
 
 
+# 识别正文中的竖线表格，用带列名的检索文本替换对应区域。
 def _replace_pipe_tables(text: str) -> str:
     lines = text.splitlines()
     output: list[str] = []
@@ -185,6 +193,7 @@ def _replace_pipe_tables(text: str) -> str:
     return "\n".join(output)
 
 
+# 将不等长的单元格行补齐，并记录哪些空位来自合并单元格。
 def _normalize(
     grid: list[list[str | None]],
     span_mask: list[list[bool]] | None,
@@ -211,6 +220,7 @@ def _normalize(
     return texts, mask
 
 
+# 将合并单元格的值向下补齐，让每个数据行都能独立表达含义。
 def _fill_spans(grid: list[list[str]], mask: list[list[bool]]) -> list[list[str]]:
     filled = [row[:] for row in grid]
     for row_index in range(1, len(filled)):
@@ -245,6 +255,7 @@ def _fill_leading_groups(grid: list[list[str]], mask: list[list[bool]]) -> None:
                 mask[row_index][col] = True
 
 
+# 优先按 Markdown 分隔线识别表头，没有分隔线时再判断是否存在两层表头。
 def _split_header(grid: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
     separator = next((i for i, row in enumerate(grid) if _is_separator(row)), None)
     if separator is not None:
@@ -255,6 +266,7 @@ def _split_header(grid: list[list[str]]) -> tuple[list[list[str]], list[list[str
     return grid[:1], grid[1:]
 
 
+# 识别上层为年份、下层为指标名的常见双层表头。
 def _looks_like_two_level_header(first: list[str], second: list[str]) -> bool:
     if not any(cell.strip() for cell in first) or not any(cell.strip() for cell in second):
         return False
@@ -265,6 +277,7 @@ def _looks_like_two_level_header(first: list[str], second: list[str]) -> bool:
     return year_like >= 2 and label_like >= 2
 
 
+# 合并同一列的多层表头，得到展开数据行时使用的完整列名。
 def _flatten_headers(header_rows: list[list[str]]) -> list[str]:
     width = max((len(row) for row in header_rows), default=0)
     names: list[str] = []
@@ -283,6 +296,7 @@ def _flatten_headers(header_rows: list[list[str]]) -> list[str]:
     return names
 
 
+# 按列名组织每个非空数据行，供生成可独立检索的行文本。
 def _records(headers: list[str], data_rows: list[list[str]]) -> list[dict[str, str]]:
     records: list[dict[str, str]] = []
     for row in data_rows:
@@ -296,6 +310,7 @@ def _records(headers: list[str], data_rows: list[list[str]]) -> list[dict[str, s
 
 
 def _to_markdown(grid: list[list[str]], header_count: int = 1) -> str:
+    """补齐各行列数并输出竖线表格；在 header_count 行表头后插入 Markdown 分隔行。"""
     if not grid:
         return ""
     width = max(len(row) for row in grid)
@@ -326,15 +341,18 @@ def _markdown_body(raw: str) -> str:
 
 
 def _is_separator(row: list[str]) -> bool:
+    """判断非空单元格是否全部为 Markdown 表头分隔符；空行不算分隔行。"""
     cells = [cell.strip() for cell in row if cell.strip()]
     return bool(cells) and all(_SEP_CELL.match(cell) for cell in cells)
 
 
 def _is_pipe_line(line: str) -> bool:
+    """判断一行是否以竖线包围表格内容，允许行首和行尾空白。"""
     return bool(_PIPE_LINE.match(line))
 
 
 def _table_run_length(lines: list[str], start: int) -> int:
+    """从 start 行开始统计连续竖线表格行数，用于排除孤立的竖线文本。"""
     count = 0
     while start + count < len(lines) and _is_pipe_line(lines[start + count]):
         count += 1
@@ -342,6 +360,7 @@ def _table_run_length(lines: list[str], start: int) -> int:
 
 
 def _split_pipe_row(line: str) -> list[str]:
+    """去掉行两端的竖线，按内部竖线拆分单元格并清除单元格首尾空白。"""
     inner = line.strip()
     if inner.startswith("|"):
         inner = inner[1:]
@@ -350,6 +369,7 @@ def _split_pipe_row(line: str) -> list[str]:
     return [cell.strip() for cell in inner.split("|")]
 
 
+# 从表格前的正文寻找标题和章节，作为当前表格的上下文。
 def _context_from_previous(output: list[str]) -> tuple[str, str]:
     previous = [line.strip() for line in "\n".join(output).splitlines() if line.strip()]
     title = ""

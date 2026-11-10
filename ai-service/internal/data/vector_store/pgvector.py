@@ -19,17 +19,21 @@ from internal.biz.repo import VectorStore
 
 logger = structlog.get_logger()
 
+# 表名校验规则。
 _IDENT_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+# 默认向量表名。
 DEFAULT_TABLE_NAME = "chunk_vectors"
 
 
 def _validate_dimension(dimension: int) -> int:
+    """校验向量维度为 1～4096 的整数。"""
     if not isinstance(dimension, int) or isinstance(dimension, bool) or dimension < 1 or dimension > 4096:
         raise ValueError(f"embedding dimension must be an int in 1..4096, got {dimension!r}")
     return dimension
 
 
 def _validate_table_name(table_name: str) -> str:
+    """校验表名格式。"""
     if not _IDENT_RE.match(table_name):
         raise ValueError(f"invalid vector table name: {table_name!r}")
     return table_name
@@ -64,7 +68,8 @@ async def ensure_pgvector_schema(
     dimension: int = 1024,
     table_name: str = DEFAULT_TABLE_NAME,
 ) -> None:
-    """幂等创建 pgvector 扩展与 chunk_vectors 表。仅用于 PostgreSQL。"""
+    """在 PostgreSQL 中创建向量扩展、指定名称的表及索引；已存在时跳过。"""
+    # pgvector 仅支持 PostgreSQL，其他数据库直接跳过。
     if engine.dialect.name != "postgresql":
         logger.info(
             "pgvector_schema_skipped",
@@ -73,10 +78,14 @@ async def ensure_pgvector_schema(
         )
         return
 
+    # 根据向量维度和表名生成创建扩展、表及索引的 SQL 语句。
     statements = build_pgvector_ddl(dimension=dimension, table_name=table_name)
+    # 连接数据库并开启事务，依次执行上面生成的 SQL。
     async with engine.begin() as conn:
         for sql in statements:
+            # PostgreSQL 执行当前语句，创建对应的扩展、表或索引。
             await conn.execute(text(sql))
+    # 全部成功后事务提交；执行出错时事务回滚，异常向上传播。
 
     logger.info(
         "pgvector_schema_ready",
@@ -98,6 +107,7 @@ class PGVectorStore(VectorStore):
         dimension: int = 1024,
         table_name: str = DEFAULT_TABLE_NAME,
     ) -> None:
+        """配置数据库会话工厂、向量维度和表名；维度须与模型及表结构一致。"""
         self._session_factory = session_factory
         self._dimension = _validate_dimension(dimension)
         self._table_name = _validate_table_name(table_name)
@@ -164,6 +174,7 @@ class PGVectorStore(VectorStore):
 
         logger.debug("pgvector_delete", count=len(chunk_ids))
 
+    # 核实向量确实存在且属于指定文档和知识库，供入库状态检查使用。
     async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
         if not chunk_ids:
             return set()
@@ -184,11 +195,9 @@ class PGVectorStore(VectorStore):
         *,
         document_ids: list[int] | None = None,
     ) -> list[tuple[int, float]]:
-        """余弦相似度搜索（pgvector 原生）。
+        """在文档范围与 JSONB 等值条件筛选后，对合格向量按余弦相似度排序。
 
-        在不引入额外依赖的情况下，支持按 JSONB 元数据做简单等值过滤：
-        使用 `metadata @> :filter::jsonb` 进行包含匹配（键全等）。
-        先按文档范围与元数据筛选，再对合格集合精确排序，避免 ANN 过滤后候选不足。
+        返回前 top_k 个 (chunk_id, score)；先物化筛选集合，再执行精确排序。
         """
         vec_str = "[" + ",".join(str(v) for v in query_vector) + "]"
 

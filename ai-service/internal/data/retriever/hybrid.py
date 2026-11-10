@@ -1,15 +1,7 @@
-"""
-internal/data/retriever/hybrid.py — 混合检索器
+"""分别执行向量检索与 BM25 检索，按名次融合后返回候选分块。
 
-组合向量检索（语义）+ 关键词检索（BM25 精确匹配），
-用 RRF（Reciprocal Rank Fusion）融合两路结果，提升召回率与准确率。
-
-为什么用 RRF 而非加权求和：
-- 两路 score 量纲不同（余弦相似度 [0,1] vs BM25 [0, +∞)），直接加权需要归一化，效果不稳定
-- RRF 只依赖排名（1/(k+rank)），对分数分布不敏感，工程实践稳健
-- 论文：Cormack, Clarke, and Buettcher (2009). 参数 k 通常取 60。
-
-依赖失败直接抛出；没有关键词命中与关键词服务失败明确区分。
+每路请求 top_k × candidate_multiplier 个候选，融合后最多返回 top_k 个。
+返回值保留两路原始分数及融合分；任一路调用失败均向上传播异常。
 """
 
 from __future__ import annotations
@@ -33,6 +25,11 @@ class HybridRetriever(Retriever):
         rrf_k: int = 60,
         candidate_multiplier: int = 2,
     ) -> None:
+        """配置向量与关键词两路检索及融合参数。
+
+        rrf_k 是排名贡献 1/(rrf_k+rank) 中的平滑参数，不表示候选数量。
+        candidate_multiplier 是每路候选数相对于请求 top_k 的倍数，融合后仍最多返回 top_k 项。
+        """
         if rrf_k <= 0:
             raise ValueError(f"rrf_k must be positive, got {rrf_k}")
         if candidate_multiplier <= 0:
@@ -54,19 +51,15 @@ class HybridRetriever(Retriever):
         *,
         document_ids: list[int] | None = None,
     ) -> list[RetrievedChunk]:
-        """两路检索 + RRF 融合。
+        """分别取得两路候选，按 RRF 融合后返回带原始评分记录的 RetrievedChunk 列表。
 
-        两路各取 ``top_k * candidate_multiplier`` 个候选，融合后截断到
-        ``top_k``，避免融合后可用候选不足。候选倍率可通过构造参数调节，
-        默认候选倍率为 2。
-
-        ``keyword_query`` 供自然语言提问：向量用完整问句，BM25 用抽词后的
-        主题词；未传时回退 ``query_text``。
+        keyword_query 优先于 query_text；两者为空时不执行关键词搜索。
+        filter_metadata 和 document_ids 同时传给两路检索；任一路异常向上传播。
         """
         candidate_k = top_k * self._candidate_multiplier
         bm25_query = (keyword_query or query_text or "").strip()
 
-        # 向量分支（核心，失败即抛错）
+        # 两路使用相同的文档和元数据范围；任一路失败均不返回部分成功结果。
         vector_results = await self._vector_store.search(
             query_vector=query_vector,
             top_k=candidate_k,
@@ -81,6 +74,7 @@ class HybridRetriever(Retriever):
             document_ids=document_ids,
         ) if bm25_query else []
 
+        # 同一分块在两路均出现时累加其排名贡献；原始分数随后单独保留。
         fused = reciprocal_rank_fusion(
             [vector_results, keyword_results],
             k=self._rrf_k,

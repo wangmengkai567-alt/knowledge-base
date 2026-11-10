@@ -1,9 +1,4 @@
-"""
-internal/data/storage/local.py — 本地文件系统存储实现
-
-FileStorageRepo 的本地实现，文件存储到指定目录。
-文件命名：UUID + 原始扩展名，避免文件名冲突。
-"""
+"""将上传文件保存到指定目录，以随机前缀加文件名命名，返回绝对路径。"""
 
 from __future__ import annotations
 
@@ -19,14 +14,10 @@ logger = structlog.get_logger()
 
 
 class LocalFileStorageRepo(FileStorageRepo):
-    """本地文件系统存储 — 文件保存到 upload_dir 目录。
-
-    文件命名策略：{uuid4_hex[:12]}_{safe_filename}
-    - 12 位 UUID 前缀避免碰撞
-    - 保留原始文件名方便调试
-    """
+    """在 upload_dir 下保存文件；名称由 12 位随机 UUID 前缀和输入文件名的最后一部分组成。"""
 
     def __init__(self, upload_dir: str) -> None:
+        """将 upload_dir 解析为绝对路径并创建目录，后续上传文件保存在该目录内。"""
         self._upload_dir = Path(upload_dir).resolve()
         # 确保目录存在
         self._upload_dir.mkdir(parents=True, exist_ok=True)
@@ -40,7 +31,7 @@ class LocalFileStorageRepo(FileStorageRepo):
         # 异步写入（IO 操作用 to_thread）
         await asyncio.to_thread(self._write_file, file_path, content)
 
-        # 返回绝对路径（避免 relative_to 跨路径崩溃）
+        # 返回解析器和删除操作可直接使用的绝对路径。
         absolute_path = str(file_path.resolve())
         logger.info("file_saved", path=absolute_path, size=len(content))
         return absolute_path

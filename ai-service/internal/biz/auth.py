@@ -1,20 +1,6 @@
-"""
-internal/biz/auth.py — 认证业务逻辑（纯逻辑，不感知协议/存储）
+"""用户注册、密码校验、登录失败次数检查及会话管理。
 
-AuthBiz 负责：
-- register：检查邮箱重复 → 密码强度校验 → bcrypt 加密密码 → 创建用户
-- login：查用户 → 校验密码 → 创建 Session
-- logout：销毁 Session（含 access + refresh token）
-- get_current_user：根据 user_id 查用户
-- refresh_token：刷新 Session
-
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
-
-安全设计：
-- 登录失败统一返回 "Invalid email or password"，不区分用户是否存在。
-- 密码强度校验（长度+复杂度），不依赖 DTO 层校验。
-- bcrypt cost factor 可配置。
-- 暴力破解防护：登录失败计数（Redis），超限锁定。
+用户记录由 UserRepo 读写，访问令牌和刷新令牌由 SessionManager 管理。
 """
 
 from __future__ import annotations
@@ -38,11 +24,14 @@ logger = structlog.get_logger()
 
 # ── 密码强度正则 ──
 # 至少包含：1 个大写字母 + 1 个小写字母 + 1 个数字
+# 检查密码是否包含大写字母。
 _UPPERCASE_RE = re.compile(r"[A-Z]")
+# 检查密码是否包含小写字母。
 _LOWERCASE_RE = re.compile(r"[a-z]")
+# 检查密码是否包含数字。
 _DIGIT_RE = re.compile(r"\d")
 
-# 常见弱密码列表（非穷举，后续可扩展为文件/数据库加载）
+# 额外拒绝的弱密码；大小写及数字要求仍分别校验。
 _WEAK_PASSWORDS = frozenset({
     "password", "Password", "password1", "Password1", "P@ssw0rd", "Passw0rd", "passw0rd",
     "123456", "1234567", "12345678", "123456789", "1234567890",
@@ -56,13 +45,12 @@ _WEAK_PASSWORDS = frozenset({
 })
 
 # 登录失败锁定阈值
-_LOGIN_FAIL_THRESHOLD = 5
+_LOGIN_FAIL_THRESHOLD = 5  # 达到此失败次数时拒绝该用户继续登录。
 _LOGIN_FAIL_LOCK_SECONDS = 900  # 15 分钟
 
 
+# 处理用户注册、密码校验和登录会话，账号存储与令牌管理交给注入的服务。
 class AuthBiz:
-    """认证业务逻辑 — 不感知协议、不感知存储。"""
-
     def __init__(
         self,
         user_repo: UserRepo,
@@ -70,6 +58,7 @@ class AuthBiz:
         session_config: SessionConfig,
         security_config: SecurityConfig | None = None,
     ) -> None:
+        """注入用户仓储、会话管理器和认证安全配置。"""
         self._user_repo = user_repo
         self._session_manager = session_manager
         self._session_config = session_config
@@ -184,10 +173,9 @@ class AuthBiz:
     async def refresh_token(
         self, refresh_token: str, user_agent: str = ""
     ) -> tuple[str, str, int] | None:
-        """用 refresh_token 刷新 Session。
+        """校验刷新令牌并创建新会话，返回 (access_token, refresh_token, expires_in)。
 
-        返回 (new_access_token, new_refresh_token, expires_in)。
-        refresh_token 无效返回 None。
+        SessionManager 返回无效结果时抛出未认证错误，不返回 None。
         """
         result = await self._session_manager.refresh_session(refresh_token, user_agent)
         if result is None:
@@ -199,7 +187,7 @@ class AuthBiz:
         return result
 
     async def _check_login_fail_count(self, user_id: int) -> None:
-        """检查登录失败次数，超过阈值则锁定。"""
+        """读取 Redis 中的登录失败次数；达到阈值时抛出限流错误，不修改用户账户状态。"""
         count = await self._session_manager.get_login_fail_count(user_id)
         if count >= _LOGIN_FAIL_THRESHOLD:
             raise APIError(
@@ -215,13 +203,7 @@ class AuthBiz:
 
 
 def _validate_password_strength(password: str) -> None:
-    """密码强度校验 — 长度 + 复杂度 + 弱密码列表。
-
-    规则：
-    - 至少 8 字符
-    - 必须包含：大写字母 + 小写字母 + 数字
-    - 不在常见弱密码列表中
-    """
+    """检查密码是否命中弱密码表，并要求包含大写字母、小写字母和数字；失败抛出 APIError。"""
     if password in _WEAK_PASSWORDS:
         raise APIError(
             code=ErrorCode.INVALID_REQUEST,
@@ -252,10 +234,7 @@ def _validate_password_strength(password: str) -> None:
 
 
 def _hash_password(password: str, cost: int = 12) -> str:
-    """bcrypt 哈希密码 — 同步函数，通过 asyncio.to_thread 调用。
-
-    cost factor 可配置，默认 12（约 250ms/次）。
-    """
+    """使用 cost 指定的 bcrypt 工作因子生成密码哈希；调用方通过工作线程执行。"""
     return bcrypt.hashpw(
         password.encode("utf-8"), bcrypt.gensalt(rounds=cost)
     ).decode("utf-8")

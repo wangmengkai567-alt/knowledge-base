@@ -104,7 +104,7 @@ npm run dev
 {"query":"Docker 镜像和容器有什么区别？","knowledge_base_ids":[3],"top_k":8,"allow_web":false}
 ```
 
-`user_urls` 可提供最多三个公开网址，要求开启联网。请求不接受旧的 `chunk_ids`。SSE 协议版本为 4，依次发送 `type=event` 过程、`type=result` 结果和 `[DONE]`；回答不是逐字流式输出。来源包含实际送模 `content`，知识库有分块位置、片段范围和文档版本时间，网页有 URL 与抓取时间。
+`user_urls` 可提供最多三个公开网址，要求开启联网。请求不接受旧的 `chunk_ids`。SSE/同步响应协议版本为 6，工具契约版本为 3，答案契约版本为 3；SSE 依次发送 `type=event` 过程、`type=result` 结果和 `[DONE]`；回答不是逐字流式输出。来源包含实际送模 `content`，知识库有分块位置、片段范围和文档版本时间，网页有 URL 与抓取时间。
 
 ## 项目记录
 
@@ -114,3 +114,13 @@ npm run dev
 - [只读工具问答设计](docs/adr/0002-bounded-read-only-question-answering.md)
 
 提交和推送由用户决定。
+
+### 问答 Token 预算
+
+使用随部署提供的固定 Qwen tokenizer；完整请求按模型模板、工具定义或答案 Schema 计数后，加 10% 与 256 token 的显式余量，标记为 `model_tokenizer_estimate`。实际结算仅采用供应商 usage。单次输入 16000、输出 2048、整次累计 64000；模型/工具次数与 120 秒时限保持。
+
+`token_budget` 配置集中管理额度：工具完整 content 3000 token、完整消息 12000 字节；摘要 512 token、网页窗口 2000 token、定位预览 64 token。`web_read.max_tokens` 控制网页窗口，`start/end` 和 `total_chars` 始终为原文字符坐标，下一页使用实际返回的 `end`。原网页接收与缓存字节上限保持。
+
+旧 `AI_WEB_READER__PAGE_CHARS`、`AI_TAVILY__SUMMARY_CHARS`、`TAVILY_SUMMARY_CHARS` 必须迁移到 `AI_TOKEN_BUDGET__PAGE_TOKENS/SUMMARY_TOKENS`，不得机械换算旧字符数。模型或固定资源版本不匹配、资源缺失时启动失败，不在线下载或切换计数器。资源与许可位于 `ai-service/resources/qwen38-flash/`；重新构建镜像会一并打包。
+
+运行与快照保存计数资源、投影版本、余量以及逐次请求估算明细。旧快照保留原计量标识；评测按计量方法与资源版本分组，不混加新旧输入估算。

@@ -1,15 +1,4 @@
-"""
-internal/biz/document.py — 文档业务逻辑（纯逻辑，不感知协议/存储）
-
-DocumentBiz 负责：
-- upload：校验文件类型/大小 → 保存文件 → 创建文档记录 → 自动触发解析
-- parse_document：手动触发解析（解析失败后重试）
-- list_documents：列出知识库下所有文档
-- get_document：查单个文档详情
-- delete_document：删除文件 + 删除文档记录
-
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
-"""
+"""校验并保存上传文件，调用入库编排处理正文与索引，并协调文档删除。"""
 
 from __future__ import annotations
 
@@ -58,9 +47,8 @@ EXT_TO_MIME: dict[str, str] = {
 MAX_FILE_SIZE: int = 10 * 1024 * 1024
 
 
+# 负责文档上传、入库处理和删除，具体存储与索引操作交给注入的服务。
 class DocumentBiz:
-    """文档业务逻辑 — 不感知协议、不感知存储。"""
-
     def __init__(
         self,
         document_repo: DocumentRepo,
@@ -69,6 +57,7 @@ class DocumentBiz:
         on_document_delete: Callable[[int], Awaitable[None]],
         max_file_size: int = MAX_FILE_SIZE,
     ) -> None:
+        """注入文档存储和入库流程；on_document_delete 清理关联数据，max_file_size 单位为字节。"""
         self._document_repo = document_repo
         self._file_storage_repo = file_storage_repo
         self._ingestion = ingestion
@@ -115,10 +104,7 @@ class DocumentBiz:
                 message=f"文件大小（{file_size} 字节）超过上限 {max_mb}MB。",
             )
 
-        # 推断 MIME 类型
-        # 优先按扩展名映射规范 MIME（系统 mimetypes 常把 .md 误判为
-        # application/octet-stream，导致合法文件被误拒）。仅在扩展名合法
-        # 时以映射为准；扩展名非法已在上方拦截（UNSUPPORTED_FILE_TYPE）。
+        # 扩展名通过校验后，优先使用本模块的 MIME 映射；未映射时才调用 mimetypes。
         mime_type, _ = mimetypes.guess_type(filename)
         if ext in EXT_TO_MIME:
             mime_type = EXT_TO_MIME[ext]
@@ -176,6 +162,7 @@ class DocumentBiz:
         await self.get_document(document_id, user_id=user_id)
         return await self._ingestion.process(document_id, force=force)
 
+    # 确认文档存在后，将指定阶段的重试交给入库流程。
     async def retry(self, document_id: int, user_id: int, stage: str | None = None) -> Document:
         await self.get_document(document_id, user_id=user_id)
         return await self._ingestion.process(document_id, stage=stage)
@@ -202,6 +189,7 @@ class DocumentBiz:
             )
         return document
 
+    # 与解析和重试共用文档锁，防止删除时仍有任务写入分块或索引。
     async def delete_document(self, document_id: int, user_id: int) -> None:
         async with self._ingestion.lock(document_id):
             await self._delete_document(document_id, user_id)

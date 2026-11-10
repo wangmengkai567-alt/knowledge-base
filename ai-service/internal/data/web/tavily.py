@@ -12,11 +12,13 @@ from time import monotonic
 import httpx
 
 from internal.biz.materials import WebSource
+from internal.biz.token_budget import TokenCounter, original_window
 from internal.biz.tool_types import ToolError, WebDiagnostic, WebResult
 from internal.biz.web_access import validate_public_url
 from internal.data.web.http_errors import transport_failure
 
 
+# 调用 Tavily 搜索公开网页，将结果整理为摘要资料及请求诊断信息。
 class TavilySearch:
     def __init__(
         self,
@@ -24,13 +26,17 @@ class TavilySearch:
         timeout: float = 20,
         *,
         search_limit: int = 10,
-        summary_chars: int = 1200,
+        counter: TokenCounter,
+        summary_tokens: int,
     ) -> None:
+        """配置搜索接口；timeout 单位为秒，search_limit 为结果条数，summary_tokens 为单条摘要的 token 上限。"""
         self._api_key = api_key
         self._timeout = timeout
         self._search_limit = search_limit
-        self._summary_chars = summary_chars
+        self._counter = counter
+        self._summary_tokens = summary_tokens
 
+    # 发送一次搜索请求，限制接收大小，并将网络或格式错误转换为工具错误。
     async def _post(self, payload: dict) -> tuple[dict, WebDiagnostic]:
         started = monotonic()
         diagnostic = WebDiagnostic(
@@ -39,6 +45,7 @@ class TavilySearch:
         )
 
         def failure(code: str, message: str, category: str, exc=None) -> ToolError:
+            """用当前搜索阶段、耗时和异常类型构造工具错误，不保存底层异常原文。"""
             return ToolError(code, message, diagnostics=replace(
                 diagnostic, category=category, elapsed_seconds=round(monotonic() - started, 3),
                 exception_type=type(exc).__name__ if exc is not None else None,
@@ -88,6 +95,7 @@ class TavilySearch:
                 elapsed_seconds=round(monotonic() - started, 3),
             )
         except httpx.TimeoutException as exc:
+            # 区分连接、发送、连接池等待和读取超时，并保留当前网络阶段诊断。
             phase = (
                 "connect" if isinstance(exc, httpx.ConnectTimeout) else
                 "write" if isinstance(exc, httpx.WriteTimeout) else
@@ -96,15 +104,18 @@ class TavilySearch:
             diagnostic = replace(diagnostic, phase=phase, timeout_layer="client_io")
             raise failure("TOOL_TIMEOUT", "Tavily 客户端网络阶段超时", "timeout", exc) from exc
         except TimeoutError as exc:
+            # 搜索请求整体超过 asyncio.timeout 的截止时间，与单个网络阶段超时分别记录。
             diagnostic = replace(diagnostic, timeout_layer="client_total")
             raise failure("TOOL_TIMEOUT", "Tavily 请求总时限已到", "timeout", exc) from exc
         except httpx.HTTPError as exc:
+            # 响应解码失败记为格式错误；其余网络异常交统一传输错误分类器处理。
             if isinstance(exc, httpx.DecodingError):
                 raise failure("TOOL_INVALID_RESPONSE", "Tavily 响应解码失败", "invalid_response", exc) from exc
             category, phase, message = transport_failure(exc, diagnostic.phase)
             diagnostic = replace(diagnostic, phase=phase)
             raise failure("TOOL_DEPENDENCY_FAILED", f"Tavily {message}", category, exc) from exc
         except (ValueError, TypeError) as exc:
+            # 内容无法按预期编码或结构解析时返回格式错误，不把失败当成空资料。
             raise failure("TOOL_INVALID_RESPONSE", "Tavily 响应格式无效", "invalid_response", exc) from exc
 
     @staticmethod
@@ -114,6 +125,7 @@ class TavilySearch:
 
     @staticmethod
     def _invalid_response(message: str, diagnostic: WebDiagnostic) -> ToolError:
+        """将响应结构错误归为 TOOL_INVALID_RESPONSE，并标注响应格式阶段。"""
         return ToolError("TOOL_INVALID_RESPONSE", message, diagnostics=replace(
             diagnostic, phase="response_format", category="invalid_response",
         ))
@@ -122,6 +134,7 @@ class TavilySearch:
     async def _validate_url(
         url: str, endpoint: str, diagnostic: WebDiagnostic | None = None
     ) -> str:
+        """执行公网 URL 校验，并在校验失败时补充 DNS 或地址限制的诊断信息。"""
         started = monotonic()
         try:
             return await validate_public_url(url)
@@ -134,6 +147,7 @@ class TavilySearch:
                 exception_type=type(exc.__cause__ or exc).__name__,
             )) from exc
 
+    # 校验、去重搜索结果并保留有限长度的摘要；这里不抓取网页正文。
     async def search(self, query: str, max_results: int) -> WebResult:
         data, diagnostic = await self._post(
             {
@@ -160,16 +174,23 @@ class TavilySearch:
                 continue
             seen.add(url)
             content = item["content"].strip()
+            _, summary_end = original_window(content, self._counter, self._summary_tokens)
+            result.budget_diagnostics.append({
+                "layer": "summary", "reasons": ["summary_token_limit"] if summary_end < len(content) else [],
+                "url": url, "original_chars": len(content), "original_bytes": len(content.encode("utf-8")),
+                "retained_ranges": [{"start": 0, "end": summary_end}],
+                "content_tokens": self._counter.count_text(content[:summary_end]),
+            })
             result.sources.append(
                 WebSource(
                     citation_id=0,
                     url=url,
                     title=item["title"][:300],
                     fetched_at=fetched,
-                    content=content[: self._summary_chars],
+                    content=content[:summary_end],
                     source_type="web_search_summary",
-                    truncated=len(content) > self._summary_chars,
-                    end=min(len(content), self._summary_chars), total_chars=len(content),
+                    truncated=summary_end < len(content),
+                    end=summary_end, total_chars=len(content),
                 )
             )
             if len(result.sources) >= min(max_results, self._search_limit):

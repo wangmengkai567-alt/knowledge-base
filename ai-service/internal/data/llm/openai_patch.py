@@ -1,8 +1,8 @@
 """
-internal/data/llm/openai_patch.py — OpenAI 兼容 LLM 实现（patched Authorization header）
+internal/data/llm/openai_patch.py — OpenAI 兼容 LLM 实现
 
 基于 httpx 调用 OpenAI-compatible API（DeepSeek / OpenAI / Ollama）。
-统一使用 /v1/chat/completions 端点。
+在配置的 base_url 后追加 /chat/completions。
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import httpx
 
 from internal.biz.entity import ChatResult
 from internal.biz.repo import LLMProvider
-from internal.biz.tool_types import ANSWER_RESPONSE_FORMAT, ToolCall
+from internal.biz.tool_types import ToolCall
 from pkg.errors.base import LLMError
 from pkg.errors.codes import ErrorCode
 
@@ -28,6 +28,7 @@ class OpenAILLM(LLMProvider):
         max_tokens: int = 4096,
         timeout: int = 60,
     ) -> None:
+        """配置对话接口、默认温度和最大输出 token 数；timeout 单位为秒。"""
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._model = model
@@ -37,13 +38,16 @@ class OpenAILLM(LLMProvider):
 
     @property
     def model_name(self) -> str:
+        """返回模型请求使用的模型标识。"""
         return self._model
 
     @property
     def supports_native_tools(self) -> bool:
-        # 当前只有准备阶段已验证的千问模型接入此能力。
+        # 只有此模型名启用本适配器的原生工具能力；其他模型由调用前检查拒绝。
+        """判断配置模型是否在本适配器已支持的原生工具调用范围内。"""
         return self._model == "qwen3.8-flash"
 
+    # 发起普通对话请求，返回正文和模型报告的用量。
     async def generate(
         self,
         messages: list[dict[str, str]],
@@ -52,15 +56,18 @@ class OpenAILLM(LLMProvider):
     ) -> ChatResult:
         return await self._complete(messages, temperature, max_tokens)
 
+    # 请求符合答案 Schema 的最终响应，供问答流程校验和发布。
     async def generate_answer(
         self,
         messages: list[dict],
         *,
+        response_format: dict,
         temperature: float | None = None,
         max_tokens: int = 2048,
     ) -> ChatResult:
-        return await self._complete(messages, temperature, max_tokens, structured=True)
+        return await self._complete(messages, temperature, max_tokens, response_format=response_format)
 
+    # 将可用工具交给模型，由模型提出下一步调用。
     async def generate_with_tools(
         self,
         messages: list[dict],
@@ -80,6 +87,7 @@ class OpenAILLM(LLMProvider):
             messages, temperature, max_tokens, tools=tools, tool_choice=tool_choice
         )
 
+    # 统一发送模型请求，并将响应或请求错误转换为项目内部的结果类型。
     async def _complete(
         self,
         messages: list[dict],
@@ -88,7 +96,7 @@ class OpenAILLM(LLMProvider):
         *,
         tools: list[dict] | None = None,
         tool_choice: str = "auto",
-        structured: bool = False,
+        response_format: dict | None = None,
     ) -> ChatResult:
         payload = {
             "model": self._model,
@@ -97,12 +105,13 @@ class OpenAILLM(LLMProvider):
             "max_tokens": max_tokens if max_tokens is not None else self._max_tokens,
         }
         if tools:
+            # 工具阶段关闭思考输出和并行调用，保持调用协议明确。
             payload.update(
                 tools=tools, tool_choice=tool_choice,
                 parallel_tool_calls=False, enable_thinking=False,
             )
-        if structured:
-            payload.update(response_format=ANSWER_RESPONSE_FORMAT, enable_thinking=False)
+        if response_format is not None:
+            payload.update(response_format=response_format, enable_thinking=False)
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.post(
@@ -122,10 +131,11 @@ class OpenAILLM(LLMProvider):
             reported = data.get("usage") if isinstance(data, dict) else None
             keys = ("prompt_tokens", "completion_tokens", "total_tokens")
             known = isinstance(reported, dict) and all(type(reported.get(key)) is int and reported[key] >= 0 for key in keys)
-            if (tools or structured) and not known:
+            # 工具问答必须取得实际消耗，不能用估算值替代供应商的结算数据。
+            if (tools or response_format is not None) and not known:
                 raise LLMError(reason="LLM_USAGE_UNKNOWN", message="模型未返回完整实际用量")
             try:
-                return self._parse_result(data, tools, tool_choice, require_usage=structured)
+                return self._parse_result(data, tools, tool_choice, require_usage=response_format is not None)
             except (KeyError, IndexError, TypeError, ValueError) as exc:
                 # 错误输出也必须保留已发生的消耗，不重试或修复输出。
                 raise LLMError(reason="INVALID_LLM_RESPONSE", message="模型响应结构无效",
@@ -139,6 +149,7 @@ class OpenAILLM(LLMProvider):
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise LLMError(reason="INVALID_LLM_RESPONSE", message="模型响应结构无效") from exc
 
+    # 校验模型返回的正文、工具调用和用量是否一致，再构造统一对话结果。
     def _parse_result(
         self, data: dict, tools: list[dict] | None, tool_choice: str, *, require_usage: bool = False,
     ) -> ChatResult:
@@ -167,6 +178,7 @@ class OpenAILLM(LLMProvider):
             calls.append(ToolCall(*values))
         if len({call.id for call in calls}) != len(calls):
             raise ValueError("duplicate call id")
+        # 结束原因必须与实际内容匹配，防止漏接工具调用或接受不完整响应。
         finish = choice.get("finish_reason")
         if bool(calls) != (finish == "tool_calls"):
             raise ValueError("tool_calls and finish_reason disagree")

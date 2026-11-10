@@ -1,25 +1,8 @@
-"""
-internal/server/middleware/rate_limit.py — 限流中间件
+"""根据用户、客户端 IP 及知识库路径，对请求次数执行滑动窗口限流。
 
-基于滑动窗口算法的 per-user 请求限流：
-- Redis 存储请求时间戳，Lua 脚本保证原子性
-- 无 Redis 客户端时退回内存 dict（FakeRateLimiter）
-
-设计要点：
-- 按 user_id 限流（已认证），未认证降级到 client IP
-- 不同路由可配不同限额（heavy 路由更严格）
-- 响应头返回限流信息：X-RateLimit-Limit / X-RateLimit-Remaining / X-RateLimit-Reset
-- 限流触发时返回 429 + ErrorCode.RATE_LIMITED
-
-为什么不用 slowapi？
-- slowapi 基于装饰器模式，与 BaseHTTPMiddleware 集成不自然
-- 自研滑动窗口更灵活，可直接用 Redis sorted set 实现
-- 避免额外依赖，Redis 已在项目中使用
-
-执行顺序与原子性约束：
-- 中间件注册顺序：RateLimit 必须在 Auth 之后注册（更内层），
-  这样 Auth 先执行设置 user_id，RateLimit 后执行读取 user_id。
-- Redis 限流器使用 Lua 脚本保证 check+add 原子性，消除 TOCTOU 竞态。
+命中高开销路由时使用 heavy_limit，其余使用 standard_limit；运维路径不计入。
+Redis 实现通过 Lua 原子执行过期清理、计数和写入；内存实现仅保存当前进程状态。
+注册中间件时先添加 RateLimit 再添加 Auth，使认证先执行并设置 user_id。
 """
 
 from __future__ import annotations
@@ -42,7 +25,7 @@ logger = structlog.get_logger()
 
 # ──────────────────────────────────────────────
 # 共享运维路径常量 — rate_limit + metrics 共用
-# 抽取原因：避免两个中间件各自维护相同列表
+# 限流和指标中间件共用这些运维路径。
 
 OPERATIONS_PATHS: frozenset[str] = frozenset({
     "/health/live",
@@ -66,6 +49,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         window_seconds: int = 60,
         enabled: bool = True,
     ) -> None:
+        """配置普通/高开销路由的请求次数上限、窗口秒数及限流开关。"""
         super().__init__(app)
         self._rate_limiter = rate_limiter
         self._standard_limit = standard_limit
@@ -73,9 +57,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._window_seconds = window_seconds
         self._enabled = enabled
 
-    # 知识库路由下真正消耗 LLM + 向量模型的检索增强接口才走 heavy 限额；
-    # 文档列表 / 分块列表是轻量只读，归入 standard 限额（60/min），
-    # 否则首页"推荐知识库"每次拉取 3 个库的 documents 都会命中 10/min 而被 429。
+    # 检索、问答和入库处理使用 heavy 限额；文档及分块列表使用 standard 限额。
     HEAVY_SUBSTRINGS: tuple[str, ...] = (
         "/rag",        # /api/v1/knowledge/bases/{id}/rag/query（及 /query/stream）
         "/retrieve",   # /api/v1/knowledge/bases/{id}/retrieve
@@ -85,25 +67,20 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _get_rate_limit(self, path: str) -> int:
         """根据路径决定限额。"""
-        # 知识库路由：仅 RAG / 检索类（消耗 LLM + embedding）走 heavy
+        # 知识库路径含下列处理子路径时使用 heavy_limit，其余路径使用 standard_limit。
         if path.startswith("/api/v1/knowledge/bases/"):
             for sub in self.HEAVY_SUBSTRINGS:
                 if sub in path:
                     return self._heavy_limit
         return self._standard_limit
 
-    # 知识库子路由按 kb 维度隔离限流桶：retrieve / rag 是 heavy 接口，前端检索会向
-    # 全部知识库扇出（N 个库同时发 N 个请求）。若所有 kb 共享同一个 per-user 全局桶，
-    # 一次检索动作（retrieve×N + rag×N）会瞬间打满 heavy_limit，导致大面积 429。
-    # 改为按 kb 独立成桶后，单次动作每个库只占 1 个名额，扇出不再互相挤占，
-    # 从根本上消除"一搜就 429"。
+    # 按用户和路径中的知识库分别计数，避免访问不同知识库的请求挤占同一限流额度。
     _KB_PATH_RE = re.compile(r"/knowledge/bases/(\d+)/")
 
     def _get_client_key(self, request: Request) -> str:
-        """获取限流 key：优先 user_id（由 AuthMiddleware 设置），降级到 client IP。
+        """生成请求计数键：已认证请求使用用户 ID，其余使用客户端 IP。
 
-        知识库子路由额外追加 kb:{id}，使每个知识库拥有独立的限流桶，
-        避免跨库扇出请求互相挤占同一个全局 heavy 桶。
+        路径中存在知识库 ID 时追加该 ID，使同一用户访问不同知识库时分别计数。
         """
         user_id = getattr(request.state, "user_id", None)
         if user_id:
@@ -119,6 +96,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+        """跳过关闭限流和运维路径；其余请求按计数键检查次数，超限返回 429，放行时附剩余额度。"""
         if not self._enabled:
             return await call_next(request)
 
@@ -172,7 +150,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 class RateLimiter(ABC):
-    """限流器接口 — ABC 模式，与 Reranker/LLMProvider 保持一致。"""
+    """请求次数检查接口，返回是否允许、剩余次数和等待秒数。"""
 
     @abstractmethod
     async def check(
@@ -186,7 +164,7 @@ class RateLimiter(ABC):
         ...
 
 
-# Lua 脚本：原子化 check + add，消除 TOCTOU 竞态
+# 同一次 Lua 调用完成计数检查和请求登记，避免并发请求在检查后同时写入。
 # 在单个 Redis EVAL 中完成：清除过期 → 计数 → 判断 → 写入，全程原子
 _SLIDING_WINDOW_LUA = """
 local key = KEYS[1]
@@ -224,13 +202,10 @@ return {1, remaining, window_seconds}
 
 
 class RedisRateLimiter(RateLimiter):
-    """Redis 滑动窗口限流器 — 基于 sorted set + Lua 脚本原子操作。
-
-    使用 ZSET：score = 时间戳，member = 唯一请求 ID。
-    通过 Lua 脚本保证 check + add 在单次 EVAL 中原子完成。
-    """
+    """使用 Redis 有序集合保存请求时间戳，并在同一 Lua 调用中完成过期清理、限额检查和登记。"""
 
     def __init__(self, redis_client: Any) -> None:
+        """注入异步 Redis 客户端，首次检查时加载滑动窗口 Lua 脚本。"""
         self._redis = redis_client
         self._lua_sha: str | None = None
 
@@ -243,6 +218,7 @@ class RedisRateLimiter(RateLimiter):
     async def check(
         self, key: str, limit: int, window_seconds: int
     ) -> tuple[bool, int, int]:
+        """原子检查并登记请求，返回是否允许、剩余次数和等待秒数。"""
         now = time.time()
         window_start = now - window_seconds
         redis_key = f"ratelimit:{key}"
@@ -270,11 +246,13 @@ class FakeRateLimiter(RateLimiter):
     """内存滑动窗口限流器。"""
 
     def __init__(self) -> None:
+        """创建本进程内的请求时间戳字典，不跨进程共享计数。"""
         self._windows: dict[str, list[float]] = {}
 
     async def check(
         self, key: str, limit: int, window_seconds: int
     ) -> tuple[bool, int, int]:
+        """清除窗口外的时间戳，检查并登记当前请求；返回允许标记、剩余次数和等待秒数。"""
         now = time.time()
         window_start = now - window_seconds
 
@@ -295,7 +273,7 @@ class FakeRateLimiter(RateLimiter):
 
 
 def create_rate_limiter(use_redis: bool = False, redis_client: Any = None) -> RateLimiter:
-    """工厂函数：有 Redis 客户端则用 Redis 滑动窗口，否则用内存实现。"""
+    """use_redis=True 且传入客户端时创建 Redis 限流器；其余情况创建进程内限流器。"""
     if use_redis and redis_client is not None:
         return RedisRateLimiter(redis_client)
     return FakeRateLimiter()
@@ -303,7 +281,7 @@ def create_rate_limiter(use_redis: bool = False, redis_client: Any = None) -> Ra
 
 @dataclass
 class RateLimitSettings:
-    """限流配置聚合 — 封装限流器实例 + 参数，避免 HTTPServer 参数膨胀。"""
+    """保存限流器、启用标记、两类请求额度和统计窗口秒数，供 HTTP 中间件使用。"""
 
     rate_limiter: RateLimiter
     enabled: bool = True

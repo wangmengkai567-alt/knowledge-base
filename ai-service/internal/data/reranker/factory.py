@@ -1,10 +1,4 @@
-"""
-internal/data/reranker/factory.py — Reranker 工厂
-
-zhipu：智谱文本重排序 API。
-qwen：千问 DashScope 文本重排序 API。
-memory：关键词重叠精排，仅作无密钥时的对照实现。
-"""
+"""根据明确配置的 provider 创建重排器；不根据密钥是否存在自动选择实现。"""
 
 from __future__ import annotations
 
@@ -21,7 +15,7 @@ def create_reranker(
     model: str = "",
     timeout: int = 30,
 ) -> Reranker:
-    """按配置创建重排序器。更换智谱模型只传 model，不必改代码。"""
+    """根据 provider 创建千问、智谱或本地关键词覆盖率重排器，传入对应连接和模型参数。"""
     if provider == "memory":
         return MemoryReranker()
 

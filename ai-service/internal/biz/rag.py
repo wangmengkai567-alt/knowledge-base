@@ -16,7 +16,6 @@ from internal.biz.entity import ChatResult
 from internal.biz.evidence import EvidenceBindingError, bind_catalog
 from internal.biz.materials import (
     AnswerSource,
-    InputBudget,
     WebSource,
     evidence_coverage,
     pack_sources,
@@ -38,12 +37,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from internal.biz.entity import RetrievalResult
+    from internal.biz.token_budget import InputBudget
     from internal.biz.tool_model import ToolModel
     from internal.biz.tool_types import ToolCall
     from internal.biz.tools import ToolSession
     from internal.prompt.manager import PromptManager
 
 logger = structlog.get_logger()
+# 停止取证后提供给模型的原因说明；_final_control 将其写入 system 消息，实际停止由程序判断。
 _STOP_DETAILS = {
     "model_call_limit": "必须为最终回答保留最后一次模型调用，不能继续取证。",
     "tool_call_limit": "工具调用次数已达到上限，不能继续取证。",
@@ -60,7 +61,9 @@ _COVERAGE_PREFIX = (
     "本次问题与资料的关键词匹配情况"
     "（匹配到关键词不代表资料足以回答问题）："
 )
+# 最终仍资料不足时，用这些原因区分“预算限制导致停止”和“正常取证后资料不足”。
 _BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
+# 网页读取发生这些错误时保留失败记录，允许在剩余预算内使用其他来源，并在最终答案附上提示。
 _WEB_READ_FAILURES = frozenset({
     "TOOL_INVALID_RESPONSE", "TOOL_DEPENDENCY_FAILED", "WEB_CONTENT_EMPTY",
     "WEB_UNSUPPORTED_CONTENT", "WEB_REDIRECT_FAILED", "TOOL_RESPONSE_TOO_LARGE",
@@ -84,16 +87,10 @@ def _final_control(reason: str) -> dict:
     }
 
 
-# 停止原因尚未确定时，按最长控制消息预留，确保实际收尾解释也能装入。
-_FINAL_RESERVE_CONTROL = max(
-    (_final_control(reason) for reason in _STOP_DETAILS),
-    key=lambda message: len(json.dumps(message, ensure_ascii=False).encode("utf-8")),
-)
-
 
 @dataclass(frozen=True)
 class RequestBudgetPlan:
-    """同时核算下一轮取证与最终回答，确保继续搜索后仍有额度生成答案。"""
+    """记录取证与最终回答的输入估算、输出额度和剩余额度，供调用前检查是否允许继续。"""
 
     exploration_input: int
     final_input: int
@@ -141,11 +138,14 @@ class RAGBiz:
         default_rag_template: str = "rag",
         limits: RunLimits | None = None,
     ) -> None:
+        """配置问答模型、提示模板、输入预算和整次运行限制。"""
         self._model = model
         self._prompts = prompt_manager
         self._budget = budget
         self._template = default_rag_template
-        self._limits = limits if limits is not None else RunLimits()
+        self._limits = limits if limits is not None else RunLimits(total_tokens=budget.limits.total_tokens)
+        if self._limits.total_tokens > budget.limits.total_tokens:
+            raise ValueError("运行累计上限不能超过 Token 预算配置")
 
     async def query(
         self,
@@ -174,6 +174,9 @@ class RAGBiz:
             ToolScope(user_id, tuple(dict.fromkeys(knowledge_base_ids)), allow_web),
             self._limits,
             self._budget.measurement,
+            counting=self._budget.metadata,
+            token_limits=asdict(self._budget.limits),
+            model=self._budget.model,
             on_event=on_event,
         )
         # emit 会保存事件并调用 on_event，让流式接口可以立即展示“开始运行”。
@@ -181,6 +184,7 @@ class RAGBiz:
             "run_started",
             knowledge_base_ids=list(run.scope.knowledge_base_ids),
             allow_web=allow_web,
+            counting=run.counting,
         )
         # 未指定最大输出量时使用配置上限；下方校验请求值不能超过这个上限。
         output_tokens = max_tokens if max_tokens is not None else self._budget.output_limit
@@ -301,17 +305,19 @@ class RAGBiz:
         """根据当前请求上下文，构建下一轮取证和最终回答的预算计划。
 
         分别估算两种请求的完整输入规模，并计算单次输入上限及剩余总额度。
-        输入规模采用 UTF-8 字节数的保守估算，不代表供应商返回的实际 token 用量。
+        输入按固定模型 tokenizer 与显式请求余量估算，实际用量另行结算。
         本方法只返回计算结果，不发起模型请求，也不修改 run 中的用量或预留记录。
         """
         return RequestBudgetPlan(
             # 取证请求的输入估算，包含提示消息、历史资料和可用工具定义。
-            self._model.estimate(messages, session),
-            # 按最长收尾提示估算最终请求；最终请求不携带工具定义，但包含答案 Schema。
+            0 if run.exploration_stop_reason else self._model.estimate(messages, session),
+            # 逐条计量允许的收尾原因，按最大 token 估算预留最终请求；最终请求不携带工具定义，但包含答案 Schema。
             # finished=True 只设置在会话副本上，不改变原会话的取证状态。
-            self._model.estimate(
-                [*messages, _FINAL_RESERVE_CONTROL], replace(session, finished=True), final=True,
-            ),
+            (self._model.estimate([*messages, _final_control(run.exploration_stop_reason)],
+                                  replace(session, finished=True), final=True)
+             if run.exploration_stop_reason else self._model.estimate_final_reserve(
+                 messages, replace(session, finished=True), [_final_control(reason) for reason in _STOP_DETAILS],
+             )),
             output_tokens,
             # 结合配置输入限额和模型总上下文容量，计算本次允许的输入上限。
             self._budget.input_ceiling(output_tokens),
@@ -332,13 +338,13 @@ class RAGBiz:
         每轮先检查取消、时限和预算，再请求工具动作或最终回答；工具资料经去重和裁剪后，
         在下一次实际送模时登记。函数通过修改 run 和 session 保存进度，不返回答案字符串。
         """
-        seen_calls: set[str] = set()
-        seen_ids: set[str] = set()
-        seen_matches: set[tuple[str, int, int]] = set()
+        seen_calls: set[str] = set()  # 已执行动作的规范化参数键，用于拒绝重复工具动作。
+        seen_ids: set[str] = set()    # 模型已使用的调用编号，防止同一编号绑定多份结果。
+        seen_matches: set[tuple[str, int, int]] = set()  # 已返回的网页定位范围，用于判断是否获得新信息。
         # 工具取得的资料先暂存；只有随下一次模型请求发出时才加入 run.sources。
         pending_sources: list[AnswerSource | WebSource] = []
-        no_progress = 0
-        web_attempted = False
+        no_progress = 0        # 连续没有新增正文、目录或定位结果的工具动作数。
+        web_attempted = False  # 开启联网时，允许先尝试网页工具，再因连续空结果停止取证。
         while run.status == "running":
             self._check_active(run, session)
             usage, limits = run.usage, run.limits
@@ -379,7 +385,9 @@ class RAGBiz:
                      available_for_exploration=remaining - usage.reserved_tokens - reserve,
                      input_measurement=run.input_measurement)
             request = [*messages, _final_control(run.exploration_stop_reason)] if final else messages
-            estimate = self._model.estimate(request, session, final=final)
+            prepared = self._model.prepare_request(request, session, final=final,
+                                                   max_tokens=output_tokens, temperature=temperature)
+            estimate = prepared.estimate.estimated_input_tokens
             if (
                 usage.model_calls >= limits.model_calls
                 or estimate > plan.input_ceiling
@@ -389,14 +397,22 @@ class RAGBiz:
                           "input_budget" if estimate > plan.input_ceiling else "token_budget")
                 run.finish("budget_exhausted", reason)
                 return
-            self._model.validate_request(request, session, output_tokens, final=final)
+            self._model.validate_request(prepared)
             # 最终请求只使用当前有效原文，并由程序建立证据编号到来源位置的映射。
             catalog = []
             if final:
                 await self._model.executor.validate_sources(session, session.active_sources)
                 catalog = bind_catalog(request, session.active_sources, run.scope, run.run_id)
             self._check_active(run, session)
-            call_number = run.reserve_model(estimate, output_tokens, final)
+            details = {name: value for name, value in asdict(prepared.estimate).items() if name != "estimated_input_tokens"}
+            # 发送前为本次输入和输出预留额度，并记录调用编号。
+            call_number = run.reserve_model(estimate, output_tokens, final, details=details)
+            run.model_requests.append({"model": self._budget.model, "call": call_number, "phase": "final" if final else "exploration",
+                                       "messages": prepared.messages, "tools": prepared.tools,
+                                       "response_format": prepared.response_format,
+                                       "output_limit": prepared.output_limit,
+                                       "tool_choice": None if final else "required",
+                                       "estimate": asdict(prepared.estimate)})
             if pending_sources:
                 run.sources.extend(pending_sources)
                 run.emit("sources_updated", citation_ids=[s.citation_id for s in run.sources])
@@ -406,7 +422,7 @@ class RAGBiz:
             if final:
                 run.sources = list(session.active_sources)
                 run.evidence_catalog = catalog
-                run.final_request = self._model.request_messages(request, session, final=True)
+                run.final_request = prepared.messages
                 run.emit("evidence_catalog_prepared", evidence_ids=[item.evidence_id for item in catalog],
                          answer_contract_version=ANSWER_CONTRACT_VERSION)
             run.emit(
@@ -414,28 +430,25 @@ class RAGBiz:
                 call=usage.model_calls,
                 final=final,
                 request_mode="strict_answer" if final else "native_tools",
-                tool_definition_count=0 if final else len(self._model.executor.definitions(session.scope)),
+                tool_definition_count=len(prepared.tools),
                 tool_choice=None if final else "required",
                 exploration_stop_reason=run.exploration_stop_reason,
                 estimated_input_tokens=estimate,
+                **details,
                 output_limit=output_tokens,
             )
             try:
-                result = await self._model.request_action(
-                    request,
-                    session,
-                    final=final,
-                    max_tokens=output_tokens,
-                    temperature=temperature,
-                )
+                # 发送已准备的消息：取证阶段请求工具调用，最终阶段请求答案。
+                result = await self._model.request_action(prepared, session)
             except BaseException as exc:
-                # 请求失败也可能已经计费；未返回实际用量时标记未知，不能当作零消耗。
+                # 请求失败仍可能携带服务端用量；有报告则结算，无报告则记录未知，不计作零。
                 reported = exc.metadata.get("reported_usage") if isinstance(exc, APIError) else None
                 if reported is not None:
                     self._account(run, ChatResult("", self._budget.model, **reported), call_number, check_response=False)
                 else:
                     run.unknown_model(call_number, getattr(exc, "reason", type(exc).__name__))
                 raise
+            # 按模型返回的实际用量结算本次预留。
             self._account(run, result, call_number)
             self._check_active(run, session)
             if run.status != "running":
@@ -507,6 +520,7 @@ class RAGBiz:
                     arguments_summary=call.arguments[:256],
                     call_key=key,
                 )
+                # 校验并执行模型提出的工具调用，取得资料或错误结果。
                 result_tool = await self._model.executor.execute(call, session)
                 if call.name in ("web_search", "web_read"):
                     web_attempted = True
@@ -642,6 +656,7 @@ class RAGBiz:
         """
         bounded = [replace(result, sources=[]) for result in results]
         candidates: list[AnswerSource | WebSource] = []
+        # 引用编号对应的原消息位置：history 指历史消息下标，new 指本批工具结果下标。
         owners: dict[int, tuple[str, int]] = {}
         previous: dict[int, dict] = {}
         registry = {source.citation_id: source for source in [*run.sources, *(pending_sources or [])]}
@@ -695,9 +710,24 @@ class RAGBiz:
                     trial[i] = _coverage_control(session.question, values)
             return projected, trial
 
+        limit_reasons = set()
+
         def fits(values):
+            """用候选来源重建完整历史，检查下一步请求及必要的最终回答预留是否可容纳。"""
             _, trial = project(values)
-            return not self._budget_plan(trial, session, run, output_tokens).stop_reason(final=final_only)
+            # 引用编号和状态可能改变序列化长度，重新核验实际工具消息。
+            for message in trial:
+                if message["role"] == "tool":
+                    if len(json.dumps(message, ensure_ascii=False).encode("utf-8")) > self._budget.limits.tool_result_max_bytes:
+                        limit_reasons.add("tool_byte_limit")
+                        return False
+                    if self._budget.counter.count_text(message["content"]) > self._budget.limits.tool_result_max_tokens:
+                        limit_reasons.add("tool_token_limit")
+                        return False
+            reason = self._budget_plan(trial, session, run, output_tokens).stop_reason(final=final_only)
+            if reason:
+                limit_reasons.add(reason)
+            return not reason
 
         limited: set[int] = set()
         while True:
@@ -734,7 +764,11 @@ class RAGBiz:
         session.active_sources = packed
         run.usage.final_reserved_tokens = plan.final_reservation
         run.emit("materials_budgeted", strategy="question_relevant_verbatim",
+                 limit_reasons=sorted(limit_reasons),
                  candidate_chars=sum(len(source.content) for source in candidates),
+                 candidate_bytes=sum(len(source.content.encode("utf-8")) for source in candidates),
+                 retained_tokens=sum(self._budget.counter.count_text(source.content) for source in packed),
+                 retained_bytes=sum(len(source.content.encode("utf-8")) for source in packed),
                  retained_chars=sum(len(source.content) for source in packed),
                  retained_citation_ids=[source.citation_id for source in packed],
                  active_ranges=[{

@@ -1,10 +1,4 @@
-"""
-internal/data/knowledge_base/sqlalchemy.py — KnowledgeBaseRepo 的 SQLAlchemy 实现
-
-data 层实现 biz 定义的 KnowledgeBaseRepo 接口（依赖倒置）。
-只负责知识库表的增删改查，以及列表所需的文档数 / 分块数统计。
-领域对象 DO 与表映射 PO 的转换走 converter，本文件不写业务规则。
-"""
+"""通过 SQLAlchemy 读写知识库，并聚合文档与分块数量。"""
 
 from __future__ import annotations
 
@@ -21,6 +15,7 @@ class SQLAlchemyKnowledgeBaseRepo(KnowledgeBaseRepo):
     """KnowledgeBaseRepo 的 SQLAlchemy 异步实现。"""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        """保存异步数据库会话工厂；每次仓储操作通过它创建独立会话。"""
         self._session_factory = session_factory
 
     async def create(self, kb: KnowledgeBase) -> KnowledgeBase:

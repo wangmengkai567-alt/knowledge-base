@@ -1,14 +1,14 @@
 """
 internal/server/http.py — HTTP Server 创建与路由注册
 
-只做路由注册和中间件挂载，不含业务逻辑。
+创建应用、挂载中间件和路由，并管理启动检查与资源关闭。
 
 设计要点：
-- HTTPServer 类只负责创建 FastAPI app 并挂载中间件。
+- HTTPServer 负责组装 HTTP 层，具体业务交给应用服务。
 - 路由按业务模块拆成独立方法。
 - lifespan 用闭包创建，通过构造函数注入配置。
 - /health/live 只表示进程在跑；/health/ready 检查数据库和 Redis。
-- 注册顺序：CORS → SecurityHeaders → AuthMiddleware → 异常处理器 → 路由。
+- 请求依次经过 Metrics、Auth、RateLimit、Security、CORS，最后进入路由。
 """
 
 from __future__ import annotations
@@ -75,12 +75,15 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
+# 清理已废弃的数据库列；启动和显式迁移共用，目标列不存在时跳过。
 async def _drop_unused_shell_columns(engine: AsyncEngine) -> None:
 
     async def _drop(table: str, column: str, constraint: str | None = None) -> None:
+        """列存在时删除指定废弃列；PostgreSQL 下先移除指定约束，避免约束阻止删列。"""
         async with engine.begin() as conn:
 
             def _has_column(sync_conn) -> bool:
+                """通过同步 SQLAlchemy 检查器确认目标表和目标列均存在。"""
                 inspector = inspect(sync_conn)
                 if table not in inspector.get_table_names():
                     return False
@@ -113,11 +116,7 @@ class HealthResponse(BaseModel):
 
 
 class HTTPServer:
-    """HTTP Server — 协议适配层。
-
-    持有 ServerConfig + AuthService + DocumentService + SessionManager，
-    create() 返回组装好的 FastAPI app。
-    """
+    """组装 HTTP 路由、中间件与生命周期回调，依赖通过构造函数注入。"""
 
     def __init__(
         self,
@@ -141,6 +140,7 @@ class HTTPServer:
         ensure_pgvector: bool = False,
         vector_dimension: int = 1024,
     ) -> None:
+        """注入 HTTP 配置和应用服务；设置数据库、限流及启动时索引处理选项。"""
         self._server_config = server_config
         self._auth_service = auth_service
         self._session_manager = session_manager
@@ -165,6 +165,7 @@ class HTTPServer:
 
         @asynccontextmanager
         async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+            """接收请求前准备表结构、恢复索引并启动问答记录清理；退出时关闭相关服务和连接。"""
             logger.info("app_starting", service=service_name)
             # 启动时幂等建表（已存在则跳过）
             if self._engine is not None:
@@ -178,8 +179,8 @@ class HTTPServer:
                     self._engine,
                     dimension=self._vector_dimension,
                 )
-            # 易失结构，重启后清空。阻塞式重建，确保对外服务前索引就绪，
-            # 否则首次检索会返回空（"未找到相关结果"）。逐文档保存失败；无法核实全部状态时阻断启动。
+            # 接收请求前核实索引并重建进程内数据；单文档失败写入其阶段状态。
+            # 无法列出文档或缺少必需的状态迁移时，异常向上传播并中止启动。
             if self._ingestion is not None:
                 await self._warmup_indices()
             if self._rag_service is not None:
@@ -194,7 +195,7 @@ class HTTPServer:
         return lifespan
 
     async def _warmup_indices(self) -> None:
-        """启动时重建内存索引（vector store + keyword index）。"""
+        """调用入库编排核实向量记录，并按当前配置重建进程内索引。"""
         count = await self._ingestion.rebuild_indices(
             include_vectors=self._rebuild_vectors,
         )
@@ -203,7 +204,7 @@ class HTTPServer:
     def create(self) -> FastAPI:
         """创建 FastAPI 应用实例。
 
-        注册顺序：CORS → SecurityHeaders → AuthMiddleware → 异常处理器 → 路由。
+        挂载中间件、异常处理器和各业务路由，启动任务由 lifespan 执行。
         """
         config = self._server_config
 
@@ -217,7 +218,7 @@ class HTTPServer:
             debug=debug,
         )
 
-        # CORS（最外层）
+        # 注册 CORS；实际请求顺序由后续中间件的添加顺序决定。
         app.add_middleware(
             CORSMiddleware,
             allow_origins=config.cors_origins,
@@ -386,7 +387,7 @@ class HTTPServer:
 
         @router.get("", response_model=KnowledgeBaseListResponse)
         async def list_knowledge_bases(request: Request) -> KnowledgeBaseListResponse:
-            """列出知识库（含文档数 / 分块数）。空库会种默认库并回填存量文档 ID。"""
+            """返回当前用户的知识库及计数；列表前补齐目录，目录为空时创建默认库。"""
             user_id = request.state.user_id
             return await kb_service.list_knowledge_bases(user_id=user_id)
 
@@ -463,22 +464,26 @@ class HTTPServer:
             )
 
         @router.get("", response_model=DocumentListResponse)
+        # 确认当前用户拥有路径中的知识库，再返回该库的文档列表。
         async def list_documents(kb_id: int, request: Request) -> DocumentListResponse:
             user_id = request.state.user_id
             await kb_service.get_knowledge_base(kb_id, user_id=user_id)
             return await document_service.list_documents(knowledge_base_id=kb_id, user_id=user_id)
 
         @router.get("/{doc_id}", response_model=DocumentResponse)
+        # 同时核对知识库所有权及文档归属，再返回文档详情。
         async def get_document(kb_id: int, doc_id: int, request: Request) -> DocumentResponse:
             return await authorize_document(kb_id, doc_id, request.state.user_id)
 
         @router.delete("/{doc_id}", status_code=204)
+        # 核对知识库、文档及当前用户的关系后，删除文档及关联资源。
         async def delete_document(kb_id: int, doc_id: int, request: Request) -> None:
             user_id = request.state.user_id
             await authorize_document(kb_id, doc_id, user_id)
             await document_service.delete_document(doc_id, user_id=user_id)
 
         @router.post("/{doc_id}/parse", response_model=DocumentResponse)
+        # 完成归属校验后触发文档解析；force 控制是否重新处理已有结果。
         async def parse_document(
             kb_id: int,
             doc_id: int,
@@ -490,6 +495,7 @@ class HTTPServer:
             return await document_service.parse_document(document_id=doc_id, user_id=user_id, force=body.force)
 
         @router.post("/{doc_id}/retry", response_model=DocumentResponse)
+        # 完成归属校验后重试指定入库阶段；stage 为空时由入库业务确定处理起点。
         async def retry_document(
             kb_id: int, doc_id: int, request: Request, body: RetryDocumentRequest,
         ) -> DocumentResponse:
@@ -510,6 +516,7 @@ class HTTPServer:
         assert chunk_service is not None and document_service is not None and kb_service is not None
 
         @router.get("", response_model=ChunkListResponse)
+        # 核对知识库所有权和文档归属，只返回该文档本轮可展示的分块。
         async def list_chunks(kb_id: int, doc_id: int, request: Request) -> ChunkListResponse:
             user_id = request.state.user_id
             await kb_service.get_knowledge_base(kb_id, user_id=user_id)
@@ -524,7 +531,7 @@ class HTTPServer:
 
         return router
     def _retrieval_router(self) -> APIRouter:
-        """检索路由 — 知识库内向量检索。"""
+        """检索路由 — 调用当前配置的检索服务返回知识库资料。"""
         router = APIRouter(
             prefix="/api/v1/knowledge/bases/{kb_id}/retrieve",
             tags=["Retrieval"],
@@ -561,6 +568,7 @@ class HTTPServer:
             body: RAGQueryRequest,
             request: Request,
         ) -> RAGQueryResponse:
+            # 路径中的知识库和请求额外选择的知识库都要逐一检查所有权。
             await self._knowledge_base_service.get_knowledge_base(kb_id, user_id=request.state.user_id)
             allowed = body.knowledge_base_ids or [kb_id]
             for kid in allowed:
@@ -596,12 +604,14 @@ class HTTPServer:
             body: RAGQueryRequest,
             request: Request,
         ) -> StreamingResponse:
+            # 在开始流式响应前完成权限检查，避免建立连接后才发现越权。
             await self._knowledge_base_service.get_knowledge_base(kb_id, user_id=request.state.user_id)
             allowed = body.knowledge_base_ids or [kb_id]
             for kid in allowed:
                 if kid != kb_id:
                     await self._knowledge_base_service.get_knowledge_base(kid, user_id=request.state.user_id)
             async def event_generator():
+                # 转发同一次问答的进度和最终结果，结束后发送 SSE 结束标记。
                 try:
                     async with aclosing(rag_service.query_stream(
                         query=body.query, knowledge_base_ids=allowed, top_k=body.top_k,
@@ -613,9 +623,10 @@ class HTTPServer:
                             yield format_sse_data(event)
                     yield SSE_DONE
                 except Exception as exc:
+                    # 流式响应建立后通过 error 帧报告执行或快照保存失败，再发送结束标记。
                     logger.error("rag_stream_error", **unexpected_error_details(exc))
                     yield format_sse_data({
-                        "type": "error", "version": 5, "tool_contract_version": 2,
+                        "type": "error", "version": 6, "tool_contract_version": 3,
                         "answer_contract_version": ANSWER_CONTRACT_VERSION,
                         "error_code": "RUN_STREAM_FAILED",
                         "error": "问答传输或运行记录保存失败，请重新提问",

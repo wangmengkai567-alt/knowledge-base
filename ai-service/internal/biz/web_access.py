@@ -10,6 +10,7 @@ from urllib.parse import urlsplit, urlunsplit
 from internal.biz.tool_types import ToolError
 
 
+# 统一网址写法并拒绝明显不允许的地址；域名解析后的公网检查在 resolve_public_url 完成。
 def normalize_public_url(url: str) -> str:
     try:
         if len(url) > 2048 or any(ord(char) <= 32 for char in url) or "\\" in url:
@@ -49,6 +50,7 @@ def normalize_public_url(url: str) -> str:
         raise ToolError("URL_NOT_ALLOWED", "仅允许无凭据、标准端口的公开 HTTP(S) 网页") from exc
 
 
+# 解析域名并确认所有地址均为公网 IP，返回可供请求方固定连接的地址列表。
 async def resolve_public_url(url: str) -> tuple[str, tuple[str, ...]]:
     normalized = normalize_public_url(url)
     host = urlsplit(normalized).hostname
@@ -61,6 +63,7 @@ async def resolve_public_url(url: str) -> tuple[str, tuple[str, ...]]:
     return normalized, tuple(dict.fromkeys(record[4][0] for record in records))
 
 
+# 在登记网址前完成格式和公网检查；这里只验证地址，不抓取网页。
 async def validate_public_url(url: str) -> str:
     normalized, _ = await resolve_public_url(url)
     return normalized

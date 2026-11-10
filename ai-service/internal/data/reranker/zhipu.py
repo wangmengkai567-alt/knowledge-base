@@ -1,14 +1,7 @@
-"""
-internal/data/reranker/zhipu.py — 智谱文本重排序
+"""调用配置地址下的 /rerank 接口，为输入候选获取原始分数。
 
-协议见：https://docs.bigmodel.cn/api-reference/模型-api/文本重排序
-POST {base_url}/rerank
-Authorization: Bearer {api_key}
-
-请求：model / query / documents，可选 top_n。
-响应：results[].index、results[].relevance_score。
-
-模型名由配置传入，不写死；更换智谱重排模型只改 AI_RERANKER__MODEL。
+按响应 index 关联候选，将原始分数经本模块的 sigmoid 公式转换后排序。
+原始分数与转换方法均保留在评分记录中。
 """
 
 from __future__ import annotations
@@ -23,22 +16,21 @@ import structlog
 from internal.biz.repo import Reranker
 from pkg.errors.base import RAGError
 
-# return_raw_scores=true 时分数大约是 10+ 的 logit：实测无关约 10–13，对题约 16–22。
-# 压到 0–1 后才能和配置里的 min_relevance=0.5 比较。
-_RAW_SCORE_MIDPOINT = 16.0
-_RAW_SCORE_STEEPNESS = 0.4
+# _squash_raw_score 使用 sigmoid(steepness × (raw - midpoint)) 映射原始分数。
+_RAW_SCORE_MIDPOINT = 16.0   # 此原始分数映射为 0.5。
+_RAW_SCORE_STEEPNESS = 0.4   # 控制原始分数变化时转换结果的变化幅度；转换值不是概率。
 
 logger = structlog.get_logger()
 
-# 智谱文档约束：documents 最多 128 条，query / 单条文本最多 4096 字符。
-_MAX_DOCUMENTS = 128
-_MAX_CHARS = 4096
+_MAX_DOCUMENTS = 128  # 一次请求最多发送的候选数量；超出时截取输入列表前部。
+_MAX_CHARS = 4096     # 查询及每条“文件名 + 正文”的字符数上限。
 
 if TYPE_CHECKING:
     from internal.biz.entity import RetrievalResult
 
 
 def _clip(text: str, limit: int = _MAX_CHARS) -> str:
+    """将发送给重排服务的文本截到 limit 个字符；limit 不是 token 数量。"""
     if len(text) <= limit:
         return text
     return text[:limit]
@@ -63,6 +55,7 @@ class ZhipuReranker(Reranker):
         model: str,
         timeout: int = 30,
     ) -> None:
+        """配置智谱重排接口的基础地址、密钥和模型；timeout 为单次请求超时秒数。"""
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._model = model
@@ -70,14 +63,21 @@ class ZhipuReranker(Reranker):
 
     @property
     def model_name(self) -> str:
+        """返回请求智谱重排接口时使用的模型名。"""
         return self._model
 
+    # 请求智谱为候选分块打分，将原始分数转换到统一范围后排序。
     async def rerank(
         self,
         query: str,
         results: list[RetrievalResult],
         top_k: int | None = None,
     ) -> list[RetrievalResult]:
+        """向智谱提交查询和候选文本，校验响应索引与分数，再转换分数并排序。
+
+        候选列表超出本模块数量上限时截取前部；top_k=None 或非正数时请求全部候选评分。
+        服务、格式或数量错误抛出 RAGError，不返回未经重排的原候选。
+        """
         if not results:
             return []
 
@@ -122,12 +122,14 @@ class ZhipuReranker(Reranker):
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.post(url, json=payload, headers=headers)
         except httpx.TimeoutException as e:
+            # 保留 RERANK_TIMEOUT 分类，供检索工具和问答层识别超时终止。
             raise RAGError(
                 reason="RERANK_TIMEOUT",
                 message=f"智谱重排序超时（{self._timeout}s）",
                 metadata={"url": url, "model": self._model},
             ) from e
         except httpx.ConnectError as e:
+            # 网络失败直接作为重排失败上报，不使用原检索排序替代重排结果。
             raise RAGError(
                 reason="RERANK_CONNECT_ERROR",
                 message=f"智谱重排序连接失败：{e}",
@@ -148,6 +150,7 @@ class ZhipuReranker(Reranker):
         try:
             data = response.json()
         except ValueError as e:
+            # HTTP 成功仍可能返回无法解析的 JSON，此时明确报告响应格式错误。
             raise RAGError(
                 reason="RERANK_BAD_RESPONSE",
                 message="智谱重排序返回了无法解析的响应",
@@ -167,6 +170,7 @@ class ZhipuReranker(Reranker):
             try:
                 score = float(item["relevance_score"])
             except (KeyError, TypeError, ValueError) as exc:
+                # 候选索引或真实分数缺失时拒绝结果，不按返回位置补配候选或生成分数。
                 raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排缺少分数") from exc
             if not math.isfinite(score):
                 raise RAGError(reason="RERANK_BAD_RESPONSE", message="智谱重排分数无效")
@@ -191,10 +195,12 @@ class ZhipuReranker(Reranker):
         return reranked
 
 
+# 将供应商原始分数映射到 0～1，供相关性筛选使用。
 def _squash_raw_score(raw: float) -> float:
     return round(1.0 / (1.0 + math.exp(-_RAW_SCORE_STEEPNESS * (raw - _RAW_SCORE_MIDPOINT))), 6)
 
 
+# 保留原始评分记录，并登记转换后的分数及计算方式。
 def _calibrate_zhipu_scores(reranked: list[RetrievalResult]) -> list[RetrievalResult]:
     scores = [item.score for item in reranked]
     calibrated = [item.with_score(_squash_raw_score(item.score), f"{item.score_method}:sigmoid(0.4*(raw-16))") for item in reranked]
@@ -207,6 +213,7 @@ def _calibrate_zhipu_scores(reranked: list[RetrievalResult]) -> list[RetrievalRe
 
 
 def _error_message(response: httpx.Response) -> str:
+    """提取智谱响应中的错误说明；无法解析时保留状态码及最多 200 字符响应文本。"""
     try:
         body = response.json()
         err = body.get("error") if isinstance(body, dict) else None

@@ -47,6 +47,7 @@ class KnowledgeBaseResponse(BaseModel):
 
     @classmethod
     def from_domain(cls, kb: KnowledgeBase) -> KnowledgeBaseResponse:
+        """把知识库领域对象转换为接口响应，保留配置、文档/分块统计和时间信息。"""
         return cls(
             id=kb.id or 0,
             name=kb.name,

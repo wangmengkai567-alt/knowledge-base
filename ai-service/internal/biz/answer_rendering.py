@@ -1,4 +1,5 @@
 """由登记的证据编号取得原文和代码；不让模型重新构造引文。"""
+# 校验答案是否具有合法证据，并生成带引用的最终文本
 
 from __future__ import annotations
 
@@ -28,15 +29,19 @@ _QUANTITY_RE = re.compile(
 
 
 def _quantities(text: str) -> set[tuple[str, str]]:
+    """提取文本中的“数值、单位”组合，用于核对答案与所选证据中的数量写法。"""
     return {(match[1], match[2]) for match in _QUANTITY_RE.finditer(text)}
 
 
+# 表示模型答案未通过证据或格式检查，由问答流程决定如何结束本次请求。
 class AnswerEvidenceError(ValueError):
     def __init__(self, reason: str) -> None:
+        """保存校验失败原因码，供问答流程记录停止原因。"""
         super().__init__(reason)
         self.reason = reason
 
 
+# 汇总通过检查的展示正文和引用记录，供问答结果统一发布。
 @dataclass(frozen=True)
 class RenderedAnswer:
     answer: str
@@ -44,6 +49,7 @@ class RenderedAnswer:
     citation_ids: list[int]
 
 
+# 判断证据是否来自同一份文档或网页，避免把同一来源的多段内容当成多来源。
 def _source_identity(origin: dict) -> tuple:
     if origin["source_type"] == "knowledge_base":
         return "knowledge_base", origin["knowledge_base_id"], origin["document_id"]
@@ -70,6 +76,7 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
                              "quote": fragment.content, "origin": fragment.origin,
                              "range_basis": "registered_original_slice"})
         identities = {_source_identity(fragment.origin) for fragment in fragments}
+        # 单来源事实不能混用来源；共同结论必须由至少两个独立来源支持。
         if (claim.scope == "source" and len(identities) != 1) or (claim.scope == "shared" and len(identities) < 2):
             raise AnswerEvidenceError("invalid_source_scope")
         supported_quantities = {
@@ -92,6 +99,7 @@ def render_answer(payload: AnswerPayload, allowed: dict[str, EvidenceFragment]) 
                 raise AnswerEvidenceError("unsupported_code")
         code = None
         if claim.code_evidence_id is not None:
+            # 展示代码时直接取登记原文，避免模型重新抄写后改变命令或空白。
             if claim.code_evidence_id not in claim.evidence_ids:
                 raise AnswerEvidenceError("code_evidence_not_selected")
             try:

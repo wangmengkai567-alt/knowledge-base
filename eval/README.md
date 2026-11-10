@@ -147,7 +147,7 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 
 ## 网页取证修复顺序 2：当前工具契约
 
-当前 `tool_contract_version=2`：网页搜索使用最多 120 字符的单字符串 `query`，读取使用本次目录的 `source_id`，`web_find` 只查本次已保存的正文快照。旧 `keywords`/`urls` 工具参数已删除。目录与实际证据分离；范围字段只描述实际送模片段，完整规范正文保存在快照 `web_pages` 中。
+历史 `tool_contract_version=2`：网页搜索使用最多 120 字符的单字符串 `query`，读取使用本次目录的 `source_id`，`web_find` 只查本次已保存的正文快照。旧 `keywords`/`urls` 工具参数已删除。目录与实际证据分离；范围字段只描述实际送模片段，完整规范正文保存在快照 `web_pages` 中。
 
 `web_find` 只返回最多 10 项导航命中：`source_id`、匹配范围 `start/end`、原样短预览及其 `preview_start/preview_end`、`in_code`。预览最多 120 字符，不生成引用编号，也不加入送模证据来源。模型选择命中后用 `web_read` 的 `start/max_chars` 取得可引用正文；多个子问题可以在同轮发出多个工具调用。新命中位置计为导航进展，同次快照中重复位置不重复计数。API 和事件外层字段保持不变；历史结果中的 find 正文保留为当时的执行证据。
 
@@ -164,3 +164,11 @@ uv run --project ai-service --no-sync python eval/run_eval.py --ids A18 A22 B04 
 代码须在该事实自己的非摘要摘录中原样出现；answered 的每条事实均不能以搜索摘要替代正文。任何条目校验失败都不发布整份答案，不修复格式或自动重答。快照保留原始最终 JSON、规范事实及摘录的送模内容相对范围；`answer_validated` 记录原文绑定通过，但 `semantic_support` 仍为 `not_evaluated`。原样摘录、引用身份和来源数量正确并不证明自然语言结论得到语义蕴含，现有关键词/重合率也不能充当语义门禁。外部 API/SSE 继续返回程序渲染的 Markdown `answer`，工具契约仍为 2；历史结果保持原样。
 
 本次只做必要诊断、确定性集成及公开端点探针；未执行四题完整问答。模拟流程通过，真实 Tavily 搜索与 Docker 页面读取在 TLS 阶段失败，原结果保留。现有只读工具有一项旧 `urls` 参数断言失败，未修改测试。结果和边界见[顺序 2 实施记录](../docs/implementation/web-reader-step-2-report.md)。
+
+## 当前 Token 预算与计量契约
+
+同步/SSE 版本为 6，工具契约为 3，答案契约维持 3。`counting` 标记 `model_tokenizer_estimate`，保存模型、固定 tokenizer_ref、请求投影版本、比例及固定余量；调用账本保存内容、协议及安全余量，供应商实际用量另列。
+
+`web_read.max_tokens` 为网页窗口额度（64～2000），字符 `start/end` 与 `total_chars` 保持原义；搜索摘要上限 512 token，定位预览上限 64 token，工具完整 content 上限 3000 token，完整消息另受 12000 字节限制。仅根据后续成功读取的实际范围逐项省略已读预览；请求失败和未读预览仍保留。
+
+`score_run` 按版本核验新账本与计量元数据。`summarize_runs` 按计量方法、tokenizer_ref、投影版本及余量分组输入估算；不混加旧字节估算，也不改写历史快照或既有评测分数。上文有关工具契约 2、字符窗口和字节估算的内容描述历史阶段，不代表当前运行协议。

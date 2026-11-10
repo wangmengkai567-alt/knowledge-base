@@ -1,9 +1,4 @@
-"""
-internal/data/vector_store/memory.py — 内存向量存储
-
-纯 Python 实现的暴力相似度搜索，无需外部数据库。
-适合小规模数据（< 10K 向量）。
-"""
+"""在进程内保存向量和元数据，筛选来源后逐项计算余弦相似度；重启后数据丢失。"""
 
 from __future__ import annotations
 
@@ -24,6 +19,7 @@ class InMemoryVectorStore(VectorStore):
 
     def __init__(self) -> None:
         # chunk_id → (向量, 元数据)
+        """创建空的进程内向量字典；记录随进程退出而丢失。"""
         self._store: dict[int, tuple[list[float], dict]] = {}
 
     async def upsert(
@@ -45,6 +41,7 @@ class InMemoryVectorStore(VectorStore):
         logger.debug("memory_vector_delete", count=len(chunk_ids), total=len(self._store))
 
     async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
+        """返回输入 ID 中已存储、且元数据同时匹配文档和知识库的分块 ID。"""
         return {cid for cid in chunk_ids if cid in self._store
                 and self._store[cid][1].get("document_id") == document_id
                 and self._store[cid][1].get("knowledge_base_id") == knowledge_base_id}
@@ -85,7 +82,7 @@ class InMemoryVectorStore(VectorStore):
 
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:
-        """计算两个向量的余弦相似度。"""
+        """返回余弦相似度；向量为空、维度不一致或任一范数为零时返回 0。"""
         if len(a) != len(b) or not a:
             return 0.0
 

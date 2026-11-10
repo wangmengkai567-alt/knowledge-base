@@ -1,16 +1,6 @@
-"""
-internal/data/embedding/local.py — Ollama 本地 Embedding 实现
+"""通过 Ollama /api/embeddings 为每条文本获取向量。
 
-基于 Ollama 原生接口（/api/embeddings）实现 EmbeddingProvider。
-无需 API 密钥，不依赖外部云。
-
-Ollama Embedding 接口：
-    请求 POST /api/embeddings
-    {"model": "nomic-embed-text", "prompt": "文本内容"}
-
-    响应：{"embedding": [0.1, 0.2, ...]}
-
-注意：该接口每次只接受一条文本，本实现内部用 asyncio.gather 并发批量请求。
+批量输入按配置并发执行；向量维度取实际响应，用量按输入字符数估算。
 """
 
 from __future__ import annotations
@@ -29,11 +19,7 @@ logger = structlog.get_logger()
 
 
 class OllamaEmbedding(EmbeddingProvider):
-    """Ollama 本地 Embedding — 通过原生 /api/embeddings 端点实现。
-
-    每次 API 调用仅处理单条文本，内部使用并发提升批量效率。
-    维度由模型决定，首次调用时从响应中探测并缓存。
-    """
+    """逐条请求本地嵌入接口，并通过信号量限制批次并发；维度由实际响应更新。"""
 
     def __init__(
         self,
@@ -44,6 +30,7 @@ class OllamaEmbedding(EmbeddingProvider):
         max_concurrency: int = 5,
         keep_alive: str = "5m",
     ) -> None:
+        """配置本地嵌入接口；timeout 单位为秒，max_concurrency 为并发数，keep_alive 为模型驻留时间。"""
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._dimension = dimension
@@ -53,19 +40,18 @@ class OllamaEmbedding(EmbeddingProvider):
 
     @property
     def dimension(self) -> int:
+        """返回当前向量维度；请求成功后该值反映模型实际输出长度。"""
         return self._dimension
 
     @property
     def model_name(self) -> str:
+        """返回发送给 Ollama 的嵌入模型名称。"""
         return self._model
 
     async def _embed_single(
         self, client: httpx.AsyncClient, text: str
     ) -> list[float]:
-        """对单条文本调用 Ollama /api/embeddings。
-
-        使用信号量控制并发度，防止短时间大量请求压垮 Ollama。
-        """
+        """为一条文本请求嵌入向量；并发限制由调用方的信号量执行。"""
         url = f"{self._base_url}/api/embeddings"
         payload = {
             "model": self._model,
@@ -98,11 +84,7 @@ class OllamaEmbedding(EmbeddingProvider):
         return embedding
 
     async def embed(self, texts: list[str]) -> EmbeddingResult:
-        """批量嵌入文本 — 并发调用 Ollama /api/embeddings。
-
-        内部使用 asyncio.Semaphore 控制并发度（默认 5），
-        防止短时间大量请求压垮本地 Ollama 实例。
-        """
+        """按输入顺序收集并发请求的向量，校验非空与数量，返回按实际响应更新的维度和估算用量。"""
         if not texts:
             return EmbeddingResult(
                 vectors=[],
@@ -114,6 +96,7 @@ class OllamaEmbedding(EmbeddingProvider):
         semaphore = asyncio.Semaphore(self._max_concurrency)
 
         async def _bounded_embed(client: httpx.AsyncClient, text: str) -> list[float]:
+            """取得本批并发名额后请求单条文本，完成或异常时自动释放名额。"""
             async with semaphore:
                 return await self._embed_single(client, text)
 
@@ -132,7 +115,7 @@ class OllamaEmbedding(EmbeddingProvider):
                     message=f"Expected {len(texts)} embeddings, got {len(vectors)}",
                 )
 
-            # 校验维度一致性（添加空向量守卫）
+            # 拒绝空向量；随后取实际响应维度更新当前提供商的维度记录。
             if not vectors or not vectors[0]:
                 raise APIError(
                     code=ErrorCode.INTERNAL_ERROR,
@@ -149,7 +132,7 @@ class OllamaEmbedding(EmbeddingProvider):
                 # 以实际维度为准
                 self._dimension = actual_dim
 
-            # 估算 token 用量（Ollama 原生 API 不返回 usage）
+            # 此接口响应未解析用量，返回输入总字符数除以 4 的估算值。
             estimated_tokens = max(1, sum(len(t) for t in texts) // 4)
 
             logger.debug(
@@ -170,12 +153,14 @@ class OllamaEmbedding(EmbeddingProvider):
             )
 
         except httpx.TimeoutException:
+            # 单独标记请求超时，调用方可据此区分执行时限与其他依赖错误。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="OLLAMA_EMBEDDING_TIMEOUT",
                 message=f"Ollama embedding API timeout after {self._timeout}s",
             )
         except httpx.ConnectError as e:
+            # 连接服务失败时返回依赖错误，不返回空向量或空回答。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="OLLAMA_EMBEDDING_CONNECT_ERROR",
@@ -186,8 +171,10 @@ class OllamaEmbedding(EmbeddingProvider):
                 ),
             )
         except APIError:
+            # 保留前面已分类的服务响应或数据校验错误，不再包装成未预期异常。
             raise
         except Exception as e:
+            # 将其余响应解析或处理异常转换为统一业务错误，并保留异常链。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="OLLAMA_EMBEDDING_FAILED",

@@ -1,8 +1,7 @@
 """
 internal/service/auth.py — 认证应用层
 
-职责：DTO 校验 → 调 biz → DTO 返回。
-不含业务逻辑，只做 DTO ↔ DO 转换。
+接收认证请求，调用认证业务，并将结果转换为接口响应。
 """
 
 from __future__ import annotations
@@ -17,14 +16,14 @@ from api.openapi.schemas.auth import (
 from internal.biz.auth import AuthBiz
 
 
+# 连接认证接口与业务逻辑，统一返回用户信息和登录令牌。
 class AuthService:
-    """认证应用层 — DTO 校验 + 调 biz + DTO 返回。"""
-
     def __init__(self, auth_biz: AuthBiz) -> None:
+        """注入认证业务，负责把接口请求和业务返回值转换为认证接口的数据结构。"""
         self._auth_biz = auth_biz
 
     async def register(self, request: RegisterRequest) -> UserResponse:
-        """注册 — DTO → DO → 调 biz → DO → DTO。"""
+        # 调用注册业务，并将新用户转换为接口响应。
         user = await self._auth_biz.register(
             email=request.email,
             password=request.password,
@@ -35,7 +34,7 @@ class AuthService:
     async def login(
         self, request: LoginRequest, user_agent: str = ""
     ) -> LoginResponse:
-        """登录 — DTO → DO → 调 biz → DO → DTO。"""
+        # 调用登录业务，将用户信息和登录令牌一起返回。
         user, access_token, refresh_token, expires_in = await self._auth_biz.login(
             email=request.email,
             password=request.password,

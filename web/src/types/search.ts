@@ -76,6 +76,15 @@ export type RagSource = KnowledgeSource | WebSource
 export type RunStatus = 'running' | 'completed' | 'insufficient' | 'budget_exhausted' |
   'usage_unknown' | 'tool_failed' | 'model_failed' | 'internal_error' | 'invalid_answer' | 'timeout' | 'cancelled'
 
+export interface TokenCountingMetadata {
+  measurement: 'model_tokenizer_estimate'
+  model: string
+  tokenizer_ref: string
+  request_projection_version: 1
+  safety_ratio: number
+  fixed_reserve_tokens: number
+}
+
 export interface RunUsage {
   model_calls: number
   tool_calls: number
@@ -88,6 +97,7 @@ export interface RunUsage {
   final_reserved_tokens: number
   calls: { run_id: string; call: number; phase: 'exploration' | 'final';
     estimated_input_tokens: number; output_limit: number; reservation: number;
+    content_tokens: number; protocol_tokens: number; safety_tokens: number;
     state: 'reserved' | 'settled' | 'unknown'; prompt_tokens: number | null;
     completion_tokens: number | null; provider_total_tokens: number | null; unknown_reason: string | null }[]
   unreported_model_calls: number
@@ -110,6 +120,7 @@ export interface EvidenceFragment {
 }
 
 export interface RunResult {
+  counting: TokenCountingMetadata
   runId: string
   answerContractVersion: 3
   evidenceCatalog: EvidenceFragment[]

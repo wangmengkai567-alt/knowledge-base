@@ -1,16 +1,7 @@
-"""
-pkg/errors/base.py — 统一错误模型（框架无关）
+"""业务异常的数据结构与 HTTP 状态映射。
 
-设计原则：
-- 错误模型是"契约"，放在 pkg/ 供所有层（server/service/biz/data）共用。
-- 本文件只定义纯数据结构 + Exception 继承，不依赖任何 Web 框架。
-  FastAPI 异常处理器在 pkg/errors/fastapi.py 中，与模型定义隔离。
-- 用 dataclass 而非 Pydantic BaseModel：异常需要继承 Exception，
-  BaseModel 不支持与 Exception 多继承。
-- code 是 int（非 str/enum），编码规则：HTTP status * 1000 + 业务序号。
-  int 可直接做算术（code // 1000 → HTTP status）。
-- metadata 只写日志，不返回给客户端。
-- 业务子类有默认 code/reason/message，避免开发者手动传错 code。
+code 表示错误分类，reason 表示具体原因，message 用于对外响应，metadata 提供内部诊断信息。
+HTTP 状态统一通过 safe_http_status() 计算，部分业务码需使用显式映射。
 """
 
 from __future__ import annotations
@@ -34,6 +25,7 @@ class APIError(Exception):
     metadata: dict = field(default_factory=dict)
 
     def __str__(self) -> str:
+        """将错误码、原因和公开说明组合成异常字符串。"""
         return f"code={self.code} reason={self.reason}: {self.message}"
 
 
@@ -82,11 +74,8 @@ class DatabaseError(APIError):
     metadata: dict = field(default_factory=dict)
 
 
-# 错误码 → HTTP status 的显式映射。
-# 注意：codes.py 中 4xx 错误码实际编码为 400xxx（未按 HTTP*1000 规则分段），
-# 直接 code // 1000 会把 401/403/404 都算成 400，导致前端无法区分错误类型
-# （例如 token 过期应返回 401 触发登出，却被压成 400）。这里显式纠正，
-# 既不改变错误码数值（保持契约稳定），又让 HTTP status 正确。
+# 400xxx 中包含认证、权限和不存在等不同错误，不能仅用除以 1000 得到 HTTP 状态。
+# 这些业务码先查下表；其他业务码按分类计算。
 _STATUS_OVERRIDES: dict[int, int] = {
     ErrorCode.UNAUTHORIZED: 401,
     ErrorCode.FORBIDDEN: 403,
@@ -97,12 +86,7 @@ _STATUS_OVERRIDES: dict[int, int] = {
 
 
 def safe_http_status(code: int) -> int:
-    """把错误码映射到合法的 HTTP status code（约束到 400~599）。
-
-    优先使用 _STATUS_OVERRIDES 中针对 4xx/429 的显式映射（见上方说明），
-    其余按编码规则 code // 1000 推算（如 400001 // 1000 = 400、409001 -> 409）。
-    约束到 400~599：业务错误一定是 4xx 或 5xx。
-    """
+    """优先查找业务码的显式 HTTP 映射，其余取 code // 1000，并将结果限制在 400～599。"""
     if code in _STATUS_OVERRIDES:
         return _STATUS_OVERRIDES[code]
     return min(max(code // 1000, 400), 599)

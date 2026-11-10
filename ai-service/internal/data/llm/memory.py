@@ -23,14 +23,17 @@ class MemoryLLM(LLMProvider):
     """
 
     def __init__(self, model: str = "memory-llm-v1") -> None:
+        """设置模拟模型的标识；此实现从输入材料生成确定性响应，不请求外部模型。"""
         self._model = model
 
     @property
     def model_name(self) -> str:
+        """返回本地模拟模型标识。"""
         return self._model
 
     @property
     def is_mock(self) -> bool:
+        """标记这是模拟实现，供调用方识别模型能力。"""
         return True
 
     @staticmethod

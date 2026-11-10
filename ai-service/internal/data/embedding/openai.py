@@ -1,9 +1,4 @@
-"""
-internal/data/embedding/openai.py — OpenAI 兼容 Embedding 实现
-
-适用于 OpenAI / DeepSeek 等兼容 OpenAI API 格式的服务。
-通过 httpx 调用远程 API，将文本列表转换为向量列表。
-"""
+"""通过兼容协议的 /embeddings 接口获取向量，校验数量、维度并恢复输入顺序。"""
 
 from __future__ import annotations
 
@@ -33,6 +28,7 @@ class OpenAIEmbedding(EmbeddingProvider):
         timeout: int = 30,
         request_dimensions: bool = False,
     ) -> None:
+        """配置嵌入接口；dimension 为向量维度，timeout 单位为秒，request_dimensions 控制是否发送维度参数。"""
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._model = model
@@ -42,10 +38,12 @@ class OpenAIEmbedding(EmbeddingProvider):
 
     @property
     def dimension(self) -> int:
+        """返回配置的向量维度，供向量存储和业务层核对。"""
         return self._dimension
 
     @property
     def model_name(self) -> str:
+        """返回嵌入请求使用的模型标识。"""
         return self._model
 
     async def embed(self, texts: list[str]) -> EmbeddingResult:
@@ -153,20 +151,24 @@ class OpenAIEmbedding(EmbeddingProvider):
             )
 
         except httpx.TimeoutException:
+            # 单独标记请求超时，调用方可据此区分执行时限与其他依赖错误。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="EMBEDDING_TIMEOUT",
                 message=f"Embedding API timeout after {self._timeout}s",
             )
         except httpx.HTTPStatusError as e:
+            # 将远端 HTTP 状态错误转换为嵌入错误。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="EMBEDDING_API_ERROR",
                 message=f"Embedding API HTTP {e.response.status_code}",
             )
         except APIError:
+            # 保留前面已分类的服务响应或数据校验错误，不再包装成未预期异常。
             raise
         except Exception as e:
+            # 将其余响应解析或处理异常转换为统一业务错误，并保留异常链。
             raise APIError(
                 code=ErrorCode.INTERNAL_ERROR,
                 reason="EMBEDDING_FAILED",

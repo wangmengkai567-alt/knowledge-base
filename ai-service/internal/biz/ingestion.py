@@ -35,6 +35,7 @@ class IngestionBiz:
         embeddings: EmbeddingBiz,
         parser_factory: Callable[[str], DocumentParser],
     ) -> None:
+        """注入入库依赖；parser_factory 根据文件路径选择解析器。"""
         self._documents = documents
         self._chunks = chunks
         self._chunk_biz = chunk_biz
@@ -76,6 +77,7 @@ class IngestionBiz:
         doc.stages[name] = stage_state("failed", error)
 
         async def persist() -> None:
+            """写入失败阶段；若解析失败，同时保存文档错误状态和解析错误说明。"""
             await self._documents.update_stages(doc.id, doc.stages)
             if name == "parse":
                 await self._documents.update_status(doc.id, DocumentStatus.ERROR, parse_error)
@@ -110,8 +112,10 @@ class IngestionBiz:
             doc.stages["keyword"] = defaults["keyword"]
         doc.stages[name] = stage_state("running")
         try:
+            # 先保存“处理中”，再执行当前入库操作。
             await self._documents.update_stages(doc.id, doc.stages)
             await action()
+            # 操作成功后保存“已完成”；异常由下方分支记录为失败。
             doc.stages[name] = stage_state("completed")
             await self._documents.update_stages(doc.id, doc.stages)
         except asyncio.CancelledError:
@@ -179,6 +183,8 @@ class IngestionBiz:
                 await self._documents.update_status(doc.id, DocumentStatus.PROCESSING)
 
                 async def parse() -> None:
+                    """调用文件解析器，拒绝空正文，并把正文同时写入数据库和当前文档对象。"""
+                    # 根据文件路径选择解析器，读取并提取文档正文。
                     content = await self._parser_factory(doc.file_path).parse(doc.file_path)
                     if not content.strip():
                         raise ValueError("解析结果为空")
@@ -203,8 +209,10 @@ class IngestionBiz:
             ):
 
                 async def vector() -> None:
+                    """核对当前向量记录，补齐分块向量，再确认每个当前分块都有对应向量。"""
                     await self._embeddings.reconcile_vectors(doc.id, chunks)
                     current = await self._chunks.list_by_document(doc.id)
+                    # 为当前分块生成向量并写入向量索引。
                     await self._embeddings.embed_document(doc.id, current)
                     if not await self._embeddings.reconcile_vectors(doc.id, current):
                         raise ValueError("向量索引缺少当前分块")
@@ -258,6 +266,7 @@ class IngestionBiz:
                     continue
 
                 async def verify_chunks(doc: Document = doc) -> None:
+                    """检查文档分块非空、位置编号从零连续且正文有效；失败时要求重新分块。"""
                     chunks = await self._chunks.list_by_document(doc.id)
                     if (
                         not chunks
@@ -270,6 +279,7 @@ class IngestionBiz:
                     continue
 
                 async def verify_vectors(doc: Document = doc) -> None:
+                    """按需重建向量，再核实向量记录存在且归属正确；doc 默认值固定本轮文档。"""
                     chunks = await self._chunks.list_by_document(doc.id)
                     if include_vectors:
                         await self._chunks.update_embedding_status(

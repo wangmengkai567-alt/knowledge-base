@@ -1,7 +1,1 @@
-"""
-internal/data/llm/ — LLM 提供商实现模块
-
-当前实现：
-- OpenAILLM：兼容 OpenAI API 的实现（DeepSeek / OpenAI / Ollama）
-- MemoryLLM：内存伪 LLM，无需 API Key
-"""
+"""普通对话的云端、本地与内存实现；工具调用和结构化答案能力由具体实现声明。"""

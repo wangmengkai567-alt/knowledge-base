@@ -8,6 +8,7 @@ from internal.biz.ingestion_state import STAGES, stage_state
 from internal.data.models import ChunkPO, DocumentPO
 
 
+# 为旧文档补齐入库阶段记录；已有阶段记录的文档不再重新推断状态。
 async def migrate_ingestion_stages(engine: AsyncEngine) -> None:
     async with engine.begin() as conn:
         columns = await conn.run_sync(lambda sync: inspect(sync).get_columns("documents"))
@@ -31,6 +32,7 @@ async def migrate_ingestion_stages(engine: AsyncEngine) -> None:
             .all()
         )
         for doc in documents:
+            # 这里只能核实解析文本和分块；向量及关键词状态留待启动流程实际检查。
             stages = {name: stage_state("pending") for name in STAGES}
             if (
                 doc.status == DocumentStatus.PARSED

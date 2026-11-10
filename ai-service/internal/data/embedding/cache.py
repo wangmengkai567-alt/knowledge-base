@@ -1,12 +1,4 @@
-"""
-internal/data/embedding/cache.py — Query Embedding LRU 缓存
-
-搜索页对每个知识库各打一次 retrieve，同一句 query 及其 2～3 条
-短变体会被嵌 N 次。回答不再二次检索，但仍要挡住这 N 次重复。
-
-文档分块是大批量、内容几乎不重复，缓存收益低且会挤掉 query，因此
-只缓存「少量短文本」（query / 变体）。
-"""
+"""为最多五条、每条不超过 512 字符的嵌入请求提供进程内 LRU 缓存。"""
 
 from __future__ import annotations
 
@@ -20,19 +12,20 @@ from internal.biz.repo import EmbeddingProvider
 
 logger = structlog.get_logger()
 
-_DEFAULT_MAX_ENTRIES = 1024
-_QUERY_BATCH_LIMIT = 5
-_QUERY_MAX_CHARS = 512
+_DEFAULT_MAX_ENTRIES = 1024  # 缓存最多保存的文本—向量条目数。
+_QUERY_BATCH_LIMIT = 5       # 可进入查询缓存的单批文本数量上限。
+_QUERY_MAX_CHARS = 512       # 可进入查询缓存的单条文本字符数上限。
 
 
 class CachedEmbeddingProvider(EmbeddingProvider):
-    """装饰 EmbeddingProvider：query 及少量变体命中则跳过上游 API。"""
+    """包装嵌入服务，复用短文本向量；不符合查询大小条件的批次直接调用底层服务。"""
 
     def __init__(
         self,
         inner: EmbeddingProvider,
         max_entries: int = _DEFAULT_MAX_ENTRIES,
     ) -> None:
+        """包装 inner 嵌入服务；max_entries 限制可缓存的不同短查询文本数量。"""
         if max_entries <= 0:
             raise ValueError(f"max_entries must be positive, got {max_entries}")
         self._inner = inner
@@ -42,12 +35,15 @@ class CachedEmbeddingProvider(EmbeddingProvider):
 
     @property
     def dimension(self) -> int:
+        """返回底层嵌入服务实际声明的向量维度。"""
         return self._inner.dimension
 
     @property
     def model_name(self) -> str:
+        """返回底层嵌入模型标识，缓存层不改变模型。"""
         return self._inner.model_name
 
+    # 先复用缓存中的向量，只向上游请求尚未缓存的短查询。
     async def embed(self, texts: list[str]) -> EmbeddingResult:
         if not texts or not _looks_like_queries(texts):
             return await self._inner.embed(texts)
@@ -73,6 +69,7 @@ class CachedEmbeddingProvider(EmbeddingProvider):
             )
 
         unique_texts: list[str] = []
+        # 同一批次内重复的文本只请求一次，返回时再恢复原来的数量和顺序。
         unique_index: dict[str, int] = {}
         for index in missing_idx:
             text = texts[index]
@@ -81,6 +78,7 @@ class CachedEmbeddingProvider(EmbeddingProvider):
                 unique_texts.append(text)
 
         result = await self._inner.embed(unique_texts)
+        # 网络请求在锁外执行，避免其他查询等待整个模型请求结束。
         async with self._lock:
             for text, vector in zip(unique_texts, result.vectors):
                 self._put_locked(text, vector)
@@ -97,6 +95,7 @@ class CachedEmbeddingProvider(EmbeddingProvider):
             usage=result.usage,
         )
 
+    # 在持锁状态下更新缓存，容量不足时移除最久未使用的记录。
     def _put_locked(self, text: str, vector: list[float]) -> None:
         self._cache[text] = list(vector)
         self._cache.move_to_end(text)
@@ -105,4 +104,5 @@ class CachedEmbeddingProvider(EmbeddingProvider):
 
 
 def _looks_like_queries(texts: list[str]) -> bool:
+    """仅允许数量不超过批次上限、且每条字符数不超过文本上限的输入进入查询缓存。"""
     return len(texts) <= _QUERY_BATCH_LIMIT and all(len(text) <= _QUERY_MAX_CHARS for text in texts)

@@ -1,4 +1,5 @@
 """原生工具协议与只读工具结果；参数原文保留到集中校验时。"""
+# 定义最终答案的 JSON Schema，通过 Pydantic 约束输出结构
 
 from __future__ import annotations
 
@@ -13,7 +14,9 @@ if TYPE_CHECKING:
     from internal.biz.web_sources import WebEntry, WebMatch, WebPage
 
 
+# 标识最终答案的数据格式，供接口响应和本地运行记录保持一致。
 ANSWER_CONTRACT_VERSION = 3
+# 最终回答的格式与引用提示词。
 FINAL_ANSWER_INSTRUCTIONS = """最终只输出 Schema 规定的 status/claims/missing，不增加 answer、总结或备注。
 claims 每条是一段事实：text 不写换行、来源引用或代码围栏。evidence_ids 只选择最终资料目录 sources[].evidence 中直接支持本条事实的 E 编号，不能填写 citation_id、原文 quote 或代码字符串。
 scope=source 时，evidence_ids 必须全部取自同一个 sources[] 对象，不能跨对象选 E 编号。例如 sources[0] 含 E1、sources[1] 含 E2，单来源事实只能选 ["E1"] 或 ["E2"]，绝不能选 ["E1","E2"]。同一 sources[] 内有多段证据时才可选择多个 E 编号。多来源对照分别有据；shared 必须选择至少两个独立来源直接支持的证据，同一文档/网页的两段不是两来源，不能补写共识。
@@ -25,10 +28,13 @@ answered 须有 claims 且 missing=[]，可引用搜索摘要，但只能陈述�
 比较题除了分别列值，还须基于所选双方原文明确回答是否相同；不得把不同来源示例数字合成统一标准。"""
 
 
+# 证据编号类型，如 E1。
 EvidenceId = Annotated[str, StringConstraints(pattern=r"^E[1-9][0-9]*$", max_length=32)]
+# 未回答主题的文本及格式限制。
 MissingTopic = Annotated[str, StringConstraints(min_length=1, max_length=120, pattern=r"^[^\r\n`]+$")]
 
 
+# 约束模型生成的单条事实，使正文与支持它的证据编号一起提交。
 class AnswerClaim(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -38,6 +44,7 @@ class AnswerClaim(BaseModel):
     code_evidence_id: EvidenceId | None
 
 
+# 校验模型提交的完整答案，拒绝结论与资料缺失情况相互矛盾的输出。
 class AnswerPayload(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -47,6 +54,7 @@ class AnswerPayload(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> AnswerPayload:
+        # 回答完成和资料不足各有固定条件，不能只改状态标签。
         if self.status == "answered" and (not self.claims or self.missing):
             raise ValueError("answered requires claims and no missing topics")
         if self.status == "insufficient" and not self.missing:
@@ -54,11 +62,13 @@ class AnswerPayload(BaseModel):
         return self
 
 
+# 将答案结构交给模型接口，要求最终响应符合这份 Schema。
 ANSWER_RESPONSE_FORMAT = {"type": "json_schema", "json_schema": {
     "name": "grounded_answer_v3", "strict": True, "schema": AnswerPayload.model_json_schema(),
 }}
 
 
+# 保存模型提出的工具调用；参数原文由统一执行器解析和校验。
 @dataclass(frozen=True)
 class ToolCall:
     id: str
@@ -66,6 +76,7 @@ class ToolCall:
     arguments: str
 
     def to_dict(self) -> dict:
+        # 转成模型接口要求的格式，供后续对话保留这次调用。
         return {
             "id": self.id,
             "type": "function",
@@ -73,6 +84,7 @@ class ToolCall:
         }
 
 
+# 记录网页请求在哪一步成功或失败，供日志和运行记录定位问题。
 @dataclass(frozen=True)
 class WebDiagnostic:
     endpoint: str
@@ -89,6 +101,7 @@ class WebDiagnostic:
     final_url: str | None = None
 
 
+# 统一保存可对外返回的工具错误，避免直接传播底层异常原文。
 @dataclass(frozen=True)
 class ToolFailure:
     code: str
@@ -97,24 +110,29 @@ class ToolFailure:
     diagnostics: WebDiagnostic | None = None
 
 
+# 在工具执行内部传递受控错误，由执行入口转换为 ToolFailure。
 class ToolError(Exception):
     def __init__(
         self, code: str, message: str, *, diagnostics: WebDiagnostic | None = None
     ) -> None:
+        """保存稳定错误码、可公开说明及可选诊断信息，供工具入口转换成失败结果。"""
         super().__init__(message)
         self.code = code
         self.message = message
         self.diagnostics = diagnostics
 
 
+# 汇总网页服务取得的摘要、正文快照及请求错误，交给工具执行器处理。
 @dataclass
 class WebResult:
     sources: list[WebSource] = field(default_factory=list)
     errors: list[ToolFailure] = field(default_factory=list)
     diagnostics: list[WebDiagnostic] = field(default_factory=list)
     pages: list[WebPage] = field(default_factory=list)
+    budget_diagnostics: list[dict] = field(default_factory=list)
 
 
+# 统一承载一次工具执行的结果，供问答流程记录并发送回模型。
 @dataclass
 class ToolResult:
     call_id: str
@@ -126,8 +144,11 @@ class ToolResult:
     directory: list[WebEntry] = field(default_factory=list)
     matches: list[WebMatch] = field(default_factory=list)
     selection: dict | None = None
+    # 程序记录的工具裁剪原因、实际 token/字节数和保留的原文范围，不作为网页正文证据。
+    budget_diagnostics: list[dict] = field(default_factory=list)
 
     def source_values(self) -> list[dict]:
+        # 将内部来源对象转成模型可读取的资料，同时保留可追溯的位置。
         sources = []
         for source in self.sources:
             value = {"citation_id": source.citation_id, "source_type": source.source_type,
@@ -156,6 +177,7 @@ class ToolResult:
         return sources
 
     def to_message(self) -> dict:
+        # 将工具结果封装成对话消息，通过调用编号与模型此前的请求关联。
         return {
             "role": "tool",
             "tool_call_id": self.call_id,

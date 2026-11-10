@@ -1,11 +1,4 @@
-"""
-internal/conf/logging.py — structlog 日志初始化
-
-设计原则：
-- 业务日志用事件名加字段，再按配置输出 JSON 或彩色文本。
-- 日志格式和级别由 LogConfig 决定。
-- uvicorn、SQLAlchemy、httpx 的标准 logging 也走同一条处理链。
-"""
+"""配置 structlog 和标准 logging 的共同处理链，按设置选择级别与 JSON/控制台输出。"""
 
 from __future__ import annotations
 
@@ -19,7 +12,7 @@ from structlog.types import Processor
 from internal.conf.config import LogConfig
 
 # 预定义处理器链前缀（structlog 和标准 logging 共用）。
-# tuple 而非 list：模块级常量不应可变，防止意外修改影响全局日志配置。
+# 初始化日志时复用处理顺序，不在调用方修改此序列。
 _SHARED_PROCESSORS: tuple[Processor, ...] = (
     structlog.contextvars.merge_contextvars,
     structlog.stdlib.add_log_level,
@@ -40,11 +33,7 @@ def _get_renderer(fmt: str) -> Processor:
 
 
 def setup_logging(config: LogConfig) -> None:
-    """初始化 structlog + 标准 logging 的全局日志配置。
-
-    必须在 FastAPI app 创建之前调用。
-    只接收 LogConfig（ISP），不强迫接收完整的 AppConfig。
-    """
+    """根据日志配置设置 structlog 和标准 logging；应用创建前由启动代码调用。"""
     level = _map_level(config.level)
     renderer = _get_renderer(config.format)
 
@@ -86,10 +75,7 @@ def setup_logging(config: LogConfig) -> None:
 
 
 def _map_level(level_str: str) -> int:
-    """把日志级别字符串映射到标准 logging 的 int 常量。
-
-    非法值 fallback 到 INFO，保证日志系统不会因配置错误而崩溃。
-    """
+    """把级别名称转换为 logging 数值；未识别名称返回 INFO。"""
     level_map: dict[str, int] = {
         "DEBUG": logging.DEBUG,
         "INFO": logging.INFO,

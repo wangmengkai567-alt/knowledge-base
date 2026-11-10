@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from api.openapi.schemas.retrieval import RetrievalResultDTO, SourceScoreDTO
 
 
+# 校验前端发来的问答请求，并限定本次可使用的知识库和联网能力。
 class RAGQueryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -26,6 +27,7 @@ class RAGQueryRequest(BaseModel):
     )
 
 
+# 向前端返回实际使用的原文片段及其在文档分块中的位置。
 class MaterialSegmentDTO(BaseModel):
     chunk_id: int
     position: int
@@ -35,6 +37,7 @@ class MaterialSegmentDTO(BaseModel):
     code_ranges: list[tuple[int, int]] = Field(default_factory=list, description="规范正文映射到原分块的完整代码范围")
 
 
+# 返回检索命中的评分记录，供前端展示资料为何被选中。
 class HitScoreDTO(BaseModel):
     chunk_id: int
     score: float | None
@@ -43,6 +46,7 @@ class HitScoreDTO(BaseModel):
     scores: list[SourceScoreDTO]
 
 
+# 返回答案使用的知识库资料，支持前端展示引用和定位原文。
 class RAGSourceDTO(BaseModel):
     citation_id: int
     source_type: Literal["knowledge_base"]
@@ -59,6 +63,7 @@ class RAGSourceDTO(BaseModel):
     )
 
 
+# 返回本次发现的网页清单，区分已发现网址和已读取正文。
 class WebDirectoryDTO(BaseModel):
     source_id: str
     url: str
@@ -68,6 +73,7 @@ class WebDirectoryDTO(BaseModel):
     read: bool
 
 
+# 返回实际使用的网页摘要或正文，供前端展示网页引用。
 class RAGWebSourceDTO(BaseModel):
     citation_id: int
     source_type: Literal["web_search_summary", "web_page"]
@@ -83,6 +89,7 @@ class RAGWebSourceDTO(BaseModel):
     code_ranges: list[tuple[int, int]]
 
 
+# 返回单次模型请求的预算及结算情况，便于核对实际消耗。
 class ModelCallUsageDTO(BaseModel):
     run_id: str
     call: int
@@ -90,6 +97,9 @@ class ModelCallUsageDTO(BaseModel):
     estimated_input_tokens: int
     output_limit: int
     reservation: int
+    content_tokens: int
+    protocol_tokens: int
+    safety_tokens: int
     state: Literal["reserved", "settled", "unknown"]
     prompt_tokens: int | None
     completion_tokens: int | None
@@ -97,6 +107,7 @@ class ModelCallUsageDTO(BaseModel):
     unknown_reason: str | None
 
 
+# 汇总一次问答中全部模型和工具调用的消耗。
 class RunUsageDTO(BaseModel):
     model_calls: int
     tool_calls: int
@@ -111,6 +122,7 @@ class RunUsageDTO(BaseModel):
     unreported_model_calls: int
 
 
+# 向前端传递问答进度，同步结果和流式响应使用相同的事件结构。
 class RunEventDTO(BaseModel):
     sequence: int
     kind: str
@@ -118,6 +130,7 @@ class RunEventDTO(BaseModel):
     data: dict
 
 
+# 返回已登记的证据原文，让答案中的证据编号能够追溯到来源。
 class EvidenceFragmentDTO(BaseModel):
     evidence_id: str
     run_id: str
@@ -127,9 +140,20 @@ class EvidenceFragmentDTO(BaseModel):
     origin: dict
 
 
+# 向客户端说明输入估算的方法、模型与分词器版本，以及估算中使用的安全余量。
+class TokenCountingDTO(BaseModel):
+    measurement: Literal["model_tokenizer_estimate"]
+    model: str
+    tokenizer_ref: str
+    request_projection_version: Literal[1]
+    safety_ratio: float
+    fixed_reserve_tokens: int
+
+
+# 统一返回问答终态、答案、引用和用量，供同步接口及流式最终结果使用。
 class RAGQueryResponse(BaseModel):
-    version: Literal[5] = 5
-    tool_contract_version: Literal[2] = 2
+    version: Literal[6] = 6
+    tool_contract_version: Literal[3] = 3
     answer_contract_version: Literal[3] = 3
     evidence_catalog: list[EvidenceFragmentDTO]
     run_id: str
@@ -145,7 +169,8 @@ class RAGQueryResponse(BaseModel):
     sources: list[RAGSourceDTO | RAGWebSourceDTO]
     source_count: int
     retrieval_results: list[RetrievalResultDTO]
-    input_measurement: str
+    counting: TokenCountingDTO
+    input_measurement: Literal["model_tokenizer_estimate"]
     estimated_input_tokens: int
     prompt_tokens: int
     completion_tokens: int

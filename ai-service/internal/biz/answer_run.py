@@ -1,4 +1,5 @@
 """一次问答的状态、用量和最小事件；不保存模型内部思维链。"""
+# 管理 Agent 运行状态、模型/工具调用次数、Token 用量、预算预留和执行轨迹
 
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
     from internal.biz.tools import ToolScope
     from internal.biz.web_sources import WebEntry, WebPage
 
+# 问答运行状态的取值范围。
 RunStatus = Literal[
     "running",
     "completed",
@@ -32,15 +34,17 @@ RunStatus = Literal[
 ]
 
 
+# 规定一次问答允许使用的调用次数、用量和时间，防止执行循环无限继续。
 @dataclass(frozen=True)
 class RunLimits:
-    model_calls: int = 6
-    tool_calls: int = 10
-    total_tokens: int = 64000
-    timeout: float = 120
+    model_calls: int = 6       # 整次问答的模型请求次数，包含最终答案生成。
+    tool_calls: int = 10       # 整次问答的工具执行次数，包含 finish_research。
+    total_tokens: int = 64000  # 所有对话模型调用的实际输入与输出 token 累计上限。
+    timeout: float = 120       # 从本次运行开始计时的执行时限，单位秒。
 
     def __post_init__(self) -> None:
         # 总次数包含取证决策和最终回答；预留回答后至少还能发起一次取证。
+        """校验调用次数、累计 token 和运行秒数均在程序允许的范围内。"""
         if type(self.model_calls) is not int or not 2 <= self.model_calls <= 6:
             raise ValueError("模型调用总次数必须为 2 到 6 次，至少包含一次取证决策和一次最终回答")
         if not (
@@ -51,6 +55,7 @@ class RunLimits:
             raise ValueError("运行限制必须在已确认的程序上限内")
 
 
+# 跟踪单次模型请求从预留预算到结算用量的过程。
 @dataclass
 class ModelCallUsage:
     run_id: str
@@ -59,6 +64,9 @@ class ModelCallUsage:
     estimated_input_tokens: int
     output_limit: int
     reservation: int
+    content_tokens: int
+    protocol_tokens: int
+    safety_tokens: int
     state: Literal["reserved", "settled", "unknown"] = "reserved"
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
@@ -72,17 +80,18 @@ class RunUsage:
 
     model_calls: int = 0
     tool_calls: int = 0
-    estimated_input_tokens: int = 0
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    settled_tokens: int = 0
-    actual_total_tokens: int | None = 0
-    reserved_tokens: int = 0
-    final_reserved_tokens: int = 0
+    estimated_input_tokens: int = 0  # 各次请求发出前的输入估算累计值。
+    prompt_tokens: int = 0           # 供应商已报告的实际输入 token 累计值。
+    completion_tokens: int = 0       # 供应商已报告的实际输出 token 累计值。
+    settled_tokens: int = 0          # 已结算的实际输入与输出 token 合计。
+    actual_total_tokens: int | None = 0  # 仍有未结算或未知调用时为 None。
+    reserved_tokens: int = 0         # 尚未完成调用的输入估算与最大输出预留。
+    final_reserved_tokens: int = 0   # 单独为最终回答保留的输入估算与最大输出。
     calls: list[ModelCallUsage] = field(default_factory=list)
     unreported_model_calls: int = 0
 
 
+# 记录问答执行中的进度节点，供前端推送和本地运行记录共用。
 @dataclass(frozen=True)
 class RunEvent:
     sequence: int
@@ -98,6 +107,8 @@ class AnswerRun:
     scope: ToolScope
     limits: RunLimits
     input_measurement: str
+    counting: dict
+    token_limits: dict
     run_id: str = field(default_factory=lambda: str(uuid4()))
     started_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     started: float = field(default_factory=monotonic)
@@ -109,6 +120,7 @@ class AnswerRun:
     final_response: str = ""  # 仅最终响应，用于本机验收；不发布未通过检查的答案。
     answer_claims: list[dict] = field(default_factory=list)
     evidence_catalog: list[EvidenceFragment] = field(default_factory=list)
+    model_requests: list[dict] = field(default_factory=list)
     final_request: list[dict] = field(default_factory=list)
     model: str = ""
     usage: RunUsage = field(default_factory=RunUsage)
@@ -121,7 +133,7 @@ class AnswerRun:
     events: list[RunEvent] = field(default_factory=list)
     on_event: Callable[[AnswerRun, RunEvent], None] | None = field(default=None, repr=False)
 
-    def reserve_model(self, estimate: int, output_limit: int, final: bool) -> int:
+    def reserve_model(self, estimate: int, output_limit: int, final: bool, *, details: dict) -> int:
         """在模型请求发出前预留本次额度并登记调用，返回从 1 开始的调用编号。
 
         estimate 是输入估算，output_limit 是最大输出额度；final 标明是否为最终生成。
@@ -137,8 +149,10 @@ class AnswerRun:
             usage.final_reserved_tokens = 0
         if usage.settled_tokens + reservation + usage.final_reserved_tokens > self.limits.total_tokens:
             raise ValueError("调用及收尾预留超过剩余额度")
+        if details["content_tokens"] + details["protocol_tokens"] + details["safety_tokens"] != estimate:
+            raise ValueError("请求估算明细与总量不一致")
         usage.calls.append(ModelCallUsage(self.run_id, call, "final" if final else "exploration",
-                                         estimate, output_limit, reservation))
+                                         estimate, output_limit, reservation, **details))
         usage.model_calls = call
         usage.estimated_input_tokens += estimate
         usage.reserved_tokens += reservation

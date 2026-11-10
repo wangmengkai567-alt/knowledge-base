@@ -5,6 +5,7 @@ from __future__ import annotations
 from traceback import extract_tb
 
 
+# 提取异常类型和发生位置，供日志排查使用，避免记录异常原文或局部变量。
 def unexpected_error_details(exc: Exception) -> dict:
     return {"exception_type": type(exc).__name__, "stack": [
         {"file": frame.filename, "line": frame.lineno, "function": frame.name}

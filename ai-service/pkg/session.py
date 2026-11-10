@@ -1,25 +1,8 @@
-"""
-pkg/session.py — Redis Session 管理器（框架无关）
+"""在 Redis 中保存访问令牌、刷新令牌及按用户组织的令牌键集合。
 
-设计原则：
-- Opaque Token 模式：token 是随机字符串（secrets.token_urlsafe），不可逆向。
-- Session 存 Redis：服务端可控、可即时吊销、多 worker 共享。
-- 框架无关：不依赖 FastAPI/Starlette，只依赖 redis.asyncio。
-
-Session 数据结构（Redis 中）：
-- access token  →  session:{token}:access   →  JSON {user_id, created_at, fingerprint}
-- refresh token →  session:{token}:refresh  →  JSON {user_id, created_at, fingerprint}
-- user sessions →  session:user:{user_id}   →  SET of access+refresh token keys
-
-为什么不用 JWT？
-- 本项目是单体应用，不需要 JWT 的跨服务无状态特性。
-- Session + Redis 安全性更高：token 不可逆向，服务端可即时吊销。
-- Session 与限流共用 Redis，统一连接配置和服务端状态管理。
-
-安全设计：
-- access/refresh token 均存储 fingerprint（user_agent 摘要），验证时校验一致性。
-- logout 时同时清除 access + 该用户所有 refresh token（通过 user→tokens 索引）。
-- refresh_token 一次性使用（旋转），防止重放攻击。
+Redis 键由 session_prefix 加 access:{token}、refresh:{token} 或 user:{user_id} 组成。
+创建令牌时保存用户 ID、User-Agent 摘要和创建时间；刷新会话时删除旧刷新令牌键。
+登出时通过用户键集合清除其关联会话；不能定位用户时只删除传入的访问令牌键。
 """
 
 from __future__ import annotations
@@ -38,11 +21,7 @@ logger = structlog.get_logger()
 
 
 def _fingerprint(user_agent: str) -> str:
-    """从 User-Agent 生成指纹摘要，用于 session 绑定校验。
-
-    空 UA 统一规范化为 "unknown"，确保 fingerprint 校验始终执行，
-    防止攻击者通过省略 User-Agent 头绕过设备绑定校验。
-    """
+    """规范化 User-Agent 后生成摘要；空字符串以 unknown 参与计算。"""
     normalized = user_agent.strip() or "unknown"
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:32]
 
@@ -56,14 +35,17 @@ class SessionManager:
         redis_config: RedisConfig,
         session_config: SessionConfig,
     ) -> None:
+        """注入 Redis 客户端、会话键前缀配置及访问/刷新令牌的有效期配置。"""
         self._redis = redis_client
         self._redis_config = redis_config
         self._session_config = session_config
 
     def _access_key(self, token: str) -> str:
+        """用统一会话前缀构造访问令牌在 Redis 中的存储键。"""
         return f"{self._redis_config.session_prefix}access:{token}"
 
     def _refresh_key(self, token: str) -> str:
+        """用统一会话前缀构造刷新令牌在 Redis 中的存储键，与访问令牌分开存储。"""
         return f"{self._redis_config.session_prefix}refresh:{token}"
 
     def _user_sessions_key(self, user_id: int) -> str:
@@ -105,9 +87,9 @@ class SessionManager:
     async def verify_access_token(
         self, token: str, user_agent: str = ""
     ) -> int | None:
-        """验证 access_token，返回 user_id。无效或过期返回 None。
+        """读取访问令牌并返回用户 ID；键不存在时返回 None。
 
-        同时校验 fingerprint 是否与创建时一致，防止 token 被盗后在不同环境使用。
+        传入非空 user_agent 时核对已保存指纹，不一致返回 None；空 user_agent 不执行此检查。
         """
         raw = await self._redis.get(self._access_key(token))
         if raw is None:
@@ -128,10 +110,10 @@ class SessionManager:
     async def refresh_session(
         self, refresh_token: str, user_agent: str = ""
     ) -> tuple[str, str, int] | None:
-        """用 refresh_token 刷新 Session，返回新 (access, refresh, expires_in)。
+        """校验刷新令牌及 User-Agent 摘要，删除该刷新键后创建新会话。
 
-        旧的 refresh_token 被销毁（一次性使用），防止重放攻击。
-        同时校验 fingerprint。
+        返回 (access_token, refresh_token, expires_in)，无效时返回 None。
+        此方法不主动删除旧访问令牌键。
         """
         raw = await self._redis.get(self._refresh_key(refresh_token))
         if raw is None:
@@ -155,10 +137,9 @@ class SessionManager:
         return await self.create_session(user_id, user_agent)
 
     async def destroy_session(self, access_token: str) -> None:
-        """销毁 Session（登出）— 清除 access_token 及该用户所有 refresh_token。
+        """根据访问令牌查找用户，删除用户索引中登记的全部会话键及索引键。
 
-        安全修复：不再只删 access_token，而是通过 user→tokens 索引
-        批量清除该用户的所有 session key（包括 refresh_token）。
+        无法从传入令牌定位用户时，仅删除对应访问令牌键；不修改用户账号记录。
         """
         access_key = self._access_key(access_token)
         raw = await self._redis.get(access_key)
@@ -178,7 +159,7 @@ class SessionManager:
                 logger.info("session_destroyed", user_id=user_id)
                 return
 
-        # fallback: 仅清除 access_token
+        # 无法定位用户时，只删除传入访问令牌对应的 Redis 键。
         await self._redis.delete(access_key)
         logger.info("session_destroyed_fallback")
 

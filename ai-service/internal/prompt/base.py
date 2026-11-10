@@ -1,16 +1,6 @@
-"""
-internal/prompt/base.py — PromptTemplate 数据类 + build_messages()
+"""提示模板的数据结构及消息构建。
 
-职责：
-- 定义 PromptTemplate 数据类（从 YAML 解析后的结构）
-- 提供 build_messages() 方法：变量替换 → 构建 LLM messages 列表
-- 支持 RAG context 注入（将检索结果拼接到 system prompt 或 user prompt）
-
-变量语法：{{ variable_name }}
-内置变量：
-- {{ query }}：用户查询
-- {{ context }}：调用方提供的资料上下文
-- {{ history }}：调用方提供的对话历史
+变量使用 {{ name }} 语法，值由调用方提供；本模块不执行检索或查询聊天历史。
 """
 
 from __future__ import annotations
@@ -107,6 +97,7 @@ class PromptTemplate:
         """
 
         def _replace(match: re.Match) -> str:
+            """用捕获到的变量名查找替换文本；未提供变量时保留原占位符。"""
             var_name = match.group(1)
             if var_name in variables:
                 return variables[var_name]

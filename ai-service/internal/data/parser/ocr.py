@@ -14,9 +14,13 @@ from internal.data.parser.table_struct import build_table
 
 logger = structlog.get_logger()
 
+# PDF 原生文字去掉空白后少于此字符数时，判定需要 OCR。
 _MIN_NATIVE_CHARS = 20
+# 进程内复用的 OCR 引擎实例，首次识别时由 _get_engine 创建。
 _engine = None
+# 记录本进程是否已发生引擎初始化失败；失败后不再重复尝试加载。
 _engine_failed = False
+# 保护 OCR 引擎的首次初始化，避免多个线程同时创建模型实例。
 _engine_lock = threading.Lock()
 
 
@@ -48,6 +52,7 @@ def recognize_page(page, page_no: int, page_height: float) -> list[dict]:
 
     scale_x = float(page.rect.width) / float(pixmap.width)
     scale_y = float(page.rect.height) / float(pixmap.height)
+    # 将识别框的图片坐标换回 PDF 页面坐标，供正文排序和表格定位使用。
     boxes: list[tuple[float, float, float, float, str]] = []
     for item in result:
         try:
@@ -103,6 +108,7 @@ def items_from_ocr_boxes(
     return items
 
 
+# 延迟创建并复用 OCR 引擎；初始化失败后不再反复加载模型。
 def _get_engine():
     global _engine, _engine_failed
     if _engine_failed:
@@ -127,6 +133,7 @@ def _get_engine():
     return _engine
 
 
+# 按纵向位置将文字框聚成行，再按从左到右的顺序排列。
 def _cluster_rows(boxes: list[tuple[float, float, float, float, str]]) -> list[list[tuple]]:
     if not boxes:
         return []
@@ -148,6 +155,7 @@ def _cluster_rows(boxes: list[tuple[float, float, float, float, str]]) -> list[l
     return rows
 
 
+# 以文字框最多的一行为列位置参照，将连续多行整理成表格网格。
 def _align_columns(rows: list[list[tuple]]) -> list[list[str]] | None:
     if len(rows) < 2:
         return None
@@ -167,6 +175,7 @@ def _align_columns(rows: list[list[tuple]]) -> list[list[str]] | None:
 
 
 def _text_item(page_no: int, row: list[tuple]) -> dict:
+    """把同一行 OCR 文字框合成正文条目，记录页码和最上方纵坐标，供页面内容排序。"""
     y0 = min(box[1] for box in row)
     return {
         "page": page_no,

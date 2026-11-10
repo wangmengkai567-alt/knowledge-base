@@ -1,14 +1,4 @@
-"""
-internal/streaming/sse.py — SSE 格式化器
-
-提供 SSE 协议格式化函数：
-- format_sse_data(): 将数据格式化为 SSE data 行
-- SSE_DONE: 流结束标记
-
-SSE 协议格式：
-  data: {json}\n\n
-  data: [DONE]\n\n
-"""
+"""生成以空行结尾的 SSE data 帧，并提供 [DONE] 结束标记。"""
 
 from __future__ import annotations
 

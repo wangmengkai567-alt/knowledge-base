@@ -1,14 +1,4 @@
-"""
-pkg/errors/codes.py — 错误码常量
-
-编码规则：HTTP status * 1000 + 业务序号
-- 前三位 = HTTP status（400/401/404/409/500）
-- 后三位 = 业务分类序号（001/002/003）
-- 推算 HTTP status：code // 1000（如 400001 // 1000 = 400）
-- 特例：409 Conflict 用于资源冲突（如邮箱已注册），编码 409001
-
-用 int 常量：code // 1000 就是 HTTP status，新增错误码加一行即可。
-"""
+"""业务错误码常量；HTTP 状态由 base.safe_http_status() 的显式映射和分类规则确定。"""
 
 from __future__ import annotations
 
@@ -37,7 +27,7 @@ class ErrorCode:
 
     # ── 5xx 服务端错误 ──
     
-    INTERNAL_ERROR: ClassVar[int] = 500001        # 服务端内部错误（兜底）
+    INTERNAL_ERROR: ClassVar[int] = 500001        # 未分类的服务端内部错误
     LLM_ERROR: ClassVar[int] = 500002             # LLM 推理服务错误
     LLM_TIMEOUT: ClassVar[int] = 500003           # LLM 推理服务超时
     EMBEDDING_ERROR: ClassVar[int] = 500004       # Embedding 服务错误

@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+# 入库阶段：解析、分块、向量索引、关键词索引。
 STAGES = ("parse", "chunk", "vector", "keyword")
 
 

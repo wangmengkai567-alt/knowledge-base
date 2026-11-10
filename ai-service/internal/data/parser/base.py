@@ -1,9 +1,4 @@
-"""
-internal/data/parser/base.py — 文档解析器基类
-
-提供通用的同步解析逻辑，子类只需实现 _parse_sync() 方法。
-基类负责 asyncio.to_thread 包装，避免阻塞事件循环。
-"""
+"""将子类的同步文件解析放入工作线程，统一转换解析异常。"""
 
 from __future__ import annotations
 

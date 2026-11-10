@@ -1,15 +1,4 @@
-"""
-pkg/errors/fastapi.py — FastAPI 异常处理器注册
-
-设计原则：
-- 异常处理器依赖 FastAPI，与纯错误模型（base.py）隔离。
-- 拆分原因：pkg/ 应可跨框架复用，模型定义不应绑定具体 Web 框架。
-- 三层异常处理：APIError（业务）→ RequestValidationError（DTO 校验）→ Exception（兜底），
-  保证前端永远收到统一 JSON 格式 {"code", "reason", "message"}。
-- metadata 只写日志，不返回给客户端。
-- 兜底异常用 exc_info=True 让 structlog 处理 traceback 格式化，
-  避免在 async 路径中同步调用 traceback.format_exc() 阻塞事件循环。
-"""
+"""注册业务异常、请求参数异常和未处理异常的 HTTP 响应处理器，统一返回 code/reason/message。"""
 
 from __future__ import annotations
 
@@ -25,13 +14,11 @@ logger = structlog.get_logger()
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """在 FastAPI app 上注册全局异常处理器。
-
-    必须在路由注册之前调用，保证路由中的异常一定能被捕获。
-    """
+    # 将业务错误、请求校验错误和未预期异常转换为统一的 HTTP 错误响应。
 
     @app.exception_handler(APIError)
     async def handle_api_error(request: Request, exc: APIError) -> JSONResponse:
+        # 返回已定义的业务错误；额外诊断信息只写日志。
         logger.error(
             "api_error",
             code=exc.code,
@@ -54,6 +41,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def handle_validation_error(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
+        # 将请求格式校验失败统一返回为参数错误。
         logger.warning(
             "validation_error",
             errors=exc.errors(),
@@ -73,8 +61,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def handle_unexpected_error(
         request: Request, exc: Exception
     ) -> JSONResponse:
-        # exc_info=True 让 structlog 的 format_exc_info 处理器自动格式化 traceback，
-        # 避免在 async 路径中同步调用 traceback.format_exc() 阻塞事件循环。
+        # 记录内部异常，对外仅返回统一的服务错误信息。
+        # traceback 交给配置好的 structlog 异常处理器格式化。
         logger.error(
             "unexpected_error",
             error=str(exc),

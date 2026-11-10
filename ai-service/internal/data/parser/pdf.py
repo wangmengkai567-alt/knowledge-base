@@ -19,6 +19,7 @@ logger = structlog.get_logger()
 class PDFParser(BaseDocumentParser):
     """PDF 解析器 — 版式文本，表格保留表头和单元格的对应关系。"""
 
+    # 抽取各页内容并合并跨页表格，最后生成供分块和检索使用的文本。
     def _parse_sync(self, file_path: str) -> str:
         import pymupdf as fitz
 
@@ -36,6 +37,7 @@ class PDFParser(BaseDocumentParser):
             doc.close()
 
 
+# 按页收集正文和表格，再按页面阅读顺序排列。
 def _collect_items(doc, fitz_mod) -> list[dict]:
     items: list[dict] = []
     for page_index, page in enumerate(doc):
@@ -50,11 +52,13 @@ def _collect_items(doc, fitz_mod) -> list[dict]:
     return items
 
 
+# 分别提取本页表格和正文，文字层不足时尝试 OCR。
 def _page_items(page, fitz_mod, page_no: int) -> list[dict]:
     try:
         found = page.find_tables()
         tables = list(getattr(found, "tables", found) or [])
     except Exception as e:
+        # 表格检测失败时仍可读取本页文字块，后续不再处理本页检测表格。
         logger.warning("pdf_find_tables_skipped", page=page_no, error=str(e))
         tables = []
 
@@ -64,6 +68,7 @@ def _page_items(page, fitz_mod, page_no: int) -> list[dict]:
     try:
         blocks = page.get_text("blocks") or []
     except Exception as e:
+        # 文字块提取失败时保留表格检测结果，后续仍可处理表格或扫描页识别结果。
         logger.warning("pdf_text_blocks_failed", page=page_no, error=str(e))
         blocks = []
 
@@ -72,6 +77,7 @@ def _page_items(page, fitz_mod, page_no: int) -> list[dict]:
             bbox = fitz_mod.Rect(table.bbox)
             grid = table.extract()
         except Exception as e:
+            # 单张表提取失败只跳过该表，不影响本页其余表格和正文。
             logger.warning("pdf_table_extract_failed", page=page_no, error=str(e))
             continue
         title, section = _context_above(blocks, float(bbox.y0))
@@ -103,6 +109,7 @@ def _page_items(page, fitz_mod, page_no: int) -> list[dict]:
         if not raw:
             continue
         rect = fitz_mod.Rect(x0, y0, x1, y1)
+        # 表格已单独提取，不再重复收录表格区域里的文字块。
         if any(_mostly_inside(rect, tb) for tb in table_rects):
             continue
         items.append({
@@ -124,6 +131,7 @@ def _page_items(page, fitz_mod, page_no: int) -> list[dict]:
     return items
 
 
+# 将连续页上的同一张表合并，再将正文和表格统一转为检索文本。
 def _render_items(items: list[dict]) -> list[str]:
     open_table: StructuredTable | None = None
     parts: list[str] = []
@@ -150,6 +158,7 @@ def _render_items(items: list[dict]) -> list[str]:
     return rendered
 
 
+# 从表格上方的邻近文字中寻找标题和章节，补充表格的检索上下文。
 def _context_above(blocks, table_top: float) -> tuple[str, str]:
     above: list[tuple[float, str]] = []
     for block in blocks:

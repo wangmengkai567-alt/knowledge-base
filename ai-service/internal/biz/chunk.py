@@ -1,13 +1,4 @@
-"""
-internal/biz/chunk.py — 文档分块业务逻辑
-
-ChunkBiz 负责：
-- chunk_document：对已解析文档的文本进行分块并持久化
-- list_chunks：列出文档下所有分块
-- delete_chunks：删除文档下所有分块（文档删除时级联调用）
-
-不感知 HTTP（不 import fastapi）、不感知存储（不 import sqlalchemy）。
-"""
+"""将解析正文切分并持久化；替换或删除分块前调用索引清理回调。"""
 
 from __future__ import annotations
 
@@ -26,15 +17,15 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
+# 将解析后的正文切成分块并持久化，替换或删除分块前先清理对应索引。
 class ChunkBiz:
-    """文档分块业务逻辑 — 不感知协议、不感知存储。"""
-
     def __init__(
         self,
         chunk_repo: ChunkRepo,
         chunker: TextChunker,
         on_chunk_delete: Callable[[int, list[Chunk]], Awaitable[None]],
     ) -> None:
+        """注入分块仓储和切分器；on_chunk_delete 在删除分块前清理其索引。"""
         self._chunk_repo = chunk_repo
         self._chunker = chunker
         self._on_chunk_delete = on_chunk_delete

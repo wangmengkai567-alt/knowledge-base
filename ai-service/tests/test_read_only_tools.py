@@ -10,11 +10,22 @@ from unittest.mock import AsyncMock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from internal.biz.materials import InputBudget
+
+from internal.biz.token_budget import InputBudget, TokenLimits
 from internal.biz.tool_types import ToolCall, ToolError, WebResult
 from internal.biz.tools import ReadOnlyToolExecutor
 from internal.biz.web_sources import WebPage
+from internal.data.token_counter import TOKENIZER_REF, ModelTokenCounter
 from pkg.errors.base import LLMError
+
+_COUNTER = ModelTokenCounter(str(Path(__file__).resolve().parents[1] / "resources/qwen38-flash"),
+                             model="qwen3.8-flash", tokenizer_ref=TOKENIZER_REF)
+
+def make_budget(input_limit=16000):
+    limits = TokenLimits(input_limit=input_limit, tool_result_max_tokens=min(3000, input_limit),
+                         page_tokens=min(2000, input_limit), summary_tokens=min(512, input_limit),
+                         preview_tokens=min(64, input_limit))
+    return InputBudget("qwen3.8-flash", _COUNTER, _COUNTER.render_request, TOKENIZER_REF, limits)
 
 
 class ReadOnlyToolsTest(unittest.IsolatedAsyncioTestCase):
@@ -23,7 +34,7 @@ class ReadOnlyToolsTest(unittest.IsolatedAsyncioTestCase):
         self.kbs = SimpleNamespace(get_by_id=AsyncMock(return_value=SimpleNamespace(owner_id=1)))
         self.web = SimpleNamespace(search=AsyncMock(return_value=WebResult()), read=AsyncMock())
         self.executor = ReadOnlyToolExecutor(
-            self.retrieval, self.kbs, AsyncMock(), self.web, InputBudget("qwen3.8-flash")
+            self.retrieval, self.kbs, AsyncMock(), self.web, make_budget()
         )
 
     async def test_scope_cannot_access_another_owner(self):
@@ -67,7 +78,7 @@ class ReadOnlyToolsTest(unittest.IsolatedAsyncioTestCase):
         content = "说明：这是实际读取的网页正文。"
         self.web.read.return_value = WebResult(pages=[WebPage(entry.url, entry.title, "2026-11-02T00:00:00Z", content, [])])
         result = await self.executor.execute(ToolCall("c", "web_read", json.dumps({
-            "source_id": entry.source_id, "start": 3, "max_chars": 100,
+            "source_id": entry.source_id, "start": 3, "max_tokens": 100,
         })), session)
         self.assertEqual(result.status, "success")
         self.assertEqual(result.errors, [])
@@ -78,7 +89,8 @@ class ReadOnlyToolsTest(unittest.IsolatedAsyncioTestCase):
     async def test_obsolete_web_arguments_are_rejected(self):
         # 明确的负例：生产工具不再接受旧字段。
         for tool, arguments in (("web_search", {"keywords": ["Docker"]}),
-                                ("web_read", {"urls": ["https://example.com/"]})):
+                                ("web_read", {"urls": ["https://example.com/"]}),
+                                ("web_read", {"source_id": "web_1", "max_chars": 100})):
             with self.subTest(tool=tool):
                 session = await self.executor.create_session(1, [1], True)
                 result = await self.executor.execute(ToolCall("c", tool, json.dumps(arguments)), session)

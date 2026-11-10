@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     )
 
 
+# 为文档分块建立、核实和删除向量及关键词索引，并记录向量处理进度。
 class EmbeddingBiz:
     def __init__(
         self,
@@ -28,6 +29,7 @@ class EmbeddingBiz:
         batch_size: int = 32,
         keyword_store: KeywordStore | None = None,
     ) -> None:
+        """注入索引依赖；batch_size 为每批嵌入的分块数，keyword_store 为关键词索引。"""
         self._chunk_repo = chunk_repo
         self._embedding_provider = embedding_provider
         self._vector_store = vector_store

@@ -3,24 +3,36 @@ from __future__ import annotations
 
 import sys
 import unittest
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from internal.biz.evidence import bind_catalog, code_body
 from internal.biz.materials import (
     AnswerSource,
-    InputBudget,
-    MaterialProcessor,
     MaterialSegment,
     WebSource,
     clip_source,
     pack_sources,
+    render_materials,
 )
 from internal.biz.text_structure import fenced_code_ranges
+from internal.biz.token_budget import InputBudget, TokenLimits
 from internal.biz.tool_types import ToolResult
 from internal.biz.tools import ToolScope
-from pkg.errors.base import RAGError
+from internal.data.token_counter import TOKENIZER_REF, ModelTokenCounter
+
+_COUNTER = ModelTokenCounter(str(Path(__file__).resolve().parents[1] / "resources/qwen38-flash"),
+                             model="qwen3.8-flash", tokenizer_ref=TOKENIZER_REF)
+
+def make_budget(input_limit=16000):
+    limits = TokenLimits(input_limit=input_limit, tool_result_max_tokens=min(3000, input_limit),
+                         page_tokens=min(2000, input_limit), summary_tokens=min(512, input_limit),
+                         preview_tokens=min(64, input_limit))
+    return InputBudget("qwen3.8-flash", _COUNTER, _COUNTER.render_request, TOKENIZER_REF, limits)
+
 
 
 class ContextMaterialTest(unittest.TestCase):
@@ -39,13 +51,20 @@ class ContextMaterialTest(unittest.TestCase):
         self.assertEqual([s.chunk_id for s in source.segments], [11])
         self.assertEqual(source.content, "abcde")
 
+    def packed(self, candidates, budget, messages, *, query=""):
+        sources = pack_sources([replace(source, citation_id=index) for index, source in enumerate(candidates, 1)],
+                               lambda values: budget.estimate(messages(render_materials(values)), [], []) <= budget.input_ceiling(200),
+                               query=query)
+        projected = messages(render_materials(sources))
+        return SimpleNamespace(messages=projected, sources=sources,
+                               estimated_input_tokens=budget.estimate(projected, [], []))
+
     def test_budget_counts_complete_messages(self):
-        budget = InputBudget("qwen3.8-flash", input_limit=700)
-        processor = MaterialProcessor(None, 0, budget)
+        budget = make_budget(700)
         source = AnswerSource(0, 1, "notes.md", 1, [MaterialSegment(11, 0, 0, 5000, "甲" * 5000)], [])
         def messages(context):
             return [{"role": "system", "content": "fixed prompt"}, {"role": "user", "content": context}]
-        prepared = processor.prepare_sources([source], messages, 200)
+        prepared = self.packed([source], budget, messages)
         self.assertLessEqual(prepared.estimated_input_tokens, 700)
         self.assertEqual(prepared.estimated_input_tokens, budget.estimate(prepared.messages, [], []))
         self.assertEqual(prepared.sources[0].citation_id, 1)
@@ -58,11 +77,9 @@ class ContextMaterialTest(unittest.TestCase):
 
 
     def prepare(self, source, *, query="", limit=700):
-        budget = InputBudget("qwen3.8-flash", input_limit=limit)
-        prepared = MaterialProcessor(None, 0, budget).prepare_sources(
-            [source], lambda context: [{"role": "system", "content": "fixed prompt"},
-                                     {"role": "user", "content": context}], 200, query=query,
-        )
+        budget = make_budget(limit)
+        prepared = self.packed([source], budget, lambda context: [
+            {"role": "system", "content": "fixed prompt"}, {"role": "user", "content": context}], query=query)
         self.assertLessEqual(prepared.estimated_input_tokens, limit)
         return prepared.sources[0]
 
@@ -127,10 +144,9 @@ class ContextMaterialTest(unittest.TestCase):
         content = "```text\n" + "甲" * 5000 + "\n```\n"
         source = AnswerSource(0, 1, "notes.md", 1,
                               [MaterialSegment(11, 0, 0, len(content), content, [(0, len(content))])], [])
-        with self.assertRaises(RAGError) as error:
-            self.prepare(source)
-        self.assertEqual(error.exception.reason, "MATERIAL_BUDGET_EXCEEDED")
-        self.assertIn("代码块", error.exception.message)
+        budget = make_budget(700)
+        prepared = self.packed([source], budget, lambda text: [{"role": "user", "content": text}])
+        self.assertEqual(prepared.sources, [])
         self.assertEqual(source.segments[0].content, content)
 
     def test_prose_can_be_retained_without_part_of_adjacent_oversized_code(self):
@@ -150,10 +166,8 @@ class ContextMaterialTest(unittest.TestCase):
         sources = [AnswerSource(0, index, f"note{index}.md", 1,
                                 [MaterialSegment(index, 0, 0, len(text), text)], [])
                    for index, text in ((1, long), (2, short))]
-        budget = InputBudget("qwen3.8-flash", input_limit=900)
-        prepared = MaterialProcessor(None, 0, budget).prepare_sources(
-            sources, lambda text: [{"role": "user", "content": text}], 200, query="内存限制",
-        )
+        budget = make_budget(900)
+        prepared = self.packed(sources, budget, lambda text: [{"role": "user", "content": text}], query="内存限制")
         self.assertLessEqual(prepared.estimated_input_tokens, 900)
         self.assertEqual([source.document_id for source in prepared.sources], [1, 2])
         self.assertEqual(prepared.sources[1].content, short)
@@ -167,16 +181,14 @@ class ContextMaterialTest(unittest.TestCase):
         self.assertEqual(result[0].content, "A" * 40)
         self.assertFalse(result[0].content.endswith("\r"))
 
-    def test_unaffordable_source_metadata_still_reports_budget_error(self):
-        budget = InputBudget("qwen3.8-flash")
+    def test_unaffordable_source_metadata_is_not_packed(self):
+        budget = make_budget()
         def messages(text):
             return [{"role": "user", "content": text}]
         limit = budget.estimate(messages(""), [], []) + 1
-        processor = MaterialProcessor(None, 0, InputBudget("qwen3.8-flash", input_limit=limit))
         source = AnswerSource(0, 1, "notes.md", 1, [MaterialSegment(11, 0, 0, 5000, "甲" * 5000)], [])
-        with self.assertRaises(RAGError) as error:
-            processor.prepare_sources([source], messages, 200)
-        self.assertEqual(error.exception.reason, "MATERIAL_BUDGET_EXCEEDED")
+        prepared = self.packed([source], make_budget(limit), messages)
+        self.assertEqual(prepared.sources, [])
 
 
 if __name__ == "__main__":

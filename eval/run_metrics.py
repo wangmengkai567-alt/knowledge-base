@@ -14,7 +14,7 @@ CITATION = re.compile(r"\[来源\s*([1-9]\d*)\s*\]")
 
 
 def ledger_valid(run: dict, starts: list[dict], finishes: list[dict]) -> bool:
-    """Version 5 only: reservations are not consumption; unknown totals stay null."""
+    """Version 5/6: reservations are not consumption; unknown totals stay null."""
     usage = run["usage"]
     calls = usage["calls"]
     settled = [c for c in calls if c["state"] == "settled"]
@@ -47,14 +47,14 @@ def score_run(snapshot: dict, item: dict) -> dict:
     run = snapshot["result"]
     sources, events, usage = run["sources"], run["events"], run["usage"]
     contract = snapshot.get("tool_contract_version", 1)
-    if contract not in (1, 2):
+    if contract not in (1, 2, 3):
         raise ValueError("unsupported saved tool contract")
     directory = {entry["source_id"]: entry for entry in run.get("web_directory", [])}
     ids = [source["citation_id"] for source in sources]
     cited = [int(value) for value in CITATION.findall(run["answer"])]
     valid = len(ids) == len(set(ids)) and all(type(i) is int and i > 0 for i in ids)
     evidence_errors = []
-    if contract == 2 and (len(directory) != len(run["web_directory"]) or len({entry["url"] for entry in directory.values()}) != len(directory) or (directory and not snapshot["scope"]["allow_web"])):
+    if contract in (2, 3) and (len(directory) != len(run["web_directory"]) or len({entry["url"] for entry in directory.values()}) != len(directory) or (directory and not snapshot["scope"]["allow_web"])):
         evidence_errors.append("invalid web directory scope or identity")
     for source in sources:
         if not source["content"]:
@@ -79,7 +79,7 @@ def score_run(snapshot: dict, item: dict) -> dict:
                 evidence_errors.append("invalid web URL")
             if not source["fetched_at"]:
                 evidence_errors.append("missing fetch time")
-            if contract == 2:
+            if contract in (2, 3):
                 entry = directory.get(source["source_id"])
                 start, end = source["start"], source["end"]
                 if not entry or entry["url"] != source["url"] or start < 0 or end - start != len(source["content"]) or end > source["total_chars"]:
@@ -123,13 +123,49 @@ def score_run(snapshot: dict, item: dict) -> dict:
     model_finishes = [e for e in events if e["kind"] == "model_finished"]
     tool_starts = [e for e in events if e["kind"] == "tool_started"]
     limits = snapshot["limits"]
-    current = run.get("version", 4) == 5
+    current = run.get("version", 4) in (5, 6)
     ledger_ok = ledger_valid(run, model_starts, model_finishes) if current else None
     usage_consistent = (all(c["provider_total_tokens"] == c["prompt_tokens"] + c["completion_tokens"]
                             for c in usage["calls"] if c["state"] == "settled") if current else None)
     consumption = usage["settled_tokens"] if current else usage["charged_tokens"]
+    measurement = run.get("input_measurement", "unknown")
+    counting = run.get("counting")
+    token_limits = snapshot.get("token_limits")
+    measurement_valid = None
+    if run.get("version") == 6:
+        measurement_valid = (
+            contract == 3 and measurement == "model_tokenizer_estimate"
+            and isinstance(token_limits, dict)
+            and 0 < token_limits["input_limit"] <= 16000
+            and 0 < token_limits["output_limit"] <= 2048
+            and limits["total_tokens"] <= token_limits["total_tokens"] <= 64000
+            and 0 < token_limits["context_capacity"] <= 1000000
+            and all(0 < call["output_limit"] <= token_limits["output_limit"]
+                    and call["estimated_input_tokens"] <= min(token_limits["input_limit"], token_limits["context_capacity"] - call["output_limit"])
+                    for call in usage["calls"])
+            and all(call["prompt_tokens"] <= token_limits["input_limit"]
+                    and call["completion_tokens"] <= token_limits["output_limit"]
+                    for call in usage["calls"] if call["state"] == "settled")
+            and isinstance(counting, dict) and counting == snapshot.get("counting")
+            and counting.get("measurement") == measurement
+            and all(request["model"] == counting.get("model") for request in snapshot.get("model_requests", []))
+            and bool(counting.get("tokenizer_ref")) and counting.get("request_projection_version") == 1
+            and all(c["estimated_input_tokens"] == c["content_tokens"] + c["protocol_tokens"] + c["safety_tokens"]
+                    and c["safety_tokens"] == ceil((c["content_tokens"] + c["protocol_tokens"]) * counting["safety_ratio"]) + counting["fixed_reserve_tokens"]
+                    for c in usage["calls"])
+            and len(snapshot.get("model_requests", [])) == usage["model_calls"] == len(model_starts)
+            and all(all(call[key] == event["data"][key] for key in ("content_tokens", "protocol_tokens", "safety_tokens"))
+                    for call, event in zip(usage["calls"], model_starts, strict=True))
+            and all(request["estimate"]["estimated_input_tokens"] == call["estimated_input_tokens"]
+                    and request["output_limit"] == call["output_limit"]
+                    and request["phase"] == call["phase"]
+                    and (request["response_format"] is not None and not request["tools"]
+                         if call["phase"] == "final" else request["response_format"] is None and bool(request["tools"]))
+                    for request, call in zip(snapshot.get("model_requests", []), usage["calls"], strict=True))
+        )
     budget_valid = (
-        usage["model_calls"] == len(model_starts) <= limits["model_calls"] <= 6
+        measurement_valid is not False
+        and usage["model_calls"] == len(model_starts) <= limits["model_calls"] <= 6
         and usage["tool_calls"] == len(tool_starts) <= limits["tool_calls"] <= 10
         and consumption <= limits["total_tokens"] <= 64000
         and (not current or (ledger_ok and usage_consistent and usage["actual_total_tokens"] is not None))
@@ -168,7 +204,7 @@ def score_run(snapshot: dict, item: dict) -> dict:
     keys = []
     for event in tool_starts:
         data = event["data"]
-        if contract == 2:
+        if contract in (2, 3):
             keys.append(data["call_key"])
             continue
         # 参数摘要可能截断；无法完整解析时显式保留未知，不伪造重复判断。
@@ -205,9 +241,11 @@ def score_run(snapshot: dict, item: dict) -> dict:
             "final_estimated_input_tokens": final_calls[-1]["estimated_input_tokens"] if final_calls else None}
            if compression_events else {}),
         "status": run["status"], "stop_reason": run["stop_reason"],
+        "input_measurement": measurement, "counting": counting,
+        **({"measurement_valid": measurement_valid} if measurement_valid is not None else {}),
         **({"generation_protocol_valid": generation_protocol_valid}
            if generation_protocol_valid is not None else {}),
-        **({"protocol_version": 5, "ledger_valid": ledger_ok,
+        **({"protocol_version": run["version"], "ledger_valid": ledger_ok,
             "exploration_stop_reason": run["exploration_stop_reason"],
             "actual_usage_known": usage["actual_total_tokens"] is not None} if current else {}),
         "evidence_valid": valid, "evidence_errors": evidence_errors,
@@ -230,11 +268,21 @@ def summarize_runs(rows: list[dict]) -> dict:
     def percentile(q: float) -> float | None:
         return durations[max(0, ceil(len(durations) * q) - 1)] if durations else None
 
-    current = [r for r in rows if r.get("protocol_version") == 5]
+    current = [r for r in rows if r.get("protocol_version") in (5, 6)]
     usage_keys = ["model_calls", "tool_calls", "prompt_tokens", "completion_tokens",
                   "estimated_input_tokens", "unreported_model_calls"]
     usage_keys += ["settled_tokens"] if current else ["charged_tokens"]
+    measurement_groups = {}
+    for row in rows:
+        metadata = row.get("counting") or {}
+        key = json.dumps([row.get("input_measurement", "unknown"), metadata.get("tokenizer_ref"),
+                          metadata.get("request_projection_version"), metadata.get("safety_ratio"),
+                          metadata.get("fixed_reserve_tokens")], ensure_ascii=False)
+        measurement_groups[key] = measurement_groups.get(key, 0) + row.get("usage", {}).get("estimated_input_tokens", 0)
+    if len(measurement_groups) > 1:
+        usage_keys.remove("estimated_input_tokens")
     return {
+        "estimated_input_tokens_by_measurement": measurement_groups,
         "statuses": dict(Counter(r.get("status", "request_error") for r in rows)),
         "stop_reasons": dict(Counter(r.get("stop_reason", "request_error") for r in rows)),
         **({"protocol_versions": dict(Counter(r.get("protocol_version", "legacy") for r in rows)),

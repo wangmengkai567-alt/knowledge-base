@@ -71,6 +71,7 @@ class ParseDocumentRequest(BaseModel):
     )
 
 
+# 接收文档重试请求，让入库流程从指定的失败阶段继续处理。
 class RetryDocumentRequest(BaseModel):
     stage: Literal["parse", "chunk", "vector", "keyword"] | None = None
 

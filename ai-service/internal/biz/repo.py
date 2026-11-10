@@ -1,10 +1,4 @@
-"""
-internal/biz/repo.py — 仓储接口定义（依赖倒置）
-
-biz 层定义接口，data 层实现。
-依赖方向：data → biz（而非 biz → data）。
-换 ORM 只改 data 层，biz 零改动。
-"""
+"""定义业务层需要的存储、解析、分块、检索与模型调用接口。"""
 
 from __future__ import annotations
 
@@ -28,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class UserRepo(ABC):
-    """用户仓储接口 — biz 层定义，data 层实现。"""
+    """创建、查询用户并更新最近登录时间的存储接口。"""
 
     @abstractmethod
     async def create(self, user: User) -> User:
@@ -52,7 +46,7 @@ class UserRepo(ABC):
 
 
 class DocumentRepo(ABC):
-    """文档仓储接口 — biz 层定义，data 层实现。"""
+    """文档记录、解析正文和入库步骤状态的存储接口。"""
 
     @abstractmethod
     async def create(self, document: Document) -> Document:
@@ -108,7 +102,7 @@ class DocumentRepo(ABC):
 
 
 class KnowledgeBaseRepo(ABC):
-    """知识库仓储接口 — biz 层定义，data 层实现。"""
+    """知识库记录及其文档、分块计数的存储接口。"""
 
     @abstractmethod
     async def create(self, kb: KnowledgeBase) -> KnowledgeBase:
@@ -142,10 +136,7 @@ class KnowledgeBaseRepo(ABC):
 
 
 class FileStorageRepo(ABC):
-    """文件存储仓储接口 — biz 层定义，data 层实现。
-
-    抽象文件存储，支持本地/ S3/ OSS 等实现。
-    """
+    """保存和删除原始文件的接口；save 返回后续解析所需的存储路径。"""
 
     @abstractmethod
     async def save(self, filename: str, content: bytes) -> str:
@@ -172,10 +163,7 @@ class DocumentParser(ABC):
 
 
 class TextChunker(ABC):
-    """文本分块器接口 — biz 层定义，data 层实现。
-
-    将长文本切分为多个 chunk，支持不同分块策略（固定大小 / 语义等）。
-    """
+    """将正文切分为内容列表或原文字符范围的接口；两种返回形式使用同一切分规则。"""
 
     @abstractmethod
     def chunk(self, text: str) -> list[str]:
@@ -189,7 +177,7 @@ class TextChunker(ABC):
 
 
 class ChunkRepo(ABC):
-    """分块仓储接口 — biz 层定义，data 层实现。"""
+    """保存分块、按文档替换分块集合及更新嵌入状态的存储接口。"""
 
     @abstractmethod
     async def create_batch(self, chunks: list[Chunk]) -> list[Chunk]:
@@ -235,10 +223,7 @@ class ChunkRepo(ABC):
 
 
 class EmbeddingProvider(ABC):
-    """文本嵌入提供商接口 — biz 层定义，data 层实现。
-
-    将文本转换为向量，支持不同提供商（OpenAI / DeepSeek / Ollama）。
-    """
+    """将输入文本列表转换为同序向量列表，并报告模型、维度和用量的接口。"""
 
     @abstractmethod
     async def embed(self, texts: list[str]) -> EmbeddingResult:
@@ -270,14 +255,10 @@ class EmbeddingProvider(ABC):
 
 
 class Retriever(ABC):
-    """检索器接口 — biz 层定义，data 层实现。
+    """接收查询向量和来源过滤条件，返回候选分块 ID 与评分记录。
 
-    接收已嵌入的查询向量，返回相似度排序的分块 ID + 分数。
-    不负责嵌入文本（那是 EmbeddingProvider 的职责）。
-
-    `query_text` 是可选参数，纯向量检索器忽略；
-    混合检索器（HybridRetriever）用它执行关键词分支（BM25）。
-    这样保留单一接口，避免调用方针对不同实现分支判断。
+    纯向量实现忽略文本查询；混合实现使用 keyword_query 或 query_text 进行关键词检索。
+    文本嵌入由调用方提前完成。
     """
 
     @abstractmethod
@@ -294,7 +275,7 @@ class Retriever(ABC):
         """相似度检索。
 
         参数:
-            query_vector: 查询向量（关键词分支不使用，但保留必填以简化调用）
+            query_vector: 查询向量，供纯向量检索或混合检索的向量分支使用
             top_k: 返回最相似的 k 个结果
             filter_metadata: 过滤条件（如 knowledge_base_id）
             query_text: 原始查询文本，混合检索的关键词分支使用；
@@ -310,11 +291,7 @@ class Retriever(ABC):
 
 
 class KeywordStore(ABC):
-    """关键词索引存储接口 — biz 层定义，data 层实现。
-
-    与 VectorStore 对称设计：负责关键词全文检索（BM25 等）的存储与查询。
-    由入库编排独立触发关键词建立与删除。
-    """
+    """按分块 ID 建立、删除及查询关键词索引的接口，索引项携带文档和知识库元数据。"""
 
     @abstractmethod
     async def existing_ids(self, chunk_ids: list[int], document_id: int, knowledge_base_id: int) -> set[int]:
@@ -333,7 +310,7 @@ class KeywordStore(ABC):
         参数:
             chunk_ids: 分块 ID 列表
             texts: 分块原文（用于分词与词频统计）
-            metadatas: 可选的元数据列表（document_id, kb_id 等，用于过滤）
+            metadatas: 可选的元数据列表（document_id, knowledge_base_id 等，用于过滤）
         """
         ...
 
@@ -366,11 +343,9 @@ class KeywordStore(ABC):
 
 
 class LLMProvider(ABC):
-    """LLM 推理提供商接口 — biz 层定义，data 层实现。
+    """模型调用接口，返回正文、工具调用、结束原因和供应商用量。
 
-    接收 messages 列表，返回 LLM 生成内容。
-    支持 OpenAI / DeepSeek / Ollama 等兼容 OpenAI API 的提供商。
-    返回完整模型结果；问答过程事件由 RAGService 发布。
+    普通生成、工具决策和结构化答案分别调用对应方法；不支持的能力由实现明确拒绝。
     """
 
     @abstractmethod
@@ -397,6 +372,7 @@ class LLMProvider(ABC):
 
     @property
     def supports_native_tools(self) -> bool:
+        """当前提供商是否实现原生工具决策；默认不支持，由具体实现声明能力。"""
         return False
 
     async def generate_with_tools(
@@ -417,6 +393,7 @@ class LLMProvider(ABC):
         self,
         messages: list[dict],
         *,
+        response_format: dict,
         temperature: float | None = None,
         max_tokens: int = 2048,
     ) -> ChatResult:
@@ -441,11 +418,7 @@ class LLMProvider(ABC):
 
 
 class Reranker(ABC):
-    """重排序器接口 — biz 层定义，data 层实现。
-
-    对检索结果进行二次排序，提高相关性。
-    支持 Cross-Encoder 模型 / 关键词重叠 / 外部 API 等实现。
-    """
+    """为检索候选重新评分的接口；返回更新后的排序分，并保留原始评分记录。"""
 
     @abstractmethod
     async def rerank(
@@ -477,10 +450,7 @@ class Reranker(ABC):
 
 
 class VectorStore(ABC):
-    """向量存储接口 — biz 层定义，data 层实现。
-
-    负责向量的存储与相似度检索。
-    """
+    """按分块 ID 保存、删除向量，并在来源范围内执行相似度检索的接口。"""
 
     @abstractmethod
     async def upsert(
@@ -494,7 +464,7 @@ class VectorStore(ABC):
         参数:
             chunk_ids: 分块 ID 列表
             vectors: 对应的向量列表
-            metadatas: 可选的元数据列表（document_id, kb_id 等）
+            metadatas: 可选的元数据列表（document_id, knowledge_base_id 等）
         """
         ...
 
@@ -536,8 +506,10 @@ class WebProvider(ABC):
 
     @abstractmethod
     async def search(self, query: str, max_results: int) -> WebResult:
+        """按公开查询取得最多 max_results 条网页搜索摘要，返回来源及诊断信息。"""
         ...
 
     @abstractmethod
     async def read(self, urls: list[str]) -> WebResult:
+        """读取指定网址列表的正文快照，返回已取得页面及错误，不在此接口中搜索其他网址。"""
         ...

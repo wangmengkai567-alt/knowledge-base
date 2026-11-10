@@ -32,6 +32,8 @@ COPY ai-service/pyproject.toml ai-service/uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --link-mode copy --locked --no-dev --no-install-project
 COPY --chown=appuser:appuser ai-service/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --link-mode copy --locked --no-dev --no-editable
+# 固定 tokenizer 随源码打包；构建时验证资源完整性，不下载推理权重。
+RUN python -c "from internal.data.token_counter import ModelTokenCounter, TOKENIZER_REF; ModelTokenCounter('resources/qwen38-flash', model='qwen3.8-flash', tokenizer_ref=TOKENIZER_REF)"
 
 # 创建数据目录（挂载点）
 RUN mkdir -p /app/data/uploads && chown appuser:appuser /app /app/data /app/data/uploads

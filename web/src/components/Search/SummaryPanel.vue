@@ -39,7 +39,7 @@ const labels: Record<RunStatus, string> = {
 }
 const reasons: Record<string, string> = {
   model_call_limit: '已达到模型调用次数上限', tool_call_limit: '已达到工具调用次数上限',
-  token_budget: '本次执行剩余额度不足以继续取证', input_budget: '完整请求已达到输入上限',
+  token_budget: '本次剩余 Token 额度不足', input_budget: '完整请求已达到输入 Token 上限',
   no_new_evidence: '连续查找未获得新资料', evidence_complete: '证据选择完成，准备生成最终回答', evidence_insufficient: '取证结束，说明缺失资料',
   evidence_not_requested: '模型未按要求调用取证工具，本次执行已停止',
   usage_unknown: '服务未返回完整用量，本次执行已停止',

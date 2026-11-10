@@ -1,11 +1,4 @@
-"""
-internal/data/models.py — SQLAlchemy ORM 模型（PO — Persistent Object）
-
-PO 与 DO（entity.User）分离：
-- PO 映射数据库表结构，data 层专用
-- DO 是领域对象，biz 层专用
-- converter.py 负责 PO ↔ DO 转换
-"""
+"""SQLAlchemy 数据库表映射；字段转换由 converter.py 完成。"""
 
 from __future__ import annotations
 

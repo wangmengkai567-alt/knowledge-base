@@ -1,9 +1,4 @@
-"""
-internal/data/user/factory.py — UserRepo 工厂
-
-config 驱动选择实现，当前只有 SQLAlchemy 实现。
-后续可扩展其他实现（如 Tortoise ORM）。
-"""
+"""创建使用给定数据库会话工厂的用户仓储。"""
 
 from __future__ import annotations
 

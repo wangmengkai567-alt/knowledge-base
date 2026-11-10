@@ -17,6 +17,7 @@ class RetrievalRequest(BaseModel):
     top_k: int = Field(default=10, ge=1, le=50, description="返回的最相关结果数量")
 
 
+# 向前端提供各路检索或重排的评分记录，便于解释结果排序。
 class SourceScoreDTO(BaseModel):
     kind: str
     value: float

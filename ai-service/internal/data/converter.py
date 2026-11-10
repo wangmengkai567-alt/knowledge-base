@@ -1,8 +1,4 @@
-"""
-internal/data/converter.py — PO ↔ DO 转换器
-
-data 层负责 PO ↔ DO 转换，biz 层永远只操作 DO。
-"""
+"""在数据库行对象与业务对象之间转换字段，不执行数据库操作。"""
 
 from __future__ import annotations
 

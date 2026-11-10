@@ -1,11 +1,6 @@
-"""自然语言查询规划：向量用整句，BM25 用主题词。
+"""从原问题生成查询变体、关键词查询和重排查询。
 
-用户输入的是问句而不是关键词。向量检索需要完整原句；
-BM25 需要主题词。去掉问句套话后的变体、以及抽词结果，
-会并行做 embedding，再用 RRF 融合。
-
-资料正文常用英文术语（sandbox），用户提问常用中文（沙箱）。
-同义词会补进 BM25 主题词、向量变体和重排查询，避免只换了译名就召不回。
+使用固定术语表补充中英对译；本模块只生成文本，不执行检索或调用模型。
 """
 
 from __future__ import annotations
@@ -13,12 +8,15 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+# 英文和数字查询词的提取规则。
 _EN_WORD = re.compile(r"[a-zA-Z0-9]+")
+# 中文查询片段的提取规则。
 _ZH_RUN = re.compile(r"[\u4e00-\u9fff]+")
 
+# 清理查询两端的空白和标点。
 _PUNCT_EDGE = re.compile(r"^[\s，,。.!！？?、；;：:]+|[\s，,。.!！？?、；;：:]+$")
 
-# 长的在前。不要单独剥「请」，避免「请求」被拆开。
+# 按较长前缀优先匹配；不单独移除“请”，避免截断以“请求”开头的正文。
 _WRAPPER_PREFIXES = (
     "请你给我讲一下",
     "请你给我讲讲",
@@ -51,6 +49,7 @@ _WRAPPER_PREFIXES = (
     "什么是",
     "使用",
 )
+# 提取检索主题时去除的问句后缀。
 _WRAPPER_SUFFIXES = (
     "的具体流程",
     "具体流程",
@@ -69,6 +68,7 @@ _WRAPPER_SUFFIXES = (
     "呢",
 )
 
+# 英文查询停用词。
 _EN_STOP = frozenset(
     {
         "a",
@@ -122,7 +122,9 @@ _EN_STOP = frozenset(
         "if",
     }
 )
+# 中文查询中逐字去除的停用字。
 _ZH_STOP_CHARS = frozenset("的了吗呢啊吧呀着过就都也还很最更在有没不个与及等")
+# 中文查询中按词去除的停用词。
 _ZH_STOP_WORDS = (
     "如何",
     "怎么",
@@ -142,8 +144,7 @@ _ZH_STOP_WORDS = (
     "告诉",
 )
 
-# 组内互为同义。中文命中只补英文主词，英文命中只补中文主词。
-# 不把 agent/prompt 这类高频词的形态变化全塞进去，避免稀释 BM25。
+# 每组定义同一术语的中英写法；匹配后只补另一语言的主词，不展开所有词形。
 _SYNONYM_GROUPS: tuple[tuple[str, ...], ...] = (
     ("sandbox", "沙箱"),
     ("prompt injection", "提示词注入", "提示注入"),
@@ -174,14 +175,15 @@ class QueryPlan:
 
     @property
     def embed_texts(self) -> list[str]:
+        """将只读的查询变体元组转为列表，供嵌入服务批量生成向量。"""
         return list(self.variants)
 
 
 def plan_query(query: str, *, expand: bool = True, max_variants: int = 3) -> QueryPlan:
-    """根据原始查询生成检索计划。
+    """生成去重的查询变体、BM25 关键词和重排查询，不执行模型调用。
 
-    短关键词查询只保留一条变体。自然语言问句会额外生成去套话版本和/或主题词。
-    命中中英术语表时，还会补上对译词，供 BM25、向量变体和重排使用。
+    expand=False 时仅使用原问题作为向量查询；开启时按 max_variants 限制变体数量。
+    固定术语表中的对译词用于补充关键词和重排查询。
     """
     original = " ".join((query or "").strip().split())
     if not original:
@@ -240,11 +242,7 @@ def lexical_query(text: str) -> str:
 
 
 def synonym_counterparts(text: str) -> tuple[str, ...]:
-    """查出查询里已出现术语的对译主词。
-
-    出现「沙箱」就补 sandbox；出现 sandbox 就补「沙箱」。
-    同一组只补一个主词，避免 sandboxes/agents 这类形态变化冲淡检索。
-    """
+    """从固定术语表取得问题中已有词的中英对译主词，去重后返回，不加入已出现在原问题中的词。"""
     if not text:
         return ()
     lowered = text.casefold()
@@ -292,6 +290,7 @@ def _to_english_terms(text: str) -> str:
 
 
 def _contains_term(text: str, term: str) -> bool:
+    """在已转为小写的 text 中匹配术语：中文按子串，英文/数字限制两侧词边界。"""
     needle = term.casefold()
     if not needle:
         return False
@@ -302,6 +301,7 @@ def _contains_term(text: str, term: str) -> bool:
 
 
 def _join_unique(base: str, extras: tuple[str, ...] | list[str]) -> str:
+    """按 extras 的顺序把非空、尚未出现的词追加到 base，空格分隔。"""
     parts = [base] if base else []
     seen = set(base.split()) if base else set()
     for extra in extras:
@@ -314,7 +314,7 @@ def _join_unique(base: str, extras: tuple[str, ...] | list[str]) -> str:
 
 
 def query_english_terms(text: str) -> tuple[str, ...]:
-    """问句里实际出现的英文实词，不含自动补上的中英对译。"""
+    """提取原问题中的英文或数字词，转小写、去重并移除停用词；不加入自动扩展的对译词。"""
     lowered = " ".join((text or "").strip().split()).casefold()
     extras: list[str] = []
     seen: set[str] = set()
@@ -333,7 +333,7 @@ def text_has_term(text: str, term: str) -> bool:
 
 
 def distinctive_terms(plan: QueryPlan) -> tuple[str, ...]:
-    """问句里的英文实词 + 对译词，用来在重排门槛误杀后对齐文件名和正文。"""
+    """返回原问题的英文或数字关键词及查询计划补充的对译词，并按小写形式去重。"""
     extras: list[str] = []
     seen: set[str] = set()
     for word in _EN_WORD.findall(plan.original or ""):
@@ -352,6 +352,7 @@ def distinctive_terms(plan: QueryPlan) -> tuple[str, ...]:
     return tuple(extras)
 
 
+# 去掉提问中的礼貌用语和问句套话，保留适合检索的主题内容。
 def _strip_question_wrappers(text: str) -> str:
     current = " ".join((text or "").split())
     changed = True
@@ -375,6 +376,7 @@ def _strip_question_wrappers(text: str) -> str:
 
 
 def _clean_zh_run(run: str) -> str:
+    """先删除中文停用单字，再删除固定问句词，返回用于关键词提取的片段。"""
     cleaned = "".join(ch for ch in run if ch not in _ZH_STOP_CHARS)
     for word in _ZH_STOP_WORDS:
         cleaned = cleaned.replace(word, "")

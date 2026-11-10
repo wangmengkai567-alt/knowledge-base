@@ -10,6 +10,7 @@ from internal.biz.tokenizer import count_tokens, token_spans
 
 logger = structlog.get_logger()
 
+# 分块分隔符，按优先级排列；空字符串表示直接按大小切分。
 _SEPARATORS: tuple[str, ...] = ("\n\n", "\n", "。", "！", "？", ". ", "? ", "! ", "；", ";", " ", "")
 
 
@@ -22,6 +23,7 @@ class RecursiveCharacterChunker(TextChunker):
     """
 
     def __init__(self, chunk_size: int = 500, chunk_overlap: int = 50) -> None:
+        """设置分块大小和重叠量，按估算 token 计；完整代码块不拆分。"""
         if chunk_size <= 0:
             raise ValueError(f"chunk_size must be positive, got {chunk_size}")
         if chunk_overlap < 0 or chunk_overlap >= chunk_size:
@@ -30,8 +32,10 @@ class RecursiveCharacterChunker(TextChunker):
         self._chunk_overlap = chunk_overlap
 
     def chunk(self, text: str) -> list[str]:
+        """按 chunk_spans 返回的字符区间切取原文，保留区间内的空白和代码。"""
         return [text[start:end] for start, end in self.chunk_spans(text)]
 
+    # 按预算划分正文并添加重叠区间，返回原文位置，完整代码块保持不拆分。
     def chunk_spans(self, text: str) -> list[tuple[int, int]]:
         if not text or not text.strip():
             return []
@@ -62,6 +66,7 @@ class RecursiveCharacterChunker(TextChunker):
             cursor = end
         return ranges
 
+    # 依次尝试段落、句子等分隔符，将超预算的部分继续细分。
     def _split(self, text: str, separators: list[str]) -> list[str]:
         if count_tokens(text) <= self._chunk_size:
             return [text] if text else []
@@ -81,11 +86,13 @@ class RecursiveCharacterChunker(TextChunker):
                 atoms.extend(self._split(atom, rest))
         return atoms
 
+    # 找不到可用分隔符时，直接按 token 估算位置切开正文。
     def _hard_split(self, text: str) -> list[str]:
         spans = token_spans(text)
         boundaries = [0, *(spans[i][0] for i in range(self._chunk_size, len(spans), self._chunk_size)), len(text)]
         return [text[start:end] for start, end in zip(boundaries, boundaries[1:], strict=False) if start < end]
 
+    # 将相邻的小片段重新合并，尽量利用每个分块的预算。
     def _merge(self, pieces: list[str]) -> list[str]:
         chunks: list[str] = []
         buf = ""

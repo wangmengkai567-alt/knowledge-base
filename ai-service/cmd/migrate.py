@@ -17,6 +17,7 @@ from internal.data.vector_store.pgvector import ensure_pgvector_schema
 from internal.server.http import _drop_unused_shell_columns
 
 
+# 显式更新数据库结构和旧文档阶段记录，完成后关闭数据库连接。
 async def migrate() -> None:
     url = os.environ.get("AI_DATABASE__URL", "").strip()
     if not url:

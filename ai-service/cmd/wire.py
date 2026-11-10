@@ -1,15 +1,7 @@
-"""
-cmd/wire.py — 依赖注入编排
+"""组装数据库、Redis、检索、入库和问答依赖，创建 FastAPI 应用。
 
-所有依赖组装集中在一处，整条链路一目了然。
-组装顺序从底层到顶层：Config → Logging → DB → Redis → Repo → Biz → Service → Server。
-
-设计要点：
-- create_app() 是唯一工厂函数，封装完整的依赖组装逻辑。
-- 模块级 app 变量供 uvicorn.run("cmd.wire:app") 字符串引用加载。
-- _settings 供 main.py 读取 host/port/workers 等启动参数。
-- 模块加载时调用 create_app()；数据库建表与索引核实在 HTTP lifespan 中执行。
-- HTTP 层处理请求与权限，Service 层转换协议数据，Biz 层执行入库和问答流程。
+模块级 app 供 uvicorn 通过 cmd.wire:app 加载；_settings 提供启动参数。
+建表、索引核实和资源关闭由 HTTPServer 的 lifespan 执行。
 """
 
 from __future__ import annotations
@@ -22,15 +14,16 @@ import structlog
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
+from internal.biz.answer_run import RunLimits
 from internal.biz.auth import AuthBiz
 from internal.biz.chunk import ChunkBiz
 from internal.biz.document import DocumentBiz
 from internal.biz.embedding import EmbeddingBiz
 from internal.biz.ingestion import IngestionBiz
 from internal.biz.knowledge_base import KnowledgeBaseBiz
-from internal.biz.materials import InputBudget
 from internal.biz.rag import RAGBiz
 from internal.biz.retrieval import RetrievalBiz
+from internal.biz.token_budget import InputBudget
 from internal.biz.tool_model import ToolModel
 from internal.biz.tools import ReadOnlyToolExecutor
 from internal.conf.config import AppConfig, get_settings
@@ -49,6 +42,7 @@ from internal.data.parser.factory import create_document_parser
 from internal.data.reranker.factory import create_reranker
 from internal.data.retriever.factory import create_retriever
 from internal.data.storage.factory import create_file_storage_repo
+from internal.data.token_counter import ModelTokenCounter
 from internal.data.user.factory import create_user_repo
 from internal.data.vector_store.factory import create_vector_store
 from internal.data.web.access import PublicWeb
@@ -90,10 +84,7 @@ def _create_redis_client(redis_url: str) -> aioredis.Redis:
 
 
 def create_app() -> FastAPI:
-    """工厂函数 — 组装所有依赖并返回 FastAPI app 实例。
-
-    组装顺序：Config → Logging → DB → Redis → Repo → Biz → Service → Server。
-    """
+    """初始化存储、模型与业务依赖，注册 HTTP 服务，返回 FastAPI 应用。"""
     settings = get_settings()
     setup_logging(settings.log)
 
@@ -132,7 +123,7 @@ def create_app() -> FastAPI:
         chunk_overlap=settings.rag.chunk_overlap,
     )
 
-    # ── LLM & Prompt（供分块摘要与对话复用，需在 ChunkBiz 前创建）──
+    # ── 问答模型与提示模板 ──
     prompt_manager = PromptManager(template_dir=settings.prompt.template_dir)
     prompt_manager.load_all()
 
@@ -212,7 +203,7 @@ def create_app() -> FastAPI:
     )
     # 入库状态、互斥和重试由同一编排器管理；文档删除也复用它的同文档锁。
     ingestion = IngestionBiz(document_repo, chunk_repo, chunk_biz, embedding_biz, create_document_parser)
-    # ChunkService 复用文档校验
+    # 分块接口通过 DocumentBiz 确认文档存在。
     document_biz = DocumentBiz(
         document_repo=document_repo,
         file_storage_repo=file_storage_repo,
@@ -238,7 +229,7 @@ def create_app() -> FastAPI:
 
     # ── Retrieval 链路──
     # ── Reranker ──
-    # 提前在 Retrieval 链路之前创建，使搜索（retrieve）与 RAG 共用同一 Reranker。
+    # 独立检索接口和问答工具使用同一个重排器实例。
     # 开启时必须提供有效重排器；关闭时按召回分排序，重排失败由检索层直接上报。
     reranker = None
     if settings.rag.rerank_enabled:
@@ -283,14 +274,22 @@ def create_app() -> FastAPI:
     retrieval_service = RetrievalService(retrieval_biz=retrieval_biz)
 
     # 只读工具与有边界的问答循环共用模型、资料和授权范围。
-    tool_budget = InputBudget(model=llm_provider.model_name)
+    budget_config = settings.token_budget
+    token_counter = ModelTokenCounter(budget_config.tokenizer_dir, model=llm_provider.model_name,
+                                      tokenizer_ref=budget_config.tokenizer_ref)
+    tool_budget = InputBudget(model=llm_provider.model_name, counter=token_counter,
+                              render_request=token_counter.render_request,
+                              tokenizer_ref=budget_config.tokenizer_ref, limits=budget_config.limits(),
+                              safety_ratio=budget_config.safety_ratio,
+                              fixed_reserve_tokens=budget_config.fixed_reserve_tokens)
     tool_executor = ReadOnlyToolExecutor(
         retrieval=retrieval_biz, kb_repo=kb_repo, chunk_repo=chunk_repo,
         web=PublicWeb(
             search=TavilySearch(
                 api_key=settings.tavily.api_key, timeout=settings.tavily.timeout,
                 search_limit=settings.tavily.search_limit,
-                summary_chars=settings.tavily.summary_chars,
+                counter=token_counter,
+                summary_tokens=budget_config.summary_tokens,
             ),
             reader=HTMLPageReader(
                 timeout=settings.web_reader.timeout,
@@ -299,7 +298,6 @@ def create_app() -> FastAPI:
         budget=tool_budget, context_window=settings.rag.context_window,
         document_repo=document_repo, chunker=text_chunker,
         timeout=settings.tools.timeout,
-        web_page_chars=settings.web_reader.page_chars,
     )
     tool_service = ToolModel(
         tool_executor, llm_provider, tool_budget, model_timeout=settings.llm.timeout
@@ -311,6 +309,7 @@ def create_app() -> FastAPI:
         prompt_manager=prompt_manager,
         budget=tool_budget,
         default_rag_template=settings.prompt.default_rag_template,
+        limits=RunLimits(total_tokens=budget_config.total_tokens),
     )
     rag_service = RAGService(
         rag_biz=rag_biz,

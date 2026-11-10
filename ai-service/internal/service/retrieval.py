@@ -1,8 +1,7 @@
 """
 internal/service/retrieval.py — 检索应用层
 
-职责：DTO 校验 → 调 biz → DTO 返回。
-不含业务逻辑，只做 DTO ↔ DO 转换。
+调用检索业务，并将命中资料及评分转换为接口响应。
 """
 
 from __future__ import annotations
@@ -18,9 +17,11 @@ if TYPE_CHECKING:
 
 
 def _iso(dt) -> str | None:
+    """把非空时间转成 ISO 8601 字符串；未记录时间时保留 None。"""
     return dt.isoformat() if dt is not None else None
 
 
+# 将内部检索结果转换为接口响应，保留正文、来源和各阶段评分。
 def retrieval_dto(hit: RetrievalResult) -> RetrievalResultDTO:
     return RetrievalResultDTO(
         chunk_id=hit.chunk_id, score=hit.score, score_type=hit.score_type,
@@ -32,10 +33,10 @@ def retrieval_dto(hit: RetrievalResult) -> RetrievalResultDTO:
     )
 
 
+# 为独立检索接口提供结果列表，不负责组织问答或调用模型生成答案。
 class RetrievalService:
-    """检索应用层 — DTO 校验 + 调 biz + DTO 返回。"""
-
     def __init__(self, retrieval_biz: RetrievalBiz) -> None:
+        """注入检索业务，用于独立检索接口查询及结果结构转换。"""
         self._retrieval_biz = retrieval_biz
 
     async def retrieve(

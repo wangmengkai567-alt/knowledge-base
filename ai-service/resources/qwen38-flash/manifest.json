@@ -1,0 +1,33 @@
+{
+  "model_repository": "Qwen/Qwen3.8-Flash-Next",
+  "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "resources": [
+    {
+      "name": "tokenizer.json",
+      "source_url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/tokenizer.json",
+      "bytes": 12809320,
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
+    },
+    {
+      "name": "tokenizer_config.json",
+      "source_url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/tokenizer_config.json",
+      "bytes": 9984,
+      "sha256": "207c03c41a06a9c3b0cc527d8a56115159c1eac6b59a4ffae85b646e773d074e"
+    },
+    {
+      "name": "chat_template.jinja",
+      "source_url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/chat_template.jinja",
+      "bytes": 9004,
+      "sha256": "af16f654968d47d09a6c604e00370b12dbc21f76456f59c9e98b82e84d9f6375"
+    },
+    {
+      "name": "LICENSE",
+      "source_url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/LICENSE",
+      "bytes": 3235,
+      "sha256": "a0dc422560841fd68e06d974907f8b4c709bca44a67daad2b528437bdf676c08"
+    }
+  ],
+  "model_weights_downloaded": false,
+  "model": "qwen3.8-flash",
+  "accepted_basis": "Official model relationship and historical provider-usage comparison accepted by user on 2026-11-09"
+}

@@ -1,9 +1,4 @@
-"""
-internal/biz/entity.py — 领域对象（DO）
-
-biz 层操作的核心数据结构，用 dataclass 定义。
-与 API DTO（Pydantic Model）和持久化对象（PO）分离。
-"""
+"""业务对象和调用结果的数据结构；持久化转换与接口序列化由各自调用层完成。"""
 
 from __future__ import annotations
 
@@ -44,11 +39,7 @@ class User:
 
 @dataclass
 class KnowledgeBase:
-    """知识库领域对象 — 文档的容器。
-
-    原先只有 documents.knowledge_base_id 整数，没有实体表；
-    前端用 localStorage 自增 id，换设备/清缓存即丢，删除也不级联文档。
-    """
+    """知识库的业务对象，记录所有者、基本信息和默认嵌入及分块配置。"""
 
     id: int | None
     name: str
@@ -82,8 +73,7 @@ class Document:
     error_message: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
-    # 分块（向量）数量 — 由 data 层在 list_by_kb 时聚合注入，
-    # 避免前端逐文档请求 chunks 接口触发限流（heavy 限额 10/分钟）。
+    # 文档列表由仓储聚合分块总数及各嵌入状态数量，前端无需逐文档请求分块接口。
     stages: dict = field(default_factory=dict)
     chunk_count: int = 0
     embedding_pending_count: int = 0
@@ -103,13 +93,14 @@ class Chunk:
     document_id: int
     position: int           # 第几块（从 0 开始）
     content: str            # 分块文本内容
-    summary: str | None = None  # AI 生成的知识块摘要（解析时生成，可能为空）
-    related_questions: list[str] | None = None  # 可被该块回答的示例问句
+    summary: str | None = None  # 可选摘要，当前入库流程不生成。
+    related_questions: list[str] | None = None  # 可选关联问题，当前入库流程不生成。
     token_count: int = 0    # token 估算值（与分块器使用同一估算器）
     embedding_status: EmbeddingStatus = EmbeddingStatus.PENDING
     created_at: datetime | None = None
 
 
+# 保留每一路检索或重排的原始分数，便于追踪最终排序的依据。
 @dataclass(frozen=True)
 class SourceScore:
     kind: str
@@ -117,6 +108,7 @@ class SourceScore:
     method: str
 
 
+# 在检索器与业务层之间传递候选分块，业务层随后补齐正文和文档信息。
 @dataclass
 class RetrievedChunk:
     chunk_id: int
@@ -189,11 +181,7 @@ class EmbeddingUsage:
 
 @dataclass
 class EmbeddingResult:
-    """嵌入结果值对象
-
-    封装向量列表 + 模型元信息 + token 用量，
-    避免 Provider 接口丢失 usage 导致 Service 层只能估算。
-    """
+    """嵌入调用结果，包含按输入顺序排列的向量、模型名、维度及用量记录。"""
 
     vectors: list[list[float]]              # 向量列表，顺序与输入一致
     model: str                              # 使用的模型名称

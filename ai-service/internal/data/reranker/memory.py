@@ -1,21 +1,7 @@
-"""
-internal/data/reranker/memory.py — 内存重排序器实现
+"""按查询词在文件名和正文中的覆盖率，为检索结果重新评分。
 
-基于关键词重叠度（Keyword Overlap）打分，无需外部 API 依赖。
-
-打分逻辑：
-1. 对 query 分词：英文按单词；中文按连续二字（bigram），单字查询才退回单字。
-   若按中文单字打分，query="微服务架构" 会变成 {微,服,务,架,构}，
-   任何带「服务」的文档（FastAPI、systemd）都能拿到 40%+，把无关结果顶上来。
-2. 对每个 chunk 同时取「正文 chunk_content」+「文档标题/文件名 document_filename」分词，
-   计算查询词覆盖率(recall) = |query ∩ (正文∪标题)| / |query|。
-   英文词独立切分，保证 query="agent" 能命中标题 "Agent进入深水区后的十大趋势"。
-3. 字面无关键词命中时给极低的地板分：用归一化语义分映射到固定区间
-   [SEMANTIC_FLOOR_BASE, SEMANTIC_FLOOR_BASE+SEMANTIC_FLOOR_SPAN] = [0.001, 0.009]
-   （恒定低于检索阈值 min_relevance，默认 0.5）。
-   这样既保留 RAG 链路的语义相对排序（问句关键词稀疏时回退到语义序），
-   又确保无关文档仍低于全局阈值、被搜索链路过滤。
-4. 按 score 降序排序（同分稳定，保留原 RRF 顺序作为区分度）
+无词匹配时，将本批原始检索分映射到 0.001～0.009 以保留相对顺序。
+此实现不调用重排模型。
 """
 
 from __future__ import annotations
@@ -30,8 +16,9 @@ from internal.biz.repo import Reranker
 
 logger = structlog.get_logger()
 
-# 英文/数字按整词切；中文按连续字串切，再在打分时拆成二字。
+# 提取英文和数字词项。
 _EN_WORD = re.compile(r"[a-zA-Z0-9]+")
+# 提取连续中文片段。
 _ZH_RUN = re.compile(r"[\u4e00-\u9fff]+")
 
 if TYPE_CHECKING:
@@ -39,11 +26,7 @@ if TYPE_CHECKING:
 
 
 def _tokenize(text: str) -> set[str]:
-    """将文本分词并转为小写词集。
-
-    - 英文/数字：整词（"agent" 可命中 "Agent进入…" 标题）
-    - 中文：连续二字。单字查询才保留单字，避免「服/务」这种常见字误伤。
-    """
+    """提取小写英文和数字词；中文连续片段长度为 1 时保留单字，其余生成相邻双字组合。"""
     lowered = text.lower()
     tokens: set[str] = set(_EN_WORD.findall(lowered))
     for run in _ZH_RUN.findall(lowered):
@@ -56,15 +39,11 @@ def _tokenize(text: str) -> set[str]:
 
 
 class MemoryReranker(Reranker):
-    """内存重排序器 — 基于查询词覆盖率（recall）打分。
-
-    无需外部 API。
-    相同 query + content 始终产生相同 score，便于调试。
-    score 取值 0~1。
-    """
+    """不调用外部模型，按查询词覆盖率评分；无词匹配时依据本批原检索分生成低分。"""
 
     @property
     def model_name(self) -> str:
+        """返回本地词项覆盖率重排实现的标识。"""
         return "memory-reranker"
 
     async def rerank(
@@ -73,7 +52,7 @@ class MemoryReranker(Reranker):
         results: list[RetrievalResult],
         top_k: int | None = None,
     ) -> list[RetrievalResult]:
-        """基于查询词覆盖率（recall）+ 语义托底重排序。"""
+        """根据查询词在文件名与正文中的覆盖比例更新分数，稳定排序后按 top_k 选择返回项。"""
         if not results:
             return []
 
@@ -85,10 +64,9 @@ class MemoryReranker(Reranker):
                 for r in results
             ][: top_k if top_k else len(results)]
 
-        # 字面无关键词命中时的地板分：用「按 RRF 归一化的原始语义分」映射到
-        # [0.001, 0.009]，恒定低于检索阈值 min_relevance。
-        SEMANTIC_FLOOR_BASE = 0.001
-        SEMANTIC_FLOOR_SPAN = 0.008
+        # 无关键词匹配时，根据本批原始检索分的相对位置生成低分。
+        SEMANTIC_FLOOR_BASE = 0.001  # 映射区间起点。
+        SEMANTIC_FLOOR_SPAN = 0.008  # 区间宽度，最大映射值为 0.009。
 
         sem_scores = [r.score for r in results]
         sem_max = max(sem_scores)

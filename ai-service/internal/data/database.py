@@ -1,9 +1,4 @@
-"""
-internal/data/database.py — SQLAlchemy 异步引擎 & Session 工厂
-
-data 层基础设施 — 提供 AsyncEngine 和 async_sessionmaker。
-改 URL 即可在 SQLite 与 PostgreSQL 之间切换。
-"""
+"""根据数据库配置创建异步引擎和会话工厂；SQLite 不传入连接池容量参数。"""
 
 from __future__ import annotations
 
@@ -13,12 +8,7 @@ from internal.conf.config import DatabaseConfig
 
 
 def create_engine(config: DatabaseConfig) -> AsyncEngine:
-    """创建 SQLAlchemy AsyncEngine。
-
-    SQLite 和 PostgreSQL 的连接池参数不同：
-    - SQLite 不支持 pool_size（用 NullPool 或 StaticPool）
-    - PostgreSQL 支持 pool_size
-    """
+    """按 config.url 创建异步引擎；非 SQLite 连接设置 pool_size 和 max_overflow。"""
     engine_kwargs: dict = {"echo": config.echo}
 
     # SQLite 不用连接池参数
@@ -30,5 +20,5 @@ def create_engine(config: DatabaseConfig) -> AsyncEngine:
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-    """创建 async_sessionmaker — 每个请求独立 session。"""
+    """创建会话工厂；每次调用该工厂得到独立会话，提交后保留已加载属性。"""
     return async_sessionmaker(engine, expire_on_commit=False)

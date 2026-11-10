@@ -74,27 +74,33 @@ def response_dto(run: AnswerRun) -> RAGQueryResponse:
         web_directory=[asdict(entry) for entry in run.web_directory],
         retrieval_results=[retrieval_dto(hit) for hit in retrieval_results(run)],
         input_measurement=run.input_measurement,
+        counting=run.counting,
         estimated_input_tokens=run.usage.estimated_input_tokens,
         prompt_tokens=run.usage.prompt_tokens, completion_tokens=run.usage.completion_tokens,
     )
 
 
+# 对外提供同步和流式问答，统一保存执行记录并管理过期记录的清理任务。
 class RAGService:
     def __init__(self, rag_biz: RAGBiz, run_store: LocalAnswerRunStore) -> None:
+        """注入问答编排业务和本地运行快照存储，初始化后台清理任务引用。"""
         self._rag_biz = rag_biz
         self._store = run_store
         self._janitor: asyncio.Task | None = None
 
+    # 启动时清理过期记录，再开启周期清理任务。
     async def start(self) -> None:
         await asyncio.to_thread(self._store.cleanup)
         self._janitor = asyncio.create_task(self._clean_periodically())
 
+    # 服务关闭时取消并等待清理任务，避免留下后台协程。
     async def close(self) -> None:
         if self._janitor is not None:
             self._janitor.cancel()
             with suppress(asyncio.CancelledError):
                 await self._janitor
 
+    # 每小时清理过期快照，文件操作放在线程中执行以免阻塞问答。
     async def _clean_periodically(self) -> None:
         while True:
             await asyncio.sleep(3600)
@@ -112,6 +118,7 @@ class RAGService:
         observed: AnswerRun | None = None
 
         def observe(run: AnswerRun, event: RunEvent) -> None:
+            """保存当前运行对象供取消时写快照，并把事件转发给外部回调。"""
             nonlocal observed
             observed = run
             if on_event is not None:
@@ -125,11 +132,14 @@ class RAGService:
             finally:
                 if observed is not None:
                     snapshot = {
-                        "version": 5, "tool_contract_version": 2, "query": kwargs["query"],
+                        "version": 6, "tool_contract_version": 3, "query": kwargs["query"],
                         "web_pages": {source_id: asdict(page) for source_id, page in observed.web_pages.items()},
                         "evidence_selection": observed.evidence_selection,
                         "final_response": observed.final_response,
                         "final_request": observed.final_request,
+                        "model_requests": observed.model_requests,
+                        "counting": observed.counting,
+                        "token_limits": observed.token_limits,
                         "answer_contract_version": ANSWER_CONTRACT_VERSION,
                         "answer_claims": observed.answer_claims,
                         "started_at": observed.started_at,
@@ -141,6 +151,7 @@ class RAGService:
                                 "status": result.status,
                                 "errors": [asdict(error) for error in result.errors],
                                 "web_diagnostics": [asdict(item) for item in result.diagnostics],
+                                "budget_diagnostics": result.budget_diagnostics,
                                 "directory": [asdict(entry) for entry in result.directory],
                                 "matches": result.matches, "selection": result.selection,
                                 "sources": [source_dto(source).model_dump() for source in result.sources],
@@ -161,7 +172,8 @@ class RAGService:
         queue: asyncio.Queue[dict | None] = asyncio.Queue()
 
         def emit(run: AnswerRun, event: RunEvent) -> None:
-            payload = {"type": "event", "version": 5, "tool_contract_version": 2, "answer_contract_version": ANSWER_CONTRACT_VERSION, "run_id": run.run_id, **asdict(event)}
+            """把运行事件放入异步队列；来源更新事件同时转换引用和检索结果的接口结构。"""
+            payload = {"type": "event", "version": 6, "tool_contract_version": 3, "answer_contract_version": ANSWER_CONTRACT_VERSION, "run_id": run.run_id, "counting": run.counting, **asdict(event)}
             if event.kind == "sources_updated":
                 payload["data"] = {
                     **event.data,

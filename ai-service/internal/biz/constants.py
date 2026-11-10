@@ -1,8 +1,4 @@
-"""
-internal/biz/constants.py — 业务常量定义
-
-用 IntEnum 替代散落的魔法数字，提高可读性和可维护性。
-"""
+"""用户、文档解析、分块嵌入和知识库的状态枚举；数值与数据库记录对应。"""
 
 from __future__ import annotations
 
@@ -37,6 +33,9 @@ class EmbeddingStatus(IntEnum):
 class KbStatus(IntEnum):
     """知识库状态。"""
 
+    # 正常可用的知识库状态。
     NORMAL = 1
+    # 知识库归档状态，对应持久化状态值 2。
     ARCHIVED = 2
+    # 知识库索引重建中的状态，对应持久化状态值 3。
     REINDEXING = 3

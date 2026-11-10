@@ -1,12 +1,6 @@
-"""
-internal/data/embedding/memory.py — 内存 Embedding 实现
+"""将文本词频映射到固定向量桶并归一化，供离线演示使用。
 
-生成确定性伪向量，无需外部 API 依赖。
-相同文本始终生成相同向量，方便调试和测试。
-
-改为**词袋（Bag-of-Words）确定性向量**：分词 → 词频累加到哈希桶 → L2 归一化。
-这样含相同关键词的文本向量余弦相似度高（语义检索可用），且英文统一小写、
-中文按单字，天然大小写无关。
+相同输入生成相同向量，不调用嵌入模型，也不提供模型语义理解。
 """
 
 from __future__ import annotations
@@ -22,7 +16,7 @@ from internal.biz.repo import EmbeddingProvider
 
 logger = structlog.get_logger()
 
-# 英文/数字词 + 中文单字（与 BM25 分词口径保持一致，便于大小写无关召回）
+# 英文和数字按连续词串提取，中文按单字提取；英文统一转小写。
 _TOKEN_PATTERN = re.compile(r"[a-zA-Z0-9]+|[\u4e00-\u9fff]")
 
 
@@ -37,21 +31,20 @@ def _tokenize(text: str) -> list[str]:
 
 
 class MemoryEmbedding(EmbeddingProvider):
-    """内存 Embedding — 词袋（BoW）确定性伪向量。
-
-    无需 API Key；相同文本生成相同向量。
-    向量 = 词频在固定维度桶上的分布（L2 归一化），相同/相似文本 → 相近向量。
-    """
+    """将词频累加到固定维度的哈希桶并做 L2 归一化，生成确定性本地向量。"""
 
     def __init__(self, dimension: int = 256) -> None:
+        """设置本地哈希向量的分量数量，不加载外部嵌入模型。"""
         self._dimension = dimension
 
     @property
     def dimension(self) -> int:
+        """返回本地哈希向量的固定分量数量。"""
         return self._dimension
 
     @property
     def model_name(self) -> str:
+        """返回本地实现的固定标识，供日志和配置核对使用。"""
         return "memory-embedding"
 
     async def embed(self, texts: list[str]) -> EmbeddingResult:

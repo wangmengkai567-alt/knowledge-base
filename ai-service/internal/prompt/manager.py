@@ -1,16 +1,7 @@
-"""
-internal/prompt/manager.py — PromptManager 模板管理器
+"""从目录加载 YAML 提示模板，按模板声明的名称缓存并提供查询。
 
-职责：
-- 启动时从 YAML 目录批量加载模板
-- 支持按名称获取模板（带内存缓存）
-- 提供 list_templates() 查询可用模板
-- 支持热重载（reload）
-
-设计：
-- 加载阶段：扫描 template_dir 下所有 *.yaml 文件 → 解析为 PromptTemplate
-- 运行阶段：get_template(name) 从缓存返回，无缓存则重新加载
-- 错误处理：加载失败记录日志，不阻塞启动（降级到空模板库）
+单文件加载失败时记录错误并继续处理其他文件；获取不存在的模板时抛出 KeyError。
+模板变化后需显式调用 reload，不会因缓存未命中自动重载。
 """
 
 from __future__ import annotations
@@ -39,10 +30,7 @@ class PromptManager:
         self._loaded = False
 
     def load_all(self) -> None:
-        """加载目录下所有 YAML 模板。
-
-        启动时调用一次，失败不阻塞（记录日志后降级）。
-        """
+        """扫描目录并缓存成功解析的 YAML 模板；目录缺失或单文件失败时记录日志，不自动生成替代模板。"""
         if not self._template_dir.exists():
             logger.warning(
                 "prompt_template_dir_not_found",
@@ -124,22 +112,7 @@ class PromptManager:
         logger.info("prompt_templates_reloaded", count=len(self._templates))
 
     def _load_single(self, yaml_file: Path) -> PromptTemplate:
-        """加载单个 YAML 模板文件。
-
-        YAML 格式：
-        ```yaml
-        name: chat
-        description: 通用对话模板
-        variables:
-          - query
-        system_prompt: |
-          你是一个 AI 助手...
-        user_template: |
-          {{ query }}
-        metadata:
-          version: "1.0"
-        ```
-        """
+        """读取一个 UTF-8 YAML 文件，要求其为映射且包含 name、system_prompt，再构造 PromptTemplate。"""
         with open(yaml_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 

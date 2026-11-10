@@ -7,6 +7,7 @@ import ssl
 import httpx
 
 
+# 将网络异常归类为可展示的故障信息，不向外返回可能包含敏感内容的异常原文。
 def transport_failure(exc: httpx.HTTPError, phase: str) -> tuple[str, str, str]:
     cause = exc
     while cause is not None:
