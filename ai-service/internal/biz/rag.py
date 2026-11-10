@@ -65,7 +65,7 @@ _COVERAGE_PREFIX = (
 _BUDGET_STOPS = frozenset({"model_call_limit", "tool_call_limit", "input_budget", "token_budget"})
 # 网页读取发生这些错误时保留失败记录，允许在剩余预算内使用其他来源，并在最终答案附上提示。
 _WEB_READ_FAILURES = frozenset({
-    "TOOL_INVALID_RESPONSE", "TOOL_DEPENDENCY_FAILED", "WEB_CONTENT_EMPTY",
+    "TOOL_TIMEOUT", "TOOL_INVALID_RESPONSE", "TOOL_DEPENDENCY_FAILED", "WEB_CONTENT_EMPTY",
     "WEB_UNSUPPORTED_CONTENT", "WEB_REDIRECT_FAILED", "TOOL_RESPONSE_TOO_LARGE",
 })
 
